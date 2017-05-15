@@ -1,0 +1,23 @@
+{
+  "name": "js-sdk",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack",
+    "lint": "eslint src",
+    "test": "yarn lint && mocha 'test/*.js'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-config-airbnb-base": "^11.1.3",
+    "eslint-plugin-import": "^2.2.0",
+    "mocha": "^3.3.0",
+    "sinon": "^2.2.0",
+    "webpack": "^2.5.1",
+    "webpack-dev-middleware": "^1.10.2"
+  }
+}
