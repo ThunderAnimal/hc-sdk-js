@@ -52,8 +52,11 @@ class ZeroKitAdapter {
 	}
 
 	login(zKitLoginObject, hcUserName) {
-		zKitLoginObject.login(hcUserName).then((zKitUsername) => {
-			console.log(`logged in as ${zKitUsername}`);
+		capellaRoutes.resolveUserId(hcUserName).then((res) => {
+			return zKitLoginObject.login(res.user.zerokit_id);
+		})
+		.then((zKitId) => {
+			console.log(`logged in as ${zKitId}`);
 		}).catch((error) => {
 			console.log(error);
 		});
