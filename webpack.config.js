@@ -1,16 +1,23 @@
-var webpack = require('webpack');
+let webpack = require('webpack');
+let path = require('path');
 
-module.exports = {
 
-	entry: __dirname + '/src/index.js',
-
+let config = {
+	entry: `${__dirname}/src/HealthCloud.js`,
+	devtool: 'source-map',
 	output: {
-		filename: 'healthcloud-sdk.js',
-		path: __dirname + '/dist'
+		path: `${__dirname}/dest`,
+		filename: 'healthcloud_sdk.js',
+		library: 'healthcloud_sdk',
+		libraryTarget: 'umd',
+		umdNamedDefine: true,
 	},
-
-	plugins: [
-		new webpack.optimize.OccurrenceOrderPlugin()
-	]
-
+	module: {
+		loaders: [{
+			test: /.js$/,
+			loader: 'babel-loader',
+		}],
+	},
 };
+
+module.exports = config;
