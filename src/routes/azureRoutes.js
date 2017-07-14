@@ -1,4 +1,4 @@
-import hcRequest from './hcRequest';
+import hcRequest from '../hcRequest';
 
 const azureRoutes = {};
 
@@ -11,7 +11,7 @@ azureRoutes.uploadDocument = function (sasUrl, blobString) {
 		content: blobString,
 	};
 
-	return hcRequest('POST', sasUrl, body);
+	return hcRequest('PUT', sasUrl, body, 'blob');
 };
 
-export default azureRoutes;
+module.exports = azureRoutes;

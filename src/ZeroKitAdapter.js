@@ -1,10 +1,13 @@
-import capellaRoutes from './capellaRoutes';
-import zkitRoutes from './zkitRoutes';
+import capellaRoutes from './routes/capellaRoutes';
+import sessionHandler from './services/SessionHandler';
+import User from './models/User';
+import Auth from './services/Auth';
 
 class ZeroKitAdapter {
 
-	constructor() {
+	constructor(options) {
 		this.queue = [];
+		this.auth = new Auth(options);
 
 		let script = document.createElement('script');
 		script.src = 'https://lcr5rln4b6.api.tresorit.io/static/v4/zkit-sdk.js';
@@ -53,9 +56,10 @@ class ZeroKitAdapter {
 
 	login(zKitLoginObject, hcUserName) {
 		capellaRoutes.resolveUserId(hcUserName).then((res) => {
+			sessionHandler.set('HC_User', res.user.id);
 			return zKitLoginObject.login(res.user.zerokit_id);
-		})
-		.then((zKitId) => {
+		}).then((zKitId) => {
+			this.auth.signIn();
 			console.log(`logged in as ${zKitId}`);
 		}).catch((error) => {
 			console.log(error);
@@ -93,14 +97,15 @@ class ZeroKitAdapter {
 
 	register(zKitRegistrationObject, hcUserName) {
 		capellaRoutes.initRegistration(hcUserName)
-			.then(function (res) {
+			.then((res) => {
 				this.zKitId = res.zerokit_id;
 				return zKitRegistrationObject.register(res.zerokit_id, res.session_id);
-			}.bind(this))
-			.then(function (res) {
-				return capellaRoutes.validateRegistration(res.RegValidationVerifier, this.zKitId);
-			}.bind(this))
+			})
+			.then(res => capellaRoutes.validateRegistration(res.RegValidationVerifier, this.zKitId))
+			.then(res => capellaRoutes.resolveUserId(hcUserName))
 			.then((res) => {
+				sessionHandler.set('HC_User', res.user.id);
+				this.auth.signIn();
 				console.log('registered new user');
 			})
 			.catch((error) => {
@@ -109,9 +114,9 @@ class ZeroKitAdapter {
 	}
 
 	encrypt(string) {
-		let tresorId = '0000armv60emmos7sirglqoq';
+		let tresorId = '';
 		// TODO get the tresorId somehow
-		zkit_sdk.encrypt(tresorId, string);		// eslint-disable-line camelcase
+		return zkit_sdk.encrypt(tresorId, string);		// eslint-disable-line camelcase
 	}
 
 	decrypt(encryptedData) {

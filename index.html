@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TestApp</title>
+    <script src="dest/healthcloud_sdk.js"></script>
+</head>
+<body>
+<div id="gesundheitslogin"></div>
+
+<script>
+    var HC = new healthcloud_sdk({
+        "clientId":"1"
+    });
+//    HC.getLoginFrame(document.getElementById("gesundheitslogin"));
+    HC.getRegistrationFrame(document.getElementById("gesundheitslogin"));
+    HC.getDocument('k8hofmann','0003');
+//    HC.uploadDocument('k8hofmann','0003','random')
+</script>
+</body>
+
+</html>

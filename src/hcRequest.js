@@ -1,5 +1,6 @@
 import request from 'superagent';
 import Promise from 'es6-promise';
+import sessionHandler from './services/SessionHandler';
 
 let buildCustomError = function (error, response) {
 	return {
@@ -9,7 +10,7 @@ let buildCustomError = function (error, response) {
 	};
 };
 
-const hcRequest = function (type, path, body) {
+const hcRequest = function (type, path, body, requestType) {
 	let promiseFunction = (resolve, reject) => {
 		function success(data) {
 			if (resolve) {
@@ -27,16 +28,27 @@ const hcRequest = function (type, path, body) {
 			if (error) {
 				failure(buildCustomError(error, response));
 			} else {
-				success(response.body);
+                // response.text used for downloaded documents from
+				// sasurl where data is not returned as json
+				success(response.body || response.text);
 			}
 		}
 
-		request(type, path).send(body)
-			.responseType('json')
+		let req = request(type, path);
+
+		if (requestType === 'form') {
+			req.set('Content-Type', 'application/x-www-form-urlencoded');
+		}		else if (requestType === 'blob') {
+			req.set('x-ms-blob-type', 'BlockBlob');
+		}
+
+		req.send(body)
+			// .responseType('json')
 			.end(responseHandler);
 	};
 
 	return new Promise(promiseFunction);
 };
 
-export default hcRequest;
+
+module.exports = hcRequest;

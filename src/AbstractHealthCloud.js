@@ -7,4 +7,4 @@ class AbstractHealthCloud {
 	}
 }
 
-export default AbstractHealthCloud;
+module.exports = AbstractHealthCloud;
