@@ -3,6 +3,10 @@ node_js:
   - '7'
   - '6'
 cache: yarn
+before_install:
+  - export CHROME_BIN=chromium-browser
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 notifications:
   slack:
     secure: "U12cDibXLhyPxkY7dOw9/qMSQ0O4gzgELf18RuQLFVWSM9A61ACzUrYt7+JT9tn/+kNwyxOFsxkU35pWC+v9vl0u6OsOIceyOiMikwIbVVvhQrG51pE9kVW6tP/xhakUSrs0cHJqBN8OcviQbWp2nf+Z9YPJFrNOIgNipKNdiLBOXh4calxP4cNAOd5IIzB5Ouk6B5bRHcyOb2K0RNjUHpsDQbIq+/VPCNbpCS9G7Taf5CUjdFZFdViHBiQsZvmywpm+fO1fCdzi/b4Rwo+fiHVz7rumGF0UkcBMnw03QB6+hxU0TnmO8o1wJ4Ej0UyUtnszwOAsnThi9lL17YBI7YhcTZOlhF+DXmL4mD6hklhnhioL4vQvo7KZ2LWYDaD0SG5oHw4kGfy3mm28oVpaF9Dyh27oFmNeUFGwqcmqSSxK4txkuApQJWlgQ5pI4K8U66uICKchgNwkU3V18CLB6S52uhOT3Tt2ngE1112ymUwEWqy7KnPorKmetfRSD9oKILTKaCkkP93pF80YLKaZtQ5i3G9jQ0juEfYeXgRouY4r6f03Tw+1IK38yS3iMPt+pC24EQGc6ukq+gF6zd6+BUoIP4ITaCtUA49J6+NOXRfGUuw9V0tQWY/P6cod9SMK7LkhTtMA3iiMBoJq1RXdQTv1IaN20+kNbxbgAQkOTsM="

@@ -1,17 +1,17 @@
-import hcRequest from '../hcRequest';
+import hcRequest from '../lib/hcRequest';
 
-const azureRoutes = {};
+const azureRoutes = {
 
-azureRoutes.getDocument = function (sasUrl) {
-	return hcRequest('GET', sasUrl);
+	downloadDocument(sasUrl) {
+		return hcRequest('GET', sasUrl);
+	},
+
+	uploadDocument(sasUrl, blobString) {
+		const body = { content: blobString };
+
+		return hcRequest('PUT', sasUrl, body, { 'x-ms-blob-type': 'BlockBlob' });
+	},
+
 };
 
-azureRoutes.uploadDocument = function (sasUrl, blobString) {
-	let body = {
-		content: blobString,
-	};
-
-	return hcRequest('PUT', sasUrl, body, 'blob');
-};
-
-module.exports = azureRoutes;
+export default azureRoutes;
