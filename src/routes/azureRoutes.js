@@ -8,8 +8,8 @@ const azureRoutes = {
 
 	uploadDocument(sasUrl, blobString) {
 		const body = { content: blobString };
-
-		return hcRequest('PUT', sasUrl, body, { 'x-ms-blob-type': 'BlockBlob' });
+		const headers = { 'x-ms-blob-type': 'BlockBlob' };
+		return hcRequest('PUT', sasUrl, body, { headers });
 	},
 
 };

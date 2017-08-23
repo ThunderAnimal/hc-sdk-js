@@ -25,22 +25,34 @@ describe('hcRequest', () => {
 	});
 
 	it('hcRequest passes when api sends successful response', (done) => {
+		requestSendStub = sinon.stub().returnsPromise().resolves(
+			{ ok: true, body: { status: '201' } },
+		);
+
 		requestSetStub = sinon.stub().returns({
 			send: requestSendStub,
-			set: requestSetStub,
+			set: sinon.stub().returns({
+				send: requestSendStub,
+				set: this,
+				query: this,
+			}),
+			query: sinon.stub().returns({
+				send: requestSendStub,
+				set: this,
+				query: this,
+			}),
 		});
 
-		requestSendStub = sinon.stub().returns({
-			end: (cb) => {
-				cb(null, { ok: true, body: { status: '201' } });
-			},
-		});
+
 		requestStub = sinon.stub().returns({
 			set: requestSetStub,
 			send: requestSendStub,
+			query: requestSetStub,
 		});
 
-		hcRequest = proxyquire('../../src/lib/hcRequest', { superagent: requestStub }).default;
+		hcRequest = proxyquire('../../src/lib/hcRequest', {
+			'superagent-bluebird-promise': requestStub,
+		}).default;
 		hcRequest('POST', 'path').then((res) => {
 			expect(res.status).to.equal('201');
 			expect(requestStub).to.be.calledWith('POST');
@@ -50,24 +62,28 @@ describe('hcRequest', () => {
 	});
 
 	it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
-		requestSetStub = sinon.stub().returns({
-			send: requestSendStub,
-			set: requestSetStub,
-		});
-
 		requestSendStub = sinon.stub();
 
-		requestSendStub.onCall(0).returns({
-			end: (cb) => {
-				cb({ status: '401', message: 'Your Authorization Token has expired' });
-			},
+		requestSendStub.returnsPromise().onCall(0).rejects({
+			status: '401', message: 'Your Authorization Token has expired',
+		});
+		requestSendStub.returnsPromise().onCall(1).resolves({ ok: true, body: { status: '201' } });
+
+
+		requestSetStub = sinon.stub().returns({
+			send: requestSendStub,
+			set: sinon.stub().returns({
+				send: requestSendStub,
+				set: this,
+				query: this,
+			}),
+			query: sinon.stub().returns({
+				send: requestSendStub,
+				set: this,
+				query: this,
+			}),
 		});
 
-		requestSendStub.onCall(1).returns({
-			end: (cb) => {
-				cb(null, { ok: true, body: { status: '201' } });
-			},
-		});
 
 		requestStub = sinon.stub().returns({
 			set: requestSetStub,
@@ -90,7 +106,7 @@ describe('hcRequest', () => {
 			'../routes/authRoutes': {
 				default: { getRefreshTokenFromCode: getRefreshTokenStub },
 			},
-			superagent: requestStub,
+			'superagent-bluebird-promise': requestStub,
 		}).default;
 
 		hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId')

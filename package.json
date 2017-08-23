@@ -22,7 +22,8 @@
     "babel-core": "^6.24.1",
     "es6-promise": "^4.1.0",
     "json-server": "^0.10.3",
-    "superagent": "^3.5.2"
+    "superagent": "^3.5.2",
+    "superagent-bluebird-promise": "^4.2.0"
   },
   "devDependencies": {
     "babel-loader": "^7.1.1",

@@ -75,9 +75,9 @@ class Auth {
 		}
 	}
 
-	getCodeAndStateFromHash(queryString) {
-		const code = this.getCodeFromString(queryString, 'code');
-		const state = this.getCodeFromString(queryString, 'state');
+	getCodeAndStateFromHash(string) {
+		const code = this.getCodeFromString(string, 'code');
+		const state = this.getCodeFromString(string, 'state');
 
 		return { code, state };
 	}

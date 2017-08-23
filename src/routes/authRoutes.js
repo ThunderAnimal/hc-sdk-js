@@ -7,23 +7,22 @@ const authUrl = config.api.auth;
 const authRoutes = {
 
 	getAccessTokenFromCode(body) {
-		const options = {
+		const headers = {
 			'Content-Type': 'application/x-www-form-urlencoded',
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${authUrl}/auth/token`, body, options);
+		return hcRequest('POST', `${authUrl}/auth/token`, body, { headers });
 	},
 
 	getRefreshTokenFromCode(body) {
-		const options = {
+		const headers = {
 			'Content-Type': 'application/x-www-form-urlencoded',
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${authUrl}/auth/token`, body, options);
+		return hcRequest('POST', `${authUrl}/auth/token`, body, { headers });
 	},
-
 };
 
 export default authRoutes;
