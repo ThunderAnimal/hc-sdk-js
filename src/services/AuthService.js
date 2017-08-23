@@ -17,7 +17,7 @@ class Auth {
 			iframe.onload = this.handleIframe.bind(this, iframe, (error, queryString) => {
 				if (error) return reject(error);
 
-				sessionHandler.set('HC_Id', this.getCodeFromString(queryString, 'token'));
+				sessionHandler.set('HC_Id', this.getCodeFromString(queryString, 'auth_token'));
 				this.authorize()
 					.then(res => resolve(res))
 					.catch(err => reject(err));
@@ -43,13 +43,13 @@ class Auth {
 					.catch(err => reject(err));
 			});
 
-			iframe.src = String.raw`${config.api.auth}/auth/authorize?
+			iframe.src = String.raw`${config.api.auth}/auth/auth?				
 				client_id=${encodeURIComponent(this.clientId)}&
 				redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&
 				response_type=code&
 				scope=everything&
-				user_id=${UserService.getUserId()}&
-				state=${this.signInState}`;
+				state=${this.signInState}#
+				${sessionHandler.get('HC_Id')}`;
 
 			document.body.appendChild(iframe);
 		});

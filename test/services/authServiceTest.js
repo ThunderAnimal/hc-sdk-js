@@ -59,7 +59,7 @@ describe('Auth', () => {
 		const handleIframeStub = sinon.stub(auth, 'handleIframe');
 		handleIframeStub
 			.onCall(0)
-			.yields(null, 'token=kjhdshcsjkhcfs');
+			.yields(null, 'auth_token=kjhdshcsjkhcfs');
 		handleIframeStub
 			.onCall(1)
 			.yields(null, `code=kjhdshcsjkhcfs&state=${config.signinState}`);
@@ -74,7 +74,7 @@ describe('Auth', () => {
 
 	it('idpLogin returns error when token api returns error', (done) => {
 		const handleIframeStub = sinon.stub(auth, 'handleIframe');
-		handleIframeStub.onCall(0).yields(null, 'token=kjhdshcsjkhcfs');
+		handleIframeStub.onCall(0).yields(null, 'auth_token=kjhdshcsjkhcfs');
 		handleIframeStub.onCall(1).yields('failed');
 		auth.idpLogin().catch((err) => {
 			expect(err).to.equal('failed');
