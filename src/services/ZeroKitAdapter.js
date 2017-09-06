@@ -2,8 +2,8 @@ import userRoutes from '../routes/userRoutes';
 import config from '../config';
 import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
-import loginForm from '../templates/loginForm';
-import registrationForm from '../templates/registrationForm';
+import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
+import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
 
 
 class ZeroKitAdapter {
@@ -38,11 +38,11 @@ class ZeroKitAdapter {
 
 		parentElement.appendChild(loginForm);
 		const zKitLoginObject =
-			zkit_sdk.getLoginIframe(document.getElementById('zkitLogin'));
+			zkit_sdk.getLoginIframe(document.getElementById(loginFormIds.zkitLogin));
 
 		const submit = function (zKitLogin, cb, event) {
 			event.preventDefault();
-			this.login(zKitLogin, document.getElementById('hcUsernameLogin').value, cb);
+			this.login(zKitLogin, document.getElementById(loginFormIds.hcUsernameLogin).value, cb);
 		};
 
 		loginForm.onsubmit = submit.bind(this, zKitLoginObject, callback);
@@ -82,11 +82,12 @@ class ZeroKitAdapter {
 
 		parentElement.appendChild(registrationForm);
 		const zKitRegistrationObject =
-			zkit_sdk.getRegistrationIframe(document.getElementById('zkitRegistration'));
+			zkit_sdk.getRegistrationIframe(
+				document.getElementById(registrationFormIds.zkitRegistration));
 
 		const submit = function (zKitRegistration, cb, event) {
 			event.preventDefault();
-			const userName = document.getElementById('hcUsernameRegister').value;
+			const userName = document.getElementById(registrationFormIds.hcUsernameRegister).value;
 			return this.register(zKitRegistration, userName, cb);
 		};
 
