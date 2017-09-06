@@ -18,11 +18,11 @@ To use the SDK, you need to create a client id from GesundheitsCloud. Please get
 In the directory run:
  ```
  npm install
- ``` 
- 
+ ```
+
 This SDK uses webpack for its bundling task.
 Building the SDK bundle is done with :
- 
+
  ```bash
  npm run build
 ```
@@ -36,9 +36,9 @@ Import the built file in your project to start using the SDK.
 Note: Edit the config.js file accordingly in case of any change in dependent api urls(eg. capella, sirius, arcturus) and build the sdk. Cuurently the config for staging urls looks like:
 ```javascript
         {
-            auth: 'https://staging.hpi.de',
-            document: 'https://staging.hpi.de',
-            user: 'https://staging.hpi.de',
+            auth: 'https://staging.hpihc.de',
+            document: 'https://staging.hpihc.de',
+            user: 'https://staging.hpihc.de',
         }
 ```
 

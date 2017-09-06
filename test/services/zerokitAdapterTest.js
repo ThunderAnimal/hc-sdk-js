@@ -9,6 +9,8 @@ import sinonChai from 'sinon-chai';
 import UserService from '../../src/services/UserService';
 import userRoutes from '../../src/routes/userRoutes';
 import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
+import loginForm from '../../src/templates/loginForm';
+import registrationForm from '../../src/templates/registrationForm';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -21,7 +23,6 @@ describe('zerokitAdapter', () => {
 	let userRoutesResolveUserIdStub;
 	let zKitLoginObject;
 	let zKitRegisterObject;
-	let docElement;
 
 	beforeEach(() => {
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
@@ -40,13 +41,7 @@ describe('zerokitAdapter', () => {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
 
 		};
-		docElement = {
-			querySelector: sinon.spy(),
-			addEventListener: sinon.stub().yields(),
 
-		};
-
-		window.document.createElement = sinon.stub().returns(docElement);
 		window.document.getElementsByTagName = sinon.stub().returns([{ appendChild: sinon.spy() }]);
 		window.document.getElementById = sinon.stub().returns({});
 
@@ -234,42 +229,7 @@ describe('zerokitAdapter', () => {
 			expect(loginStub).to.be.calledOnce;
 			done();
 		});
-		docElement.onsubmit({ preventDefault: sinon.spy() });
-	});
-
-	it('getRegisterForm succeeds', (done) => {
-		const registerStub =
-			sinon.stub(zerokitAdapter, 'register')
-				.yields(null, { user_name: 'userName' });
-		const parentElement = { appendChild: sinon.stub() };
-		zerokitAdapter.getRegistrationForm(parentElement, () => {
-			expect(registerStub).to.be.calledOnce;
-			done();
-		});
-		docElement.onsubmit({ preventDefault: sinon.spy() });
-	});
-
-	it('getRegisterForm succeeds when zkit_sdk is undefined', (done) => {
-		window.zkit_sdk = undefined;
-		const registerStub =
-			sinon.stub(zerokitAdapter, 'register')
-				.yields(null, { user_name: 'userName' });
-		const parentElement = { appendChild: sinon.stub() };
-		zerokitAdapter.getRegistrationForm(parentElement, () => {
-			expect(registerStub).to.be.calledOnce;
-			done();
-		});
-		window.zkit_sdk = {
-			getLoginIframe: sinon.stub().returns(zKitLoginObject),
-			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
-			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
-			setup: sinon.stub(),
-			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
-
-		};
-		zerokitAdapter.handleQueue();
-		docElement.onsubmit({ preventDefault: sinon.spy() });
+		loginForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
 	it('getLoginForm succeeds when zkit_sdk is undefined', (done) => {
@@ -292,7 +252,42 @@ describe('zerokitAdapter', () => {
 
 		};
 		zerokitAdapter.handleQueue();
-		docElement.onsubmit({ preventDefault: sinon.spy() });
+		loginForm.onsubmit({ preventDefault: sinon.spy() });
+	});
+
+	it('getRegisterForm succeeds', (done) => {
+		const registerStub =
+			sinon.stub(zerokitAdapter, 'register')
+				.yields(null, { user_name: 'userName' });
+		const parentElement = { appendChild: sinon.stub() };
+		zerokitAdapter.getRegistrationForm(parentElement, () => {
+			expect(registerStub).to.be.calledOnce;
+			done();
+		});
+		registrationForm.onsubmit({ preventDefault: sinon.spy() });
+	});
+
+	it('getRegisterForm succeeds when zkit_sdk is undefined', (done) => {
+		window.zkit_sdk = undefined;
+		const registerStub =
+			sinon.stub(zerokitAdapter, 'register')
+				.yields(null, { user_name: 'userName' });
+		const parentElement = { appendChild: sinon.stub() };
+		zerokitAdapter.getRegistrationForm(parentElement, () => {
+			expect(registerStub).to.be.calledOnce;
+			done();
+		});
+		window.zkit_sdk = {
+			getLoginIframe: sinon.stub().returns(zKitLoginObject),
+			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
+			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
+			setup: sinon.stub(),
+			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
+			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
+
+		};
+		zerokitAdapter.handleQueue();
+		registrationForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
 	afterEach(() => {

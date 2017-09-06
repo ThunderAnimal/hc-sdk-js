@@ -2,6 +2,8 @@ import userRoutes from '../routes/userRoutes';
 import config from '../config';
 import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
+import loginForm from '../templates/loginForm';
+import registrationForm from '../templates/registrationForm';
 
 
 class ZeroKitAdapter {
@@ -34,17 +36,9 @@ class ZeroKitAdapter {
 			return;
 		}
 
-		const loginForm = document.createElement('form');
-
-		loginForm.innerHTML = `
-			<input type="text" id="hcUsernameLogin" placeholder="Nutzername">
-			<div id="zkitLogin"/></div>
-			<button>Einloggen</button>
-		`;
-
 		parentElement.appendChild(loginForm);
-
-		const zKitLoginObject = zkit_sdk.getLoginIframe(document.getElementById('zkitLogin'));
+		const zKitLoginObject =
+			zkit_sdk.getLoginIframe(document.getElementById('zkitLogin'));
 
 		const submit = function (zKitLogin, cb, event) {
 			event.preventDefault();
@@ -86,16 +80,7 @@ class ZeroKitAdapter {
 			return;
 		}
 
-		const registrationForm = document.createElement('form');
-
-		registrationForm.innerHTML = `
-			<input type="text" id="hcUsernameRegister" placeholder="Nutzername">
-			<div id="zkitRegistration"></div>
-			<button>Registrieren</button>
-		`;
-
 		parentElement.appendChild(registrationForm);
-
 		const zKitRegistrationObject =
 			zkit_sdk.getRegistrationIframe(document.getElementById('zkitRegistration'));
 
