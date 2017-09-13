@@ -202,7 +202,7 @@ describe('zerokitAdapter', () => {
 						tresor_id: 'fakeTresorId',
 					},
 				});
-
+		UserService.user = undefined;
 		const getUserIdStub = sinon.stub(UserService, 'getUserId').returns('fakeUserId');
 		const getUserNameStub = sinon.stub(UserService, 'getUserName').returns('fakeUserName');
 		zerokitAdapter.encrypt('doc').then((res) => {

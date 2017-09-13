@@ -35,6 +35,12 @@ const userRoutes = {
 		return hcRequest('POST', `${userUrl}/tresors`, body);
 	},
 
+	addTagEncryptionKey(userId, secret) {
+		const body = { tek: secret };
+
+		return hcRequest('POST', `${userUrl}/users/${userId}/tek`, body);
+	},
+
 };
 
 export default userRoutes;

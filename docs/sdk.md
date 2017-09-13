@@ -149,6 +149,41 @@ In the case of any error in uploading and downloading documents, the format is:
     }
 ```
 
+### Upload a FHIR resource
+
+To upload a record into Gesundheitscloud call: 
+```javascript
+    uploadFhirRecord(fhirJson, tags)
+```
+The record should given as a Json object according to the FHIR standart.
+Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html). 
+``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
+It is important to note, that all tags are also stored encrypted.
+
+### Download a FHIR record
+
+To download a record from Gesundheitscloud call:
+```javascript
+    downloadFhirRecord(recordId)
+```
+
+This returns a promise that resolves to an object that contains ``tags`` and ``body``.
+Thereby ``tags`` is an array of strings that contains not only the custom but automatically created tags and ``body`` is the json object, that has been uploaded.
+
+### Search for Records
+
+``searchRecords(params)`` can be used to get all records that match the criteria given in params. 
+Thereby params is an object that can contain multiple criteria.
+
+```
+ user_id (optional, string) ... ID of user whose records are to be searched. Several can be provided and separated by commas.
+ limit (optional, number) ... Maximum number of records to retrieve. Defaults to some sensible value (20?) if no value is provided. Has a sensible max (100?).
+ offset (optional, number) ... Number of records to skip when retrieving. Defaults to 0 if no value is provided.
+ start_date (optional, date) ... Earliest date for which to return records
+ end_date (optional, date) ... Latest date for which to return records
+ tags (optional, array of strings) ... Tags on which to search. Only records that have all the provided tags are returned.
+```
+
 ### Sample Code
 #### For uploading the document
 

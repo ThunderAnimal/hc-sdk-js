@@ -19,7 +19,7 @@ describe('Auth', () => {
 	let auth;
 	let getAccessTokenFromCodeStub;
 	let accessTokenObject;
-
+	config.api.auth = 'http://fakeUrl';
 
 	beforeEach(() => {
 		auth = new Auth({ clientId: '1', userId: '3213' });

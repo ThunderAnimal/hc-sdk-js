@@ -2,14 +2,12 @@ import request from 'superagent-bluebird-promise';
 import sessionHandler from './sessionHandler';
 import authRoutes from '../routes/authRoutes';
 
-const buildCustomError = function (error) {
-	return {
-		status: error.status,
-		error: error.body || error,
-	};
-};
+const buildCustomError = error => ({
+	status: error.status,
+	error: error.body || error,
+});
 
-const sendRefreshToken = function () {
+const sendRefreshToken = () => {
 	const params = {
 		refresh_token: sessionHandler.get('HC_Refresh'),
 		grant_type: 'refresh_token',
@@ -23,20 +21,20 @@ const sendRefreshToken = function () {
 		});
 };
 
-const isAuthorisedPath = path => path.includes('document');
+const isAuthorisedPath = path => ['documents', 'records'].some(el => path.includes(el));
 
 const isExpired = error => error.status === '401' && error.message.includes('expired');
 
-const hcRequest = function (type, path, body, options = { query: {}, headers: {} }) {
+const hcRequest = function (type, path, body, { query = {}, headers = {} } = {}) {
 	let retries = 0;
 
 	if (isAuthorisedPath(path))	{
-		options.headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
+		headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
 	}
 
 	const promise = () => request(type, path)
-		.set(options.headers)
-		.query(options.query)
+		.set(headers)
+		.query(query)
 		.send(body)
 		.then(res => res.body || res.text)
 		.catch((err) => {

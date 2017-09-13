@@ -65,7 +65,4 @@ describe('user Routes', () => {
 		});
 		requestStub.reset();
 	});
-
-	afterEach(() => {
-	});
 });

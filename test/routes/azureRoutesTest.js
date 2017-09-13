@@ -67,7 +67,4 @@ describe('azureRoutes', () => {
 		});
 		requestStub.reset();
 	});
-
-	afterEach(() => {
-	});
 });

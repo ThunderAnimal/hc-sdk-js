@@ -83,6 +83,45 @@ describe('documentRoutes', () => {
 		requestStub.reset();
 	});
 
-	afterEach(() => {
+	it('uploadRecord passes', (done) => {
+		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
+			'../lib/hcRequest': { default: requestStub.resolves('pass') },
+		}).default;
+
+		const params = {
+			record_id: 'fakeRecordId',
+			date: '2017-08-01',
+			user_id: 'fakeUserIId',
+			encrypted_body: 'fakeEncryptedBody',
+			encrypted_tags: [
+				'uzydrHX/3gGWZdZ69LizEA==',
+				'+AJ9MhikiHxSX8sD3qdurw==',
+			],
+			version: 1,
+			status: 'Active',
+			createdAt: '2017-09-01T13:51:53.741',
+		};
+
+		documentRoutes.uploadRecord(params).then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('POST');
+			done();
+		});
+		requestStub.reset();
+	});
+
+	it('downloadRecord passes', (done) => {
+		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
+			'../lib/hcRequest': { default: requestStub.resolves('pass') },
+		}).default;
+
+		documentRoutes.downloadRecord('fakeRecordId').then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('GET');
+			done();
+		});
+		requestStub.reset();
 	});
 });

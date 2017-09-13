@@ -1,8 +1,13 @@
 const config = {
 	api: {
-		auth: 'http://localhost:8080',
-		document: 'http://localhost:8888',
-		user: 'http://localhost:8081',
+		auth: 'https://staging.hpihc.de',
+		document: 'https://staging.hpihc.de',
+		user: 'https://staging.hpihc.de',
+		data: 'https://staging.hpihc.de',
+	},
+	encryption: {
+		iv: 'aefb3e605a033fb43c747c75b3b595a3',
+		keySize: 128,
 	},
 	signinState: 'pkyyf',
 	zkit: {

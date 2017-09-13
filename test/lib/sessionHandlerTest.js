@@ -30,8 +30,4 @@ describe('sessionHandler', () => {
 		expect(document.cookie).to.include('HC_User=fakeUserId,fakeUserName');
 		done();
 	});
-
-
-	afterEach(() => {
-	});
 });

@@ -88,6 +88,7 @@ describe('hcRequest', () => {
 		requestStub = sinon.stub().returns({
 			set: requestSetStub,
 			send: requestSendStub,
+			query: requestSetStub,
 		});
 
 		const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({

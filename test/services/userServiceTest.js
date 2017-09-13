@@ -74,6 +74,7 @@ describe('services/User', () => {
 		const userServiceResolveUserStub =
 			sinon.stub(userRoutes, 'resolveUserId')
 				.returnsPromise().rejects({ error: 'error completing request' });
+		User.user = undefined;
 		User.resolveUser().catch((res) => {
 			expect(res.error).to.equal('error completing request');
 			expect(userServiceResolveUserStub).to.be.calledOnce;

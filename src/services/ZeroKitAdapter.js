@@ -4,6 +4,7 @@ import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
 import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
 import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
+import encryptionUtils from '../lib/EncryptionUtils';
 
 
 class ZeroKitAdapter {
@@ -51,11 +52,13 @@ class ZeroKitAdapter {
 	login(zKitLoginObject, hcUserName, callback) {
 		let tresorId;
 		let userId;
+		let tek;
 		userRoutes.resolveUserId(hcUserName)
 			.then((res) => {
 				const zKitId = res.user.zerokit_id;
 				tresorId = res.user.tresor_id;
 				userId = res.user.id;
+				tek = res.user.tag_encryption_key;
 				sessionHandler.set('HC_User', `${res.user.id},${hcUserName}`);
 
 				return zKitLoginObject.login(zKitId);
@@ -63,13 +66,25 @@ class ZeroKitAdapter {
 			.then(() => this.auth.idpLogin())
 			.then(() => {
 				if (!tresorId) {
-					this.createTresor();
+					return this.createTresor();
+				}
+				return tresorId;
+			})
+			.then((res) => {
+				if (!tek) {
+					this.createTek(res);
 				}
 				callback(null, { user_id: userId, user_name: hcUserName });
 			})
 			.catch(err => callback(err));
 	}
 
+	createTek(tresorId) {
+		const tek = encryptionUtils.generateKey();
+		return zkit_sdk.encrypt(tresorId, tek)
+			.then(res => userRoutes.addTagEncryptionKey(UserService.getUserId(), res)
+				.then(() => res));
+	}
 
 	getRegistrationForm(parentElement, callback = () => {}) {
 		if (typeof zkit_sdk === 'undefined') {
