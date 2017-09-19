@@ -153,9 +153,9 @@ In the case of any error in uploading and downloading documents, the format is:
 
 To upload a record into Gesundheitscloud call: 
 ```javascript
-    uploadFhirRecord(fhirJson, tags)
+    HC.uploadFhirRecord(fhirJson, tags)
 ```
-The record should given as a Json object according to the FHIR standart.
+The record should given as a Json object according to the FHIR standard.
 Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html). 
 ``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
 It is important to note, that all tags are also stored encrypted.
@@ -164,7 +164,7 @@ It is important to note, that all tags are also stored encrypted.
 
 To download a record from Gesundheitscloud call:
 ```javascript
-    downloadFhirRecord(recordId)
+    HC.downloadFhirRecord(recordId)
 ```
 
 This returns a promise that resolves to an object that contains ``tags`` and ``body``.
@@ -176,12 +176,53 @@ Thereby ``tags`` is an array of strings that contains not only the custom but au
 Thereby params is an object that can contain multiple criteria.
 
 ```
- user_id (optional, string) ... ID of user whose records are to be searched. Several can be provided and separated by commas.
+ user_ids (optional, array of strings) ... List of IDs of user whose records are to be searched.
  limit (optional, number) ... Maximum number of records to retrieve. Defaults to some sensible value (20?) if no value is provided. Has a sensible max (100?).
  offset (optional, number) ... Number of records to skip when retrieving. Defaults to 0 if no value is provided.
  start_date (optional, date) ... Earliest date for which to return records
  end_date (optional, date) ... Latest date for which to return records
- tags (optional, array of strings) ... Tags on which to search. Only records that have all the provided tags are returned.
+ tags (optional, array of strings) ... List of tags on which to search. Only records that have all the provided tags are returned.
+```
+To search for records, call :
+
+```javascript
+    HC.searchRecords(params)
+        .then((response) => {
+        })
+        .catch((error) => {
+            // error contains the status and error message
+        });
+
+```
+where params can be : 
+```javascript
+    {
+        user_ids: ['user1', 'user2'],
+        limit: 20,
+        offset: 20,
+        start_date: '2017-06-06',
+        end_date: '2017-08-08',
+        tags: ['tag1', 'tag2'],
+    };
+```
+The response format is :
+```json
+    [{  
+          "record_id":"d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a",
+          "date":"2017-09-14",
+          "user_id":"user1",
+          "body": {
+            "resourceType":"Patient"
+          },
+          "tags":[  
+             "tag1",
+             "tag2"
+          ],
+          "version":1,
+          "status":"Active",
+          "createdAt":"2017-09-14T10:48:47.684"
+       }]
+      
 ```
 
 ### Sample Code

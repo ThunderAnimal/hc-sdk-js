@@ -63,12 +63,16 @@ class FHIRService {
 			.then(res => this.zeroKitAdapter.decrypt(res.tag_encryption_key))
 			.then((res) => {
 				tek = res;
-				return params.tags.map(item => encryptionUtils.encrypt(item.toLowerCase(), res));
+				if (params.tags) {
+					params.tags = params.tags
+						.map(item => encryptionUtils.encrypt(item.toLowerCase(), res)).join(',');
+				}
+				if (params.user_ids) {
+					params.user_ids = params.user_ids.join(',');
+				}
+				return params;
 			})
-			.then((res) => {
-				params.tags = res.join(',');
-				return documentRoutes.searchRecords(params);
-			})
+			.then(res => documentRoutes.searchRecords(params))
 			.then((res) => {
 				const promises = res.map(result => Promise.all(
 					[

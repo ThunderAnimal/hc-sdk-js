@@ -8,6 +8,7 @@ import sinonChai from 'sinon-chai';
 import documentRoutes from '../../src/routes/documentRoutes';
 import FhirService from '../../src/services/FhirService';
 import UserService from '../../src/services/UserService';
+import encryptionUtils from '../../src/lib/EncryptionUtils';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -155,9 +156,32 @@ describe('fhir service', () => {
 		fhirService.zeroKitAdapter.decrypt.returnsPromise()
 			.withArgs('fakeTagEncKey').resolves('key');
 
-		fhirService.searchRecords({ tags: ['tag1, tag2'] }).then((res) => {
+		const params = {
+			user_ids: ['user1', 'user2'],
+			limit: 20,
+			offset: 20,
+			start_date: '2017-06-06',
+			end_date: '2017-08-08',
+			tags: ['tag1', 'tag2'],
+		};
+
+		const encryptionUtilsStub = sinon.stub(encryptionUtils, 'encrypt');
+		encryptionUtilsStub.withArgs('tag1', 'key').returns('enTag1');
+		encryptionUtilsStub.withArgs('tag2', 'key').returns('enTag2');
+
+		const expectedParamsForRoute = {
+			user_ids: 'user1,user2',
+			limit: 20,
+			offset: 20,
+			start_date: '2017-06-06',
+			end_date: '2017-08-08',
+			tags: 'enTag1,enTag2',
+		};
+
+		fhirService.searchRecords(params).then((res) => {
 			expect(res).to.deep.equal(documentResponse);
 			expect(searchRecordsStub).to.be.calledOnce;
+			expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
 			expect(userServiceResolveUserStub).to.be.calledOnce;
 			done();
 		});
