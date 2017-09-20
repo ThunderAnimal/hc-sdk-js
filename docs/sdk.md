@@ -225,6 +225,17 @@ The response format is :
       
 ```
 
+### List all documents of a user
+
+By passing ``tags: ['document']`` as parameter to ``searchRecords(params)`` a list of all documents metadata will be received. ``downloadDocument`` can then be called to get an individual document blob.
+
+```javascript
+    HC.searchRecords({
+        user_ids: ['user1'],
+        tags: ['document']
+    });
+```
+
 ### Sample Code
 #### For uploading the document
 
