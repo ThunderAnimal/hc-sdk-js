@@ -14,27 +14,62 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('arcturusAdapter', () => {
+describe('DocumentService', () => {
 	let documentService;
 
+	const fhirResponse = {
+		record_id: '0fc90924-ee65-482e-a553-8edabbc01588',
+		date: '2017-09-19',
+		user_id: '87db2013-b5e8-4886-9db1-32d52920b89d',
+		encrypted_body: '/s6U2kgLtCLKIggFHzPDlXKX5OR7wwSXWt7mCD7AHKz2KXaGBOHc=',
+		encrypted_tags: [
+			'qJf/OgbI4EVb28oxILB5qA==',
+			'qJf/OgbI4EVb28oxILB5qA==',
+		],
+		version: 1,
+		status: 'Active',
+		createdAt: '2017-09-19T09:29:48.278',
+	};
+
 	beforeEach(() => {
-		documentService = new DocumentService('dummyZerokitadapter');
-		documentService.zeroKitAdapter = {
+		const zeroKitAdapter = {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDocument'),
-			encrypt: sinon.stub().returnsPromise().resolves('encrypteddocument'),
+			encrypt: sinon.stub().returnsPromise().resolves('encryptedDocument'),
 		};
+		documentService = new DocumentService({ zeroKitAdapter });
+
+
+		documentService.fhirService.uploadFhirRecord = sinon.stub()
+			.returnsPromise().resolves(fhirResponse);
 	});
 
 	it('downloadDocument succeeds', (done) => {
 		const getUserDocumentSASStub =
-			sinon.stub(documentRoutes, 'getUserDocumentSAS')
+			sinon.stub(documentRoutes, 'getDownloadUserDocumentToken')
 				.returnsPromise().resolves({ sas_token: 'fakeSasToken' });
 		const azureRoutesStub =
 			sinon.stub(azureRoutes, 'downloadDocument')
 				.returnsPromise().resolves({ content: 'fakeContent' });
 
+		documentService.fhirService.downloadFhirRecord = sinon.stub()
+			.returnsPromise().resolves(fhirResponse);
+
+		const expectedDocument = {
+			document: 'decryptedDocument',
+			record_id: '0fc90924-ee65-482e-a553-8edabbc01588',
+			date: '2017-09-19',
+			user_id: '87db2013-b5e8-4886-9db1-32d52920b89d',
+			encrypted_body: '/s6U2kgLtCLKIggFHzPDlXKX5OR7wwSXWt7mCD7AHKz2KXaGBOHc=',
+			encrypted_tags: [
+				'qJf/OgbI4EVb28oxILB5qA==',
+				'qJf/OgbI4EVb28oxILB5qA==',
+			],
+			version: 1,
+			status: 'Active',
+			createdAt: '2017-09-19T09:29:48.278',
+		};
 		documentService.downloadDocument('k8hofmann', '9087').then((res) => {
-			expect(res).to.equal('decryptedDocument');
+			expect(res).to.deep.equal(expectedDocument);
 			expect(getUserDocumentSASStub).to.be.calledOnce;
 			expect(azureRoutesStub).to.be.calledOnce;
 			done();
@@ -43,43 +78,44 @@ describe('arcturusAdapter', () => {
 
 	it('uploadDocument succeeds', (done) => {
 		const uploadUserDocumentSASSuccessStub =
-			sinon.stub(documentRoutes, 'getUploadUserDocumentSAS')
+			sinon.stub(documentRoutes, 'getUploadUserDocumentToken')
 				.returnsPromise().resolves({ sas_token: 'fakeSasToken' });
 		const azureUploadRoutesStub =
 			sinon.stub(azureRoutes, 'uploadDocument')
 				.returnsPromise().resolves({ content: 'fakeContent' });
-		const getChangeUserDocumentSASAtub =
-			sinon.stub(documentRoutes, 'changeUserDocument')
+		const updateRecordStatusStub =
+			sinon.stub(documentRoutes, 'updateRecordStatus')
 				.returnsPromise().resolves({ content: 'fakeContent' });
 
 		documentService.uploadDocument('k8hofmann', '9087').then(() => {
 			expect(uploadUserDocumentSASSuccessStub).to.be.calledOnce;
 			expect(azureUploadRoutesStub).to.be.calledOnce;
-			expect(azureUploadRoutesStub).to.be.calledWith('fakeSasToken', 'encrypteddocument');
-			expect(getChangeUserDocumentSASAtub).to.be.calledOnce;
-			documentRoutes.getUploadUserDocumentSAS.restore();
+			expect(azureUploadRoutesStub).to.be.calledWith('fakeSasToken', 'encryptedDocument');
+			expect(updateRecordStatusStub).to.be.calledOnce;
+			documentRoutes.getUploadUserDocumentToken.restore();
 			azureRoutes.uploadDocument.restore();
-			documentRoutes.changeUserDocument.restore();
+			documentRoutes.updateRecordStatus.restore();
+			documentService.fhirService.uploadFhirRecord.calledOnce;
 			done();
 		});
 	});
 
 	it('uploadDocuments returns error when getUploadUserDocumentSAS fails ', (done) => {
 		const uploadUserDocumentSASSFailureStub =
-			sinon.stub(documentRoutes, 'getUploadUserDocumentSAS')
+			sinon.stub(documentRoutes, 'getUploadUserDocumentToken')
 				.returnsPromise().rejects('error');
 		const azureUploadRoutesStub =
 			sinon.stub(azureRoutes, 'uploadDocument')
 				.returnsPromise().resolves({ content: 'fakeContent' });
-		const getChangeUserDocumentSASAtub =
-			sinon.stub(documentRoutes, 'changeUserDocument')
+		const updateRecordStatusStub =
+			sinon.stub(documentRoutes, 'updateRecordStatus')
 				.returnsPromise().resolves({ content: 'fakeContent' });
 
 		documentService.uploadDocument('k8hofmann', '9087').catch((err) => {
 			expect(err).to.equal('error');
 			expect(uploadUserDocumentSASSFailureStub).to.be.calledOnce;
 			expect(azureUploadRoutesStub).to.be.not.called;
-			expect(getChangeUserDocumentSASAtub).to.be.not.called;
+			expect(updateRecordStatusStub).to.be.not.called;
 			done();
 		});
 	});

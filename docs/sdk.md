@@ -95,7 +95,7 @@ Only the owner of the documents and those who have explicit permission from the 
 
 To upload the document:
 ```javascript
- HC.uploadDocument('user_name', file)
+ HC.uploadDocument('user_id', file, options)
     .then((response) => {
         // use document metadata which contains document id,status etc.
     })
@@ -103,11 +103,13 @@ To upload the document:
         // error contains the status and error message
     });
 ```
+where options is formed as per FHIR standard for document. (https://www.hl7.org/fhir/documentreference.html)
+Example: https://www.hl7.org/fhir/documentreference-example.json
 
 On Success, the response consists the documents metadata:
 ```json
 {
-     "document_id": "documentId"     
+     "record_id": "d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a"     
 } 
 ```
 
@@ -120,7 +122,7 @@ To download the document multiple requirements need to be fulfilled:
 
 To download the document call downloadDocument providing the owners username and the document id
 ```javascript
-  HC.downloadDocument('user_name','document_id').then((response) => {
+  HC.downloadDocument('user_id','record_id').then((response) => {
     // the response is the decrypted document
   })
   .catch((error) => {
@@ -128,15 +130,26 @@ To download the document call downloadDocument providing the owners username and
   })
 ```
 
-The response consists of decrypted document. eg. for an image file:
-```text
-data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeoAAAMECAYAAABwvGbhAAAMFGlDQ1BJQ0MgUHJvZmlsZQAASIm
-VVwdUk8kWnr+kEBJaIAJSQm+C9CoQCFUQkA42QhIglIAJQcWOLCq4dhHBiq6KKLoWQOzYlUXBgv2BiIqyLhZsqLxJAV1fO++e
-M5kvd+698937z8yZAUDVnpOXl42qAZAjzBdFB/szE5OSmaQuQAQMMAo2Ow5XnOcXFRUOoAz3f5f3twEi7W/YSmP96/h/FXUeX
-8wFAImCOJUn5uZAfBgAXJubJ8oHgNAC9SYz8vOkuB9iTREkCAARl+J0OdaW4lQ5HiOziY1mQ8wCgEzlcETpAKhIeTMLuOkwjo
-qUo72QJxBCvBFiH24GhwfxA4jH5OTkQqxKhtgy9Yc46X+LmToSk8NJH8HyXGRCDhCI87I5s/7PcvxvycmWDM9hDBs1QxQSLc0
-Z1m13Vm6YFFMhPi5MjYiEWAPiSwKezF6K72VIQuIU9n1cMRvWDH5lgAIeJyAMYj2IGZKsOD8FduSIZLM7DfdNDeE8kEhlEC6I
-b3JdJxEz
+The response consists of document metadata and the decrypted body. eg. for an image file:
+
+```json
+  {  
+      "record_id":"d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a",
+      "date":"2017-09-14",
+      "user_id":"user1",
+      // the FHIR format of the document data
+      "body": {          
+        "resourceType":"DocumnetReference" 
+      },
+      "tags":[  
+         "tag1",
+         "tag2"
+      ],
+      "version":1,
+      "status":"Active",
+      "createdAt":"2017-09-14T10:48:47.684",
+      "document":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeoAAAMECAYAAABwvGbhAAAMFGlDQ1BJQ0MgUHJvZmlsZQAASIm"                     
+  }
 ```
 
 In case the user does not have the right to access the document an error will be thrown.
@@ -202,7 +215,7 @@ where params can be :
         offset: 20,
         start_date: '2017-06-06',
         end_date: '2017-08-08',
-        tags: ['tag1', 'tag2'],
+        tags: ['tag1', 'tag2']
     };
 ```
 The response format is :

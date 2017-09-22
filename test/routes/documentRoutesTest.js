@@ -7,6 +7,7 @@ import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import proxy from 'proxyquireify';
 import '../../src/routes/documentRoutes';
+import config from '../../src/config';
 
 const proxyquire = proxy(require);
 
@@ -25,12 +26,13 @@ describe('documentRoutes', () => {
 		requestStub = sinon.stub().returnsPromise();
 	});
 
-	it('getUserDocumentSAS passes', (done) => {
+	it('getDownloadUserDocumentToken passes', (done) => {
 		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		documentRoutes.getUserDocumentSAS('fakeUserName', 'fakeDocumentId').then((res) => {
+		documentRoutes.getDownloadUserDocumentToken('fakeUserName',
+			'fakeDocumentId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('GET');
@@ -39,7 +41,7 @@ describe('documentRoutes', () => {
 		requestStub.reset();
 	});
 
-	it('getUserDocumentUploadDocumentSAS passes', (done) => {
+	it('getUploadUserDocumentToken passes', (done) => {
 		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
@@ -52,32 +54,10 @@ describe('documentRoutes', () => {
 			comment: '',
 		};
 
-		documentRoutes.getUploadUserDocumentSAS('fakeUserName', params).then((res) => {
+		documentRoutes.getUploadUserDocumentToken('fakeUserName', params).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('POST');
-			done();
-		});
-		requestStub.reset();
-	});
-
-	it('changeUserDocument passes', (done) => {
-		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-			'../lib/hcRequest': { default: requestStub.resolves('pass') },
-		}).default;
-
-		const params = {
-			organizationId: '1',
-			title: 'fakeTitle',
-			docType: 'fakeDocType',
-			customFields: '',
-			comment: '',
-		};
-
-		documentRoutes.changeUserDocument('fakeUserName', params).then((res) => {
-			expect(res).to.equal('pass');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('PUT');
+			expect(requestStub).to.be.calledWith('GET');
 			done();
 		});
 		requestStub.reset();
@@ -102,7 +82,7 @@ describe('documentRoutes', () => {
 			createdAt: '2017-09-01T13:51:53.741',
 		};
 
-		documentRoutes.uploadRecord(params).then((res) => {
+		documentRoutes.uploadRecord('fakeUserId', params).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('POST');
@@ -116,10 +96,25 @@ describe('documentRoutes', () => {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		documentRoutes.downloadRecord('fakeRecordId').then((res) => {
+		documentRoutes.downloadRecord('fakeUserId', 'fakeRecordId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('GET');
+			done();
+		});
+		requestStub.reset();
+	});
+
+	it('updateRecordStatus passes', (done) => {
+		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
+			'../lib/hcRequest': { default: requestStub.resolves('pass') },
+		}).default;
+
+		documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('PUT',
+				`${config.api.data}/users/fakeUserId/records/fakeRecordId/status/Active`);
 			done();
 		});
 		requestStub.reset();

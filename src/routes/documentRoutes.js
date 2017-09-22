@@ -6,28 +6,28 @@ const dataUrl = config.api.data;
 
 const documentRoutes = {
 
-	getUserDocumentSAS(hcUsername, documentId) {
-		return hcRequest('GET', `${documentUrl}/users/${hcUsername}/documents/${documentId}/access_token`);
+	getDownloadUserDocumentToken(userId, recordId) {
+		return hcRequest('GET', `${documentUrl}/users/${userId}/documents/${recordId}/download_access_token`);
 	},
 
-	getUploadUserDocumentSAS(hcUsername, body) {
-		return hcRequest('POST', `${documentUrl}/users/${hcUsername}/documents`, body);
+	getUploadUserDocumentToken(userId, recordId) {
+		return hcRequest('GET', `${documentUrl}/users/${userId}/documents/${recordId}/upload_access_token`);
 	},
 
-	changeUserDocument(hcUsername, documentId, body) {
-		return hcRequest('PUT', `${documentUrl}/users/${hcUsername}/documents/${documentId}/status`, body);
-	},
-
-	uploadRecord(data) {
-		return hcRequest('POST', `${dataUrl}/records`, data);
+	uploadRecord(userId, data) {
+		return hcRequest('POST', `${dataUrl}/users/${userId}/records`, data);
 	},
 
 	searchRecords(queryParams) {
 		return hcRequest('GET', `${dataUrl}/records`, {}, { query: queryParams });
 	},
 
-	downloadRecord(recordId) {
-		return hcRequest('GET', `${dataUrl}/records/${recordId}`);
+	downloadRecord(userId, recordId) {
+		return hcRequest('GET', `${dataUrl}/users/${userId}/records/${recordId}`);
+	},
+
+	updateRecordStatus(userId, recordId, status) {
+		return hcRequest('PUT', `${dataUrl}/users/${userId}/records/${recordId}/status/${status}`);
 	},
 };
 

@@ -18,6 +18,7 @@ const expect = chai.expect;
 describe('fhir service', () => {
 	let fhirService;
 	let userServiceResolveUserStub;
+	let resolveUserIdStub;
 	const fhirObject = {
 		resourceType: 'Patient',
 		id: 'example',
@@ -51,6 +52,21 @@ describe('fhir service', () => {
 		},
 	};
 
+	const documentResponse = {
+		record_id: 'fakeRecordId',
+		date: '2017-08-01',
+		user_id: 'fakeUserIId',
+		encrypted_body: 'fakeEncryptedBody',
+		encrypted_tags: [
+			'uzydrHX/3gGWZdZ69LizEA==',
+			'+AJ9MhikiHxSX8sD3qdurw==',
+		],
+		version: 1,
+		status: 'Active',
+		createdAt: '2017-09-01T13:51:53.741',
+	};
+
+
 	beforeEach(() => {
 		fhirService = new FhirService('dummyZerokitadapter');
 		fhirService.zeroKitAdapter = {
@@ -69,92 +85,50 @@ describe('fhir service', () => {
 				state: 2,
 				tag_encryption_key: 'fakeTagEncKey',
 			});
+		resolveUserIdStub = sinon.stub(UserService, 'getUserId').returns('fakeUserId');
+
+
+		fhirService.zeroKitAdapter.decrypt.returnsPromise()
+			.withArgs('fakeEncryptedBody').resolves(JSON.stringify(fhirObject));
+
+		fhirService.zeroKitAdapter.decrypt.returnsPromise()
+			.withArgs('fakeTagEncKey').resolves('key');
 	});
 
 	it('uploadFhirRecord succeeds', (done) => {
-		const documentResponse = {
-			record_id: 'fakeRecordId',
-			date: '2017-08-01',
-			user_id: 'fakeUserIId',
-			encrypted_body: 'fakeEncryptedBody',
-			encrypted_tags: [
-				'uzydrHX/3gGWZdZ69LizEA==',
-				'+AJ9MhikiHxSX8sD3qdurw==',
-			],
-			version: 1,
-			status: 'Active',
-			createdAt: '2017-09-01T13:51:53.741',
-		};
-
 		const uploadFhirStub = sinon.stub(documentRoutes, 'uploadRecord')
 			.returnsPromise().resolves(documentResponse);
 
 		fhirService.uploadFhirRecord(fhirObject, ['tag1', 'tag2']).then((res) => {
 			expect(res).to.equal(documentResponse);
 			expect(uploadFhirStub).to.be.calledOnce;
+			expect(resolveUserIdStub).to.be.calledOnce;
+			expect(uploadFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
+			resolveUserIdStub.restore();
 			done();
 		});
 	});
 
 
 	it('downloadFhirRecord succeeds', (done) => {
-		const documentResponse = {
-			record_id: 'fakeRecordId',
-			date: '2017-08-01',
-			user_id: 'fakeUserIId',
-			encrypted_body: 'fakeEncryptedBody',
-			encrypted_tags: [
-				'uzydrHX/3gGWZdZ69LizEA==',
-				'+AJ9MhikiHxSX8sD3qdurw==',
-			],
-			version: 1,
-			status: 'Active',
-			createdAt: '2017-09-01T13:51:53.741',
-		};
-
 		const downloadFhirStub = sinon.stub(documentRoutes, 'downloadRecord')
 			.returnsPromise().resolves(documentResponse);
-
-
-		fhirService.zeroKitAdapter.decrypt.returnsPromise()
-			.withArgs('fakeEncryptedBody').resolves(JSON.stringify(fhirObject));
-
-		fhirService.zeroKitAdapter.decrypt.returnsPromise()
-			.withArgs('fakeTagEncKey').resolves('key');
 
 		fhirService.downloadFhirRecord('fakeRecordId').then((res) => {
 			expect(res.body).to.deep.equal(fhirObject);
 			expect(downloadFhirStub).to.be.calledOnce;
+			expect(downloadFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
 			done();
 		});
 	});
 
 	it('searchRecords succeeds', (done) => {
-		const documentResponse = [{
-			record_id: 'fakeRecordId',
-			date: '2017-08-01',
-			user_id: 'fakeUserIId',
-			encrypted_body: 'fakeEncryptedBody',
-			encrypted_tags: [
-				'uzydrHX/3gGWZdZ69LizEA==',
-				'+AJ9MhikiHxSX8sD3qdurw==',
-			],
-			version: 1,
-			status: 'Active',
-			createdAt: '2017-09-01T13:51:53.741',
-		}];
-
+		const documentResponseList = [documentResponse];
 		const searchRecordsStub = sinon.stub(documentRoutes, 'searchRecords')
-			.returnsPromise().resolves(documentResponse);
+			.returnsPromise().resolves(documentResponseList);
 
-
-		fhirService.zeroKitAdapter.decrypt.returnsPromise()
-			.withArgs('fakeEncryptedBody').resolves(JSON.stringify(fhirObject));
-
-		fhirService.zeroKitAdapter.decrypt.returnsPromise()
-			.withArgs('fakeTagEncKey').resolves('key');
 
 		const params = {
 			user_ids: ['user1', 'user2'],
@@ -179,7 +153,7 @@ describe('fhir service', () => {
 		};
 
 		fhirService.searchRecords(params).then((res) => {
-			expect(res).to.deep.equal(documentResponse);
+			expect(res).to.deep.equal(documentResponseList);
 			expect(searchRecordsStub).to.be.calledOnce;
 			expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
 			expect(userServiceResolveUserStub).to.be.calledOnce;
@@ -189,5 +163,6 @@ describe('fhir service', () => {
 
 	afterEach(() => {
 		userServiceResolveUserStub.restore();
+		resolveUserIdStub.restore();
 	});
 });

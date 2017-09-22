@@ -1,45 +1,45 @@
 import documentRoutes from '../routes/documentRoutes';
 import azureRoutes from '../routes/azureRoutes';
+import FhirService from './FhirService';
 
 class DocumentService {
 	constructor(options = {}) {
 		this.zeroKitAdapter = options.zeroKitAdapter;
+		this.fhirService = new FhirService({ zeroKitAdapter: this.zeroKitAdapter });
 	}
 
-	downloadDocument(hcUsername, documentId) {
-		return documentRoutes.getUserDocumentSAS(hcUsername, documentId)
-			.then(res => azureRoutes.downloadDocument(res.sas_token))
-			.then(res => this.zeroKitAdapter.decrypt(res.content));
+	downloadDocument(userId, documentId) {
+		return Promise.all(
+			[
+				documentRoutes.getDownloadUserDocumentToken(userId, documentId)
+					.then(res => azureRoutes.downloadDocument(res.sas_token))
+					.then(res => this.zeroKitAdapter.decrypt(res)),
+				this.fhirService.downloadFhirRecord(documentId),
+			],
+		)
+			.then(results => Object.assign({}, { document: results[0] }, results[1]));
 	}
 
-	uploadDocument(hcUsername, document, options = {}) {
-		const params = {
-			organization_id: options.organisationId || '',
-			title: options.title || '',
-			document_type: options.documentType || '',
-			custom_fields: options.customFields || '',
-			comment: options.comments || '',
-		};
-		let documentId;
-
+	uploadDocument(userId, document, options = {}) {
+		let recordId;
 		return Promise.all(
 			[
 				this.zeroKitAdapter.encrypt(document),
-				documentRoutes.getUploadUserDocumentSAS(hcUsername, params),
+				this.fhirService.uploadFhirRecord(options, ['document'])
+					.then((res) => {
+						recordId = res.record_id;
+						return documentRoutes.getUploadUserDocumentToken(userId, recordId);
+					}),
 			],
 		)
 			.then((results) => {
 				const encryptedDocument = results[0];
 				const sasToken = results[1].sas_token;
-				documentId = results[1].document_id;
 
 				return azureRoutes.uploadDocument(sasToken, encryptedDocument);
 			})
-			.then(() => {
-				const responseParams = { document_status: 'active' };
-				return documentRoutes.changeUserDocument(hcUsername, documentId, responseParams);
-			})
-			.then(() => ({ document_id: documentId }));
+			.then(() => documentRoutes.updateRecordStatus(userId, recordId, 'Active'))
+			.then(() => ({ record_id: recordId }));
 	}
 }
 

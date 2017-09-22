@@ -26,19 +26,18 @@ class FHIRService {
 		)
 			.then((results) => {
 				const params = {
-					user_id: UserService.getUserId(),
 					encrypted_body: results[0],
 					encrypted_tags: results[1],
 					date: helpers.formatDateYyyyMmDd(new Date()),
 					version: 1,
 				};
-				return documentRoutes.uploadRecord(params);
+				return documentRoutes.uploadRecord(UserService.getUserId(), params);
 			});
 	}
 
 
 	downloadFhirRecord(recordId) {
-		return documentRoutes.downloadRecord(recordId)
+		return documentRoutes.downloadRecord(UserService.getUserId(), recordId)
 			.then(result => Promise.all(
 				[
 					this.zeroKitAdapter.decrypt(result.encrypted_body),
