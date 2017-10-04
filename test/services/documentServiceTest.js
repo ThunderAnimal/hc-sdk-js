@@ -33,14 +33,17 @@ describe('DocumentService', () => {
 
 	beforeEach(() => {
 		const zeroKitAdapter = {
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDocument'),
-			encrypt: sinon.stub().returnsPromise().resolves('encryptedDocument'),
+			decrypt: sinon.stub(),
+			encrypt: sinon.stub(),
 		};
 		documentService = new DocumentService({ zeroKitAdapter });
 
 
 		documentService.fhirService.uploadFhirRecord = sinon.stub()
 			.returnsPromise().resolves(fhirResponse);
+
+		documentService.zeroKitAdapter.encrypt.returnsPromise().withArgs('9087')
+			.returns('encryptedDocument');
 	});
 
 	it('downloadDocument succeeds', (done) => {
@@ -68,6 +71,9 @@ describe('DocumentService', () => {
 			status: 'Active',
 			createdAt: '2017-09-19T09:29:48.278',
 		};
+
+		documentService.zeroKitAdapter.decrypt.returnsPromise().withArgs('fakeContent')
+			.returns('decryptedDocument');
 		documentService.downloadDocument('k8hofmann', '9087').then((res) => {
 			expect(res).to.deep.equal(expectedDocument);
 			expect(getUserDocumentSASStub).to.be.calledOnce;

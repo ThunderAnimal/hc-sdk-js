@@ -13,7 +13,7 @@ class DocumentService {
 			[
 				documentRoutes.getDownloadUserDocumentToken(userId, documentId)
 					.then(res => azureRoutes.downloadDocument(res.sas_token))
-					.then(res => this.zeroKitAdapter.decrypt(res)),
+					.then(res => this.zeroKitAdapter.decrypt(res.content)),
 				this.fhirService.downloadFhirRecord(documentId),
 			],
 		)

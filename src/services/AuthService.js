@@ -24,7 +24,7 @@ class Auth {
 			});
 
 			iframe.src = `${config.api.auth}/login?
-				clientId=${encodeURIComponent(config.zkit.clientId)}&
+				client_id=${encodeURIComponent(config.zkit.clientId)}&
 				reto=${encodeURIComponent(location.href)}`;
 
 			document.body.appendChild(iframe);
