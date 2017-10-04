@@ -2,7 +2,7 @@ import config from '../config';
 import hcRequest from '../lib/hcRequest';
 import SessionHandler from '../lib/sessionHandler';
 
-const authUrl = config.api.auth;
+const apiUrl = config.api;
 
 const authRoutes = {
 
@@ -12,7 +12,7 @@ const authRoutes = {
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${authUrl}/auth/token`, body, { headers });
+		return hcRequest('POST', `${apiUrl}/auth/token`, body, { headers });
 	},
 
 	getRefreshTokenFromCode(body) {
@@ -21,7 +21,7 @@ const authRoutes = {
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${authUrl}/auth/token`, body, { headers });
+		return hcRequest('POST', `${apiUrl}/auth/token`, body, { headers });
 	},
 };
 

@@ -1,10 +1,5 @@
 const config = {
-	api: {
-		auth: 'https://staging.hpihc.de',
-		document: 'https://staging.hpihc.de',
-		user: 'https://staging.hpihc.de',
-		data: 'https://staging.hpihc.de',
-	},
+	api: 'https://staging.hpihc.de',
 	encryption: {
 		iv: 'aefb3e605a033fb43c747c75b3b595a3',
 		keySize: 128,

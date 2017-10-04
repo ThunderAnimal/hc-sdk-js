@@ -114,7 +114,7 @@ describe('documentRoutes', () => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('PUT',
-				`${config.api.data}/users/fakeUserId/records/fakeRecordId/status/Active`);
+				`${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
 			done();
 		});
 		requestStub.reset();

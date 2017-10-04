@@ -2,7 +2,6 @@
 import config from '../config';
 import sessionHandler from '../lib/sessionHandler';
 import authRoutes from '../routes/authRoutes';
-import UserService from './UserService';
 
 class Auth {
 	constructor(options = {}) {
@@ -23,7 +22,7 @@ class Auth {
 					.catch(err => reject(err));
 			});
 
-			iframe.src = `${config.api.auth}/login?
+			iframe.src = `${config.api}/login?
 				client_id=${encodeURIComponent(config.zkit.clientId)}&
 				reto=${encodeURIComponent(location.href)}`;
 
@@ -43,7 +42,7 @@ class Auth {
 					.catch(err => reject(err));
 			});
 
-			iframe.src = String.raw`${config.api.auth}/auth/auth?				
+			iframe.src = String.raw`${config.api}/auth/auth?				
 				client_id=${encodeURIComponent(this.clientId)}&
 				redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&
 				response_type=code&
