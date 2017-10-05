@@ -4,7 +4,7 @@
 # GesundheitsCloud Web SDK
 This is the Javascript Web SDK of GesundheitsCloud, which encapsulates the backend functionality of the platform and enables end-to-end encryption of patient data. It allows users to store sensitive health data on the secure GesundheitsCloud platform and share it to authorized people and applications.
 
-For more information about the platform please visit our [website](https://www.gesundheitscloud.de/).
+For more information about the platform please visit our [website](http://www.gesundheitscloud.de/).
 
 ## Requirements
 
