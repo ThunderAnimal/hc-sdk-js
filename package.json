@@ -1,15 +1,9 @@
 {
-  "name": "js-sdk",
+  "name": "hc-sdk-js",
   "version": "1.0.0",
   "main": "dest/healthcloud_sdk.js",
   "module": "src/index.js",
-  "license": "MIT",
-  "nyc": {
-    "exclude": [
-      "dest",
-      "test"
-    ]
-  },
+  "license": "BSD-3-Clause",
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
