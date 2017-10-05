@@ -33,13 +33,9 @@ During development, you can let webpack watch for file changes and rebuild your 
 
 Import the built file in your project to start using the SDK.
 
-Note: Edit the config.js file accordingly in case of any change in dependent api urls(eg. capella, sirius, arcturus) and build the sdk. Cuurently the config for staging urls looks like:
+Note: Edit the config.js file accordingly in case of any change in dependent api url and build the sdk. Currently the config for staging url looks like:
 ```javascript
-        {
-            auth: 'https://staging.hpihc.de',
-            document: 'https://staging.hpihc.de',
-            user: 'https://staging.hpihc.de',
-        }
+        api: 'https://staging.hpihc.de'
 ```
 
 ## Tests
