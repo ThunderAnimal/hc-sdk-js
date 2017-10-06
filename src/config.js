@@ -1,13 +1,13 @@
 const config = {
-	api: 'https://staging.hpihc.de',
+	api: 'https://sandbox.hpihc.de',
 	encryption: {
 		iv: 'aefb3e605a033fb43c747c75b3b595a3',
 		keySize: 128,
 	},
 	signinState: 'pkyyf',
 	zkit: {
-		service_url: 'https://xfjx51bvoe.api.tresorit.io',
-		clientId: 'xfjx51bvoe_XyFJHpD7L5',
+		service_url: 'https://g6y0wg1tf6.api.tresorit.io',
+		clientId: 'g6y0wg1tf6_RGxRknA5dI',
 	},
 };
 
