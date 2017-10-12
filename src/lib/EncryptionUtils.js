@@ -9,25 +9,22 @@ class EncryptionUtils {
 
 	generateKey() {
 		const key = CryptoJS.lib.WordArray.random(this.keySize / 8);
-		return key.toString();
+		return CryptoJS.enc.Base64.stringify(key);
 	}
 
 	encrypt(plainText, key) {
 		const encrypted = CryptoJS.AES.encrypt(
 			plainText,
-			CryptoJS.enc.Hex.parse(key),
-			{ iv: CryptoJS.enc.Hex.parse(this.iv) });
+			CryptoJS.enc.Base64.parse(key),
+			{ iv: CryptoJS.enc.Base64.parse(this.iv) });
 		return encrypted.toString();
 	}
 
 	decrypt(cipherText, key) {
-		const cipherParams = CryptoJS.lib.CipherParams.create({
-			ciphertext: CryptoJS.enc.Base64.parse(cipherText),
-		});
 		const decrypted = CryptoJS.AES.decrypt(
-			cipherParams,
-			CryptoJS.enc.Hex.parse(key),
-			{ iv: CryptoJS.enc.Hex.parse(this.iv) });
+			cipherText,
+			CryptoJS.enc.Base64.parse(key),
+			{ iv: CryptoJS.enc.Base64.parse(this.iv) });
 		return decrypted.toString(CryptoJS.enc.Utf8);
 	}
 }

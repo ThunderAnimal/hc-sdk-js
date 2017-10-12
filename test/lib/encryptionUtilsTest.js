@@ -15,7 +15,15 @@ describe('encryption utils', () => {
 	it('encryption key is generated successfully', (done) => {
 		const encKey = encryptionUtils.generateKey();
 		expect(typeof encKey).to.equal('string');
-		expect(encKey.length).to.equal(128 / 4); // 4 because one hexadecimal digit contains 4 bits
+		expect(encKey).to.not.equal(encryptionUtils.generateKey());
+		expect(encKey.length).to.equal(24);
+		done();
+	});
+
+	it('Encrypted value is the same as in the other SDKs', (done) => {
+		const plainText = 'document';
+		const cipherText = encryptionUtils.encrypt(plainText, 'ENrtNtnidEGip5V+OV8Y0g==');
+		expect(cipherText).to.equal('+o+MCjakKLo/aZyiX8FnzA==');
 		done();
 	});
 

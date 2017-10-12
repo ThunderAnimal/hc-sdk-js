@@ -1,7 +1,7 @@
 const config = {
 	api: 'https://sandbox.hpihc.de',
 	encryption: {
-		iv: 'aefb3e605a033fb43c747c75b3b595a3',
+		iv: 'Grrn3gR2ma/thJRloN+PeA==',
 		keySize: 128,
 	},
 	signinState: 'pkyyf',
