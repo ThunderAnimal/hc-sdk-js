@@ -45,7 +45,7 @@ describe('services/User', () => {
 		const user = User.getUser();
 		expect(user.user_name).to.equal('fakeUserName');
 		expect(user.user_id).to.equal('fakeUserId');
-		expect(sessionHandlerGetStub).to.be.calledOnce;
+		expect(sessionHandlerGetStub).to.be.calledTwice;
 		expect(sessionHandlerSetStub).to.not.be.called;
 		done();
 	});
@@ -53,7 +53,7 @@ describe('services/User', () => {
 	it('getUser fails if user not logged in', (done) => {
 		sessionHandlerGetStub.returns(null);
 		const user = User.getUser();
-		expect(user).to.equal('User not logged in');
+		expect(user).to.equal(undefined);
 		expect(sessionHandlerGetStub).to.be.calledOnce;
 		done();
 	});

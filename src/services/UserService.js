@@ -20,10 +20,10 @@ class UserService {
 	getUser() {
 		const hcUser = sessionHandler.get('HC_User');
 
-		return hcUser ? {
+		return hcUser && sessionHandler.get('HC_Auth') ? {
 			user_name: hcUser.split(',')[1],
 			user_id: hcUser.split(',')[0],
-		} : 'User not logged in';
+		} : undefined;
 	}
 
 	resolveUser() {
