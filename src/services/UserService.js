@@ -11,7 +11,7 @@ class UserService {
 		return hcUser ? hcUser.split(',')[0] : undefined;
 	}
 
-	getUserName() {
+	getUserAlias() {
 		const hcUser = sessionHandler.get('HC_User');
 
 		return hcUser ? hcUser.split(',')[1] : undefined;
@@ -21,7 +21,7 @@ class UserService {
 		const hcUser = sessionHandler.get('HC_User');
 
 		return hcUser && sessionHandler.get('HC_Auth') ? {
-			user_name: hcUser.split(',')[1],
+			user_alias: hcUser.split(',')[1],
 			user_id: hcUser.split(',')[0],
 		} : undefined;
 	}
@@ -32,7 +32,7 @@ class UserService {
 				resolve(this.user);
 			});
 		}
-		return userRoutes.resolveUserId(this.getUserName())
+		return userRoutes.resolveUserId(this.getUserAlias())
 			.then((res) => {
 				this.user = res.user;
 				return this.user;

@@ -31,7 +31,7 @@ describe('documentRoutes', () => {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		documentRoutes.getDownloadUserDocumentToken('fakeUserName',
+		documentRoutes.getDownloadUserDocumentToken('fakeUserAlias',
 			'fakeDocumentId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
@@ -54,7 +54,7 @@ describe('documentRoutes', () => {
 			comment: '',
 		};
 
-		documentRoutes.getUploadUserDocumentToken('fakeUserName', params).then((res) => {
+		documentRoutes.getUploadUserDocumentToken('fakeUserAlias', params).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('GET');

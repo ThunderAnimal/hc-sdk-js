@@ -28,9 +28,9 @@ describe('userRoutes', () => {
 	});
 
 	it('initRegistration passes', (done) => {
-		const hcUsername = 'test';
+		const hcUserAlias = 'test';
 		requestStub.resolves('pass');
-		userRoutes.initRegistration(hcUsername).then((res) => {
+		userRoutes.initRegistration(hcUserAlias).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('POST');
@@ -49,7 +49,7 @@ describe('userRoutes', () => {
 
 	it('validateRegistration passes', (done) => {
 		requestStub.resolves('pass');
-		userRoutes.validateRegistration('testUsername', '12345').then((res) => {
+		userRoutes.validateRegistration('testUserAlias', '12345').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('POST');

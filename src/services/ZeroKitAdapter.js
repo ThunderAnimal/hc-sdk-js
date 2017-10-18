@@ -43,23 +43,23 @@ class ZeroKitAdapter {
 
 		const submit = function (zKitLogin, cb, event) {
 			event.preventDefault();
-			this.login(zKitLogin, document.getElementById(loginFormIds.hcUsernameLogin).value, cb);
+			this.login(zKitLogin, document.getElementById(loginFormIds.hcUserLogin).value, cb);
 		};
 
 		loginForm.onsubmit = submit.bind(this, zKitLoginObject, callback);
 	}
 
-	login(zKitLoginObject, hcUserName, callback) {
+	login(zKitLoginObject, hcUserAlias, callback) {
 		let tresorId;
 		let userId;
 		let tek;
-		userRoutes.resolveUserId(hcUserName)
+		userRoutes.resolveUserId(hcUserAlias)
 			.then((res) => {
 				const zKitId = res.user.zerokit_id;
 				tresorId = res.user.tresor_id;
 				userId = res.user.id;
 				tek = res.user.tag_encryption_key;
-				sessionHandler.set('HC_User', `${res.user.id},${hcUserName}`);
+				sessionHandler.set('HC_User', `${res.user.id},${hcUserAlias}`);
 
 				return zKitLoginObject.login(zKitId);
 			})
@@ -74,7 +74,7 @@ class ZeroKitAdapter {
 				if (!tek) {
 					this.createTek(res);
 				}
-				callback(null, { user_id: userId, user_name: hcUserName });
+				callback(null, { user_id: userId, user_alias: hcUserAlias });
 			})
 			.catch(err => callback(err));
 	}
@@ -102,22 +102,22 @@ class ZeroKitAdapter {
 
 		const submit = function (zKitRegistration, cb, event) {
 			event.preventDefault();
-			const userName = document.getElementById(registrationFormIds.hcUsernameRegister).value;
-			return this.register(zKitRegistration, userName, cb);
+			const userAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
+			return this.register(zKitRegistration, userAlias, cb);
 		};
 
 		registrationForm.onsubmit = submit.bind(this, zKitRegistrationObject, callback);
 	}
 
-	register(zKitRegistrationObject, hcUserName, callback) {
+	register(zKitRegistrationObject, hcUserAlias, callback) {
 		let zKitId;
-		return userRoutes.initRegistration(hcUserName)
+		return userRoutes.initRegistration(hcUserAlias)
 			.then((res) => {
 				zKitId = res.zerokit_id;
 				return zKitRegistrationObject.register(zKitId, res.session_id);
 			})
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
-			.then(() => callback(null, { user_name: hcUserName }))
+			.then(() => callback(null, { user_alias: hcUserAlias }))
 			.catch(error => callback(error));
 	}
 

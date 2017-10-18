@@ -83,7 +83,7 @@ You can get the currently active user synchronously by calling getUser.
 In case of a logged in user getUser returns an user object.
 ```json
 {   
-    "user_name": "user_name",
+    "user_alias": "user_alias",
     "user_id": "user_id"
 }
 ```
@@ -120,7 +120,7 @@ To download the document multiple requirements need to be fulfilled:
     - The user is the owner of the document
     - The user has the owners permission to access the document. 
 
-To download the document call downloadDocument providing the owners username and the document id
+To download the document call downloadDocument providing the owners user id and the document id
 ```javascript
   HC.downloadDocument('user_id','record_id').then((response) => {
     // the response is the decrypted document

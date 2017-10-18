@@ -20,9 +20,9 @@ describe('services/User', () => {
 
 	beforeEach(() => {
 		sessionHandlerGetStub =
-			sinon.stub(sessionHandler, 'get').returns('fakeUserId,fakeUserName');
+			sinon.stub(sessionHandler, 'get').returns('fakeUserId,fakeUserAlias');
 		sessionHandlerSetStub =
-			sinon.stub(sessionHandler, 'set').returns('fakeUserId,fakeUserName');
+			sinon.stub(sessionHandler, 'set').returns('fakeUserId,fakeUserAlias');
 	});
 
 	it('getUserId succeeds', (done) => {
@@ -33,9 +33,9 @@ describe('services/User', () => {
 		done();
 	});
 
-	it('getUserName succeeds', (done) => {
-		const userName = User.getUserName();
-		expect(userName).to.equal('fakeUserName');
+	it('getUserAlias succeeds', (done) => {
+		const userAlias = User.getUserAlias();
+		expect(userAlias).to.equal('fakeUserAlias');
 		expect(sessionHandlerGetStub).to.be.calledOnce;
 		expect(sessionHandlerSetStub).to.not.be.called;
 		done();
@@ -43,7 +43,7 @@ describe('services/User', () => {
 
 	it('getUser succeeds', (done) => {
 		const user = User.getUser();
-		expect(user.user_name).to.equal('fakeUserName');
+		expect(user.user_alias).to.equal('fakeUserAlias');
 		expect(user.user_id).to.equal('fakeUserId');
 		expect(sessionHandlerGetStub).to.be.calledTwice;
 		expect(sessionHandlerSetStub).to.not.be.called;

@@ -1,11 +1,11 @@
 const tagIds = {
-	hcUsernameRegister: 'hcUsernameRegister',
+	hcUserRegister: 'hcUserRegister',
 	zkitRegistration: 'zkitRegistration',
 };
 
 const registrationForm = document.createElement('form');
 registrationForm.innerHTML = `
-  <input type="text" id="${tagIds.hcUsernameRegister}" placeholder="Nutzername">
+  <input type="text" id="${tagIds.hcUserRegister}" placeholder="Email">
   <div id="${tagIds.zkitRegistration}"></div>
   <button>Registrieren</button>
 `;
