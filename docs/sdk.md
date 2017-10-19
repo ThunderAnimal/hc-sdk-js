@@ -174,6 +174,17 @@ Possible structures of the Json object can be viewed in FHIRs [Guide to resouces
 ``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
 It is important to note, that all tags are also stored encrypted.
 
+### Update a FHIR resource
+
+To update a record into Gesundheitscloud call: 
+```javascript
+    HC.updateFhirRecord(recordId, fhirJson, tags)
+```
+The record should given as a Json object according to the FHIR standard.
+Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html). 
+``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
+It is important to note, that all tags are also stored encrypted.
+
 ### Download a FHIR record
 
 To download a record from Gesundheitscloud call:

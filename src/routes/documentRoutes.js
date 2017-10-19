@@ -13,8 +13,12 @@ const documentRoutes = {
 		return hcRequest('GET', `${apiUrl}/users/${userId}/documents/${recordId}/upload_access_token`);
 	},
 
-	uploadRecord(userId, data) {
+	createRecord(userId, data) {
 		return hcRequest('POST', `${apiUrl}/users/${userId}/records`, data);
+	},
+
+	updateRecord(userId, recordId, data) {
+		return hcRequest('PUT', `${apiUrl}/users/${userId}/records/${recordId}`, data);
 	},
 
 	searchRecords(queryParams) {

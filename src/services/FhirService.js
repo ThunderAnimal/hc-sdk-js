@@ -9,12 +9,23 @@ class FHIRService {
 		this.zeroKitAdapter = options.zeroKitAdapter;
 	}
 
-	uploadFhirRecord(JsonFHIR, tags = []) {
-		tags = [...tags, ...(new Tags()).createTagsFromFHIR(JsonFHIR)];
-		return this.uploadRecordWithTags(JsonFHIR, tags);
+	updateFhirRecord(recordId, jsonFHIR, tags = []) {
+		const updateRequest =
+			(userId, params) => documentRoutes.updateRecord(userId, recordId, params);
+
+		return this.uploadFhirRecord(jsonFHIR, tags, updateRequest);
 	}
 
-	uploadRecordWithTags(doc, tags) {
+	createFhirRecord(jsonFhir, tags = []) {
+		return this.uploadFhirRecord(jsonFhir, tags, documentRoutes.createRecord);
+	}
+
+	uploadFhirRecord(jsonFHIR, tags, uploadRequest) {
+		tags = [...tags, ...(new Tags()).createTagsFromFHIR(jsonFHIR)];
+		return this.uploadRecordWithTags(jsonFHIR, tags, uploadRequest);
+	}
+
+	uploadRecordWithTags(doc, tags, uploadRequest) {
 		return Promise.all(
 			[
 				this.zeroKitAdapter.encrypt(JSON.stringify(doc)),
@@ -29,9 +40,8 @@ class FHIRService {
 					encrypted_body: results[0],
 					encrypted_tags: results[1],
 					date: helpers.formatDateYyyyMmDd(new Date()),
-					version: 1,
 				};
-				return documentRoutes.uploadRecord(UserService.getUserId(), params);
+				return uploadRequest(UserService.getUserId(), params);
 			});
 	}
 

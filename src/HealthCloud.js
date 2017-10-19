@@ -17,8 +17,9 @@ class HealthCloud {
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
 		this.getUser = UserService.getUser;
 		this.searchRecords = fhirService.searchRecords.bind(fhirService);
-		this.uploadFhirRecord = fhirService.uploadFhirRecord.bind(fhirService);
+		this.uploadFhirRecord = fhirService.createFhirRecord.bind(fhirService);
 		this.downloadFhirRecord = fhirService.downloadFhirRecord.bind(fhirService);
+		this.updateFhirRecord = fhirService.updateFhirRecord.bind(fhirService);
 		this.deleteRecord = fhirService.deleteRecord.bind(fhirService);
 	}
 }

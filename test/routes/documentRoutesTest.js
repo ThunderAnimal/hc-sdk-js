@@ -63,7 +63,7 @@ describe('documentRoutes', () => {
 		requestStub.reset();
 	});
 
-	it('uploadRecord passes', (done) => {
+	it('createRecord passes', (done) => {
 		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
@@ -82,7 +82,7 @@ describe('documentRoutes', () => {
 			createdAt: '2017-09-01T13:51:53.741',
 		};
 
-		documentRoutes.uploadRecord('fakeUserId', params).then((res) => {
+		documentRoutes.createRecord('fakeUserId', params).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('POST');

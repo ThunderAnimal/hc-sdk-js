@@ -95,21 +95,35 @@ describe('fhir service', () => {
 			.withArgs('fakeTagEncKey').resolves('key');
 	});
 
-	it('uploadFhirRecord succeeds', (done) => {
-		const uploadFhirStub = sinon.stub(documentRoutes, 'uploadRecord')
+	it('createFhirRecord succeeds', (done) => {
+		const createFhirStub = sinon.stub(documentRoutes, 'createRecord')
 			.returnsPromise().resolves(documentResponse);
 
-		fhirService.uploadFhirRecord(fhirObject, ['tag1', 'tag2']).then((res) => {
+		fhirService.createFhirRecord(fhirObject, ['tag1', 'tag2']).then((res) => {
 			expect(res).to.equal(documentResponse);
-			expect(uploadFhirStub).to.be.calledOnce;
+			expect(createFhirStub).to.be.calledOnce;
 			expect(resolveUserIdStub).to.be.calledOnce;
-			expect(uploadFhirStub).to.be.calledWith('fakeUserId');
+			expect(createFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
 			resolveUserIdStub.restore();
 			done();
 		});
 	});
 
+	it('updateFhirRecord succeeds', (done) => {
+		const updateFhirStub = sinon.stub(documentRoutes, 'updateRecord')
+			.returnsPromise().resolves(documentResponse);
+
+		fhirService.updateFhirRecord('fakeRecordId', fhirObject, ['tag1', 'tag2']).then((res) => {
+			expect(res).to.equal(documentResponse);
+			expect(updateFhirStub).to.be.calledOnce;
+			expect(resolveUserIdStub).to.be.calledOnce;
+			expect(updateFhirStub).to.be.calledWith('fakeUserId');
+			expect(userServiceResolveUserStub).to.be.calledOnce;
+			resolveUserIdStub.restore();
+			done();
+		});
+	});
 
 	it('downloadFhirRecord succeeds', (done) => {
 		const downloadFhirStub = sinon.stub(documentRoutes, 'downloadRecord')
