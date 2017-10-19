@@ -19,6 +19,7 @@ class HealthCloud {
 		this.searchRecords = fhirService.searchRecords.bind(fhirService);
 		this.uploadFhirRecord = fhirService.uploadFhirRecord.bind(fhirService);
 		this.downloadFhirRecord = fhirService.downloadFhirRecord.bind(fhirService);
+		this.deleteRecord = fhirService.deleteRecord.bind(fhirService);
 	}
 }
 

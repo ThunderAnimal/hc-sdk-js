@@ -87,6 +87,12 @@ class FHIRService {
 				return Promise.all(promises);
 			});
 	}
+
+	deleteRecord(documentId, userId = undefined) {
+		if (!userId) userId = UserService.getUserId();
+
+		return documentRoutes.deleteRecord(userId, documentId);
+	}
 }
 
 export default FHIRService;

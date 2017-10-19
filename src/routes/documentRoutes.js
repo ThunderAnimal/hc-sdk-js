@@ -28,6 +28,10 @@ const documentRoutes = {
 	updateRecordStatus(userId, recordId, status) {
 		return hcRequest('PUT', `${apiUrl}/users/${userId}/records/${recordId}/status/${status}`);
 	},
+
+	deleteRecord(userId, recordId) {
+		return hcRequest('DELETE', `${apiUrl}/users/${userId}/records/${recordId}`);
+	},
 };
 
 export default documentRoutes;

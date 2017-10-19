@@ -162,6 +162,7 @@ In the case of any error in uploading and downloading documents, the format is:
     }
 ```
 
+
 ### Upload a FHIR resource
 
 To upload a record into Gesundheitscloud call: 
@@ -182,6 +183,13 @@ To download a record from Gesundheitscloud call:
 
 This returns a promise that resolves to an object that contains ``tags`` and ``body``.
 Thereby ``tags`` is an array of strings that contains not only the custom but automatically created tags and ``body`` is the json object, that has been uploaded.
+
+### Delete a record/document
+
+To delete a record from Gesundheitscloud call:
+```javascript
+    HC.deleteRecord(recordId)
+```
 
 ### Search for Records
 

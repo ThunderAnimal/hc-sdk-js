@@ -161,6 +161,30 @@ describe('fhir service', () => {
 		});
 	});
 
+	it('deleteRecord succeeds when userId is passed', (done) => {
+		const uploadFhirStub = sinon.stub(documentRoutes, 'deleteRecord')
+			.returnsPromise().resolves();
+
+		fhirService.deleteRecord('fakeRecordId', 'fakeUserId2').then(() => {
+			expect(uploadFhirStub).to.be.calledOnce;
+			expect(uploadFhirStub).to.be.calledWith('fakeUserId2', 'fakeRecordId');
+			uploadFhirStub.restore();
+			done();
+		});
+	});
+
+	it('deleteRecord succeeds when userId is not passed', (done) => {
+		const uploadFhirStub = sinon.stub(documentRoutes, 'deleteRecord')
+			.returnsPromise().resolves();
+
+		fhirService.deleteRecord('fakeRecordId').then(() => {
+			expect(uploadFhirStub).to.be.calledOnce;
+			expect(uploadFhirStub).to.be.calledWith('fakeUserId', 'fakeRecordId');
+			uploadFhirStub.restore();
+			done();
+		});
+	});
+
 	afterEach(() => {
 		userServiceResolveUserStub.restore();
 		resolveUserIdStub.restore();
