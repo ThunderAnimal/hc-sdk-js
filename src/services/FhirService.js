@@ -1,3 +1,4 @@
+import fhirValidator from '../lib/fhirValidator';
 import documentRoutes from '../routes/documentRoutes';
 import UserService from '../services/UserService';
 import Tags from '../lib/Tags';
@@ -21,8 +22,11 @@ class FHIRService {
 	}
 
 	uploadFhirRecord(jsonFHIR, tags, uploadRequest) {
-		tags = [...tags, ...(new Tags()).createTagsFromFHIR(jsonFHIR)];
-		return this.uploadRecordWithTags(jsonFHIR, tags, uploadRequest);
+		return fhirValidator.validate(jsonFHIR)
+			.then(() => {
+				tags = [...tags, ...(new Tags()).createTagsFromFHIR(jsonFHIR)];
+				return this.uploadRecordWithTags(jsonFHIR, tags, uploadRequest);
+			});
 	}
 
 	uploadRecordWithTags(doc, tags, uploadRequest) {

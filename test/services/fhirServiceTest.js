@@ -5,10 +5,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
+
 import documentRoutes from '../../src/routes/documentRoutes';
 import FhirService from '../../src/services/FhirService';
 import UserService from '../../src/services/UserService';
 import encryptionUtils from '../../src/lib/EncryptionUtils';
+import FhirValidator from '../../src/lib/fhirValidator';
+import fhirRoutes from '../../src/routes/fhirRoutes';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -19,6 +22,7 @@ describe('fhir service', () => {
 	let fhirService;
 	let userServiceResolveUserStub;
 	let resolveUserIdStub;
+
 	const fhirObject = {
 		resourceType: 'Patient',
 		id: 'example',
@@ -65,14 +69,23 @@ describe('fhir service', () => {
 		status: 'Active',
 		createdAt: '2017-09-01T13:51:53.741',
 	};
-
-
+	const incorrectFhirSchema = {
+		resourceType: 'Patient',
+	};
+	let fhirValidatorStub;
+	let fhirRouteStub;
+	let getConformanceStub;
 	beforeEach(() => {
+		fhirValidatorStub = sinon.stub(FhirValidator, 'validate').returnsPromise()
+			.resolves(true);
+
 		fhirService = new FhirService('dummyZerokitadapter');
 		fhirService.zeroKitAdapter = {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedData'),
 			encrypt: sinon.stub().returnsPromise().resolves('encrypteddocument'),
 		};
+
+
 		userServiceResolveUserStub = sinon.stub(UserService, 'resolveUser').returnsPromise()
 			.resolves({
 				id: '5fe7a5bb-d366-41ad-a3a5-5a9405b0bf53',
@@ -87,7 +100,6 @@ describe('fhir service', () => {
 			});
 		resolveUserIdStub = sinon.stub(UserService, 'getUserId').returns('fakeUserId');
 
-
 		fhirService.zeroKitAdapter.decrypt.returnsPromise()
 			.withArgs('fakeEncryptedBody').resolves(JSON.stringify(fhirObject));
 
@@ -96,16 +108,37 @@ describe('fhir service', () => {
 	});
 
 	it('createFhirRecord succeeds', (done) => {
+		fhirValidatorStub.withArgs(fhirObject).resolves(false);
+		fhirRouteStub = sinon.stub(fhirRoutes, 'getFhirSchema')
+			.returnsPromise().resolves(JSON.stringify('dummySchema'));
+
 		const createFhirStub = sinon.stub(documentRoutes, 'createRecord')
 			.returnsPromise().resolves(documentResponse);
 
 		fhirService.createFhirRecord(fhirObject, ['tag1', 'tag2']).then((res) => {
 			expect(res).to.equal(documentResponse);
 			expect(createFhirStub).to.be.calledOnce;
+			expect(fhirValidatorStub).to.be.calledOnce;
 			expect(resolveUserIdStub).to.be.calledOnce;
 			expect(createFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
 			resolveUserIdStub.restore();
+			createFhirStub.restore();
+			fhirValidatorStub.restore();
+			done();
+		});
+	});
+
+	it('uploadFhirRecord fails if fhir schema is incorrect', (done) => {
+		fhirValidatorStub.withArgs(incorrectFhirSchema).rejects({ error: 'error' });
+
+		const uploadFhirStub = sinon.stub(documentRoutes, 'createRecord')
+			.returnsPromise().resolves(documentResponse);
+
+		fhirService.uploadFhirRecord(incorrectFhirSchema, ['tag1', 'tag2']).catch((err) => {
+			expect(err).to.deep.equal({ error: 'error' });
+			expect(fhirValidatorStub).to.be.calledOnce;
+			expect(uploadFhirStub).to.not.be.called;
 			done();
 		});
 	});
@@ -202,5 +235,6 @@ describe('fhir service', () => {
 	afterEach(() => {
 		userServiceResolveUserStub.restore();
 		resolveUserIdStub.restore();
+		fhirValidatorStub.restore();
 	});
 });
