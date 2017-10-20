@@ -25,7 +25,7 @@ class DocumentService {
 		return Promise.all(
 			[
 				this.zeroKitAdapter.encrypt(document),
-				this.fhirService.uploadFhirRecord(options, ['document'])
+				this.fhirService.createFhirRecord(options, ['document'])
 					.then((res) => {
 						recordId = res.record_id;
 						return documentRoutes.getUploadUserDocumentToken(userId, recordId);

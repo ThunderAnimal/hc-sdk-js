@@ -39,7 +39,7 @@ describe('DocumentService', () => {
 		documentService = new DocumentService({ zeroKitAdapter });
 
 
-		documentService.fhirService.uploadFhirRecord = sinon.stub()
+		documentService.fhirService.createFhirRecord = sinon.stub()
 			.returnsPromise().resolves(fhirResponse);
 
 		documentService.zeroKitAdapter.encrypt.returnsPromise().withArgs('9087')
