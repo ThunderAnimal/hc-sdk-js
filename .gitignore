@@ -1,6 +1,6 @@
 .idea/
 .DS_Store
-dist/
+dest/
 *.iml
 .yarnclean
 
@@ -63,3 +63,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# The npm lock tree file
+package-lock.json
