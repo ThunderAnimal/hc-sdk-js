@@ -9,37 +9,29 @@ import encryptionUtils from '../lib/EncryptionUtils';
 
 class ZeroKitAdapter {
 	constructor(options) {
-		this.queue = [];
 		this.auth = options.authService;
-
-		const script = document.createElement('script');
-		script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
-		script.querySelector('#zkit');
-		script.addEventListener('load', () => {
-			zkit_sdk.setup(config.zkit.service_url, '');
-			this.handleQueue();
-		});
-		document.getElementsByTagName('head')[0].appendChild(script);
-	}
-
-	handleQueue() {
-		this.queue.forEach((functionCall) => {
-			functionCall.function.apply(this, functionCall.parameters);
+		this.zeroKit = new Promise((resolve, reject) => {
+			const script = document.createElement('script');
+			script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
+			script.querySelector('#zkit');
+			script.addEventListener('load', () => {
+				if (zkit_sdk) {
+					zkit_sdk.setup(config.zkit.service_url, '');
+					resolve(zkit_sdk);
+				} else {
+					reject(new Error('Setting up ZeroKit failed.'));
+				}
+			});
+			document.getElementsByTagName('head')[0].appendChild(script);
 		});
 	}
 
 	getLoginForm(parentElement, callback = () => {}) {
-		if (typeof zkit_sdk === 'undefined') {
-			this.queue.push({
-				function: this.getLoginForm,
-				parameters: [parentElement, callback],
-			});
-			return;
-		}
-
 		parentElement.appendChild(loginForm);
 		const zKitLoginObject =
-			zkit_sdk.getLoginIframe(document.getElementById(loginFormIds.zkitLogin));
+			this.zeroKit
+				.then(zeroKit => zeroKit.getLoginIframe(
+					document.getElementById(loginFormIds.zkitLogin)));
 
 		const submit = function (zKitLogin, cb, event) {
 			event.preventDefault();
@@ -81,24 +73,16 @@ class ZeroKitAdapter {
 
 	createTek(tresorId) {
 		const tek = encryptionUtils.generateKey();
-		return zkit_sdk.encrypt(tresorId, tek)
+		return this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, tek)
 			.then(res => userRoutes.addTagEncryptionKey(UserService.getUserId(), res)
-				.then(() => res));
+				.then(() => res)));
 	}
 
 	getRegistrationForm(parentElement, callback = () => {}) {
-		if (typeof zkit_sdk === 'undefined') {
-			this.queue.push({
-				function: this.getRegistrationForm,
-				parameters: [parentElement, callback],
-			});
-			return;
-		}
-
 		parentElement.appendChild(registrationForm);
 		const zKitRegistrationObject =
-			zkit_sdk.getRegistrationIframe(
-				document.getElementById(registrationFormIds.zkitRegistration));
+			this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(
+				document.getElementById(registrationFormIds.zkitRegistration)));
 
 		const submit = function (zKitRegistration, cb, event) {
 			event.preventDefault();
@@ -123,11 +107,11 @@ class ZeroKitAdapter {
 
 	encrypt(string) {
 		return this.getTresor()
-			.then(res => zkit_sdk.encrypt(res, string));
+			.then(res => this.zeroKit.then(zeroKit => zeroKit.encrypt(res, string)));
 	}
 
 	decrypt(encryptedData) {
-		return zkit_sdk.decrypt(encryptedData);
+		return this.zeroKit.then(zeroKit => zeroKit.decrypt(encryptedData));
 	}
 
 	getTresor() {
@@ -142,9 +126,9 @@ class ZeroKitAdapter {
 	}
 
 	createTresor() {
-		return zkit_sdk.createTresor()
+		return this.zeroKit.then(zeroKit => zeroKit.createTresor()
 			.then(tresorId => userRoutes.addTresor(UserService.getUserId(), tresorId)
-				.then(() => tresorId));
+				.then(() => tresorId)));
 	}
 }
 

@@ -23,6 +23,7 @@ describe('zerokitAdapter', () => {
 	let userRoutesResolveUserIdStub;
 	let zKitLoginObject;
 	let zKitRegisterObject;
+	let zkit_sdk;
 
 	beforeEach(() => {
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
@@ -32,25 +33,27 @@ describe('zerokitAdapter', () => {
 				MasterFragmentVersion: 1,
 			}),
 		};
-		window.zkit_sdk = {
+
+		zkit_sdk = {
 			getLoginIframe: sinon.stub().returns(zKitLoginObject),
 			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
 			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
 			setup: sinon.stub(),
 			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
-
 		};
 
 		window.document.getElementsByTagName = sinon.stub().returns([{ appendChild: sinon.spy() }]);
 		window.document.getElementById = sinon.stub().returns({});
 
 		zerokitAdapter = new ZerokitAdapter('dummyZerokitadapter');
+
 		zerokitAdapter.auth = { idpLogin: sinon.stub().returnsPromise().resolves('') };
 		zerokitAdapter.zeroKitAdapter = {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDocument'),
 			encrypt: sinon.stub().returnsPromise().resolves('encrypteddocument'),
 		};
+		zerokitAdapter.zeroKit = Promise.resolve(zkit_sdk);
 		userRouteAddTresorStub =
 			sinon.stub(userRoutes, 'addTresor')
 				.returnsPromise().resolves();
@@ -251,7 +254,6 @@ describe('zerokitAdapter', () => {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
 
 		};
-		zerokitAdapter.handleQueue();
 		loginForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
@@ -286,7 +288,6 @@ describe('zerokitAdapter', () => {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
 
 		};
-		zerokitAdapter.handleQueue();
 		registrationForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
