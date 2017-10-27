@@ -1,4 +1,4 @@
-import config from '../config';
+import config from 'config';
 import hcRequest from '../lib/hcRequest';
 import SessionHandler from '../lib/sessionHandler';
 

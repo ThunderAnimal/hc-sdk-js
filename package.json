@@ -5,8 +5,10 @@
   "module": "src/index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch",
+    "build": "webpack --env.NODE_ENV=develop",
+    "build:staging": "webpack --env.NODE_ENV=staging",
+    "build:sandbox": "webpack --env.NODE_ENV=sandbox",
+    "watch": "webpack --env.NODE_ENV=develop --watch",
     "lint": "eslint src test",
     "karma": "karma start karma.conf.js",
     "karma:prod": "karma start karma.conf.js --single-run",
@@ -22,6 +24,7 @@
     "superagent-bluebird-promise": "^4.2.0"
   },
   "devDependencies": {
+    "aliasify": "^2.1.0",
     "babel-loader": "^7.1.1",
     "babel-polyfill": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
@@ -33,6 +36,7 @@
     "eslint": "^4.3.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-config-airbnb-base": "^11.1.3",
+    "eslint-import-resolver-configurable": "^0.1.3",
     "eslint-plugin-import": "^2.7.0",
     "karma": "^1.7.0",
     "karma-babel-preprocessor": "^6.0.1",

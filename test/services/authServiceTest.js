@@ -5,10 +5,10 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
+import config from 'config';
 
 import siriusRoutes from '../../src/routes/authRoutes';
 import Auth from '../../src/services/AuthService';
-import config from '../../src/config';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);

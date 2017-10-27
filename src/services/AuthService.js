@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import config from '../config';
+import config from 'config';
 import sessionHandler from '../lib/sessionHandler';
 import authRoutes from '../routes/authRoutes';
 

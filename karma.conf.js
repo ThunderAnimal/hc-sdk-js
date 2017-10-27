@@ -21,6 +21,11 @@ module.exports = function (config) {
 			transform: [
 				['browserify-babel-istanbul', { ignore: ['**/node_modules/**', '**/tests/**'] }],
 				['babelify', { presets: ['es2015'] }],
+				['aliasify', {
+					aliases: {
+						config: './src/config/develop',
+					},
+				}],
 			],
 		},
 

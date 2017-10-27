@@ -6,8 +6,8 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import proxy from 'proxyquireify';
+import config from 'config';
 import '../../src/routes/documentRoutes';
-import config from '../../src/config';
 
 const proxyquire = proxy(require);
 

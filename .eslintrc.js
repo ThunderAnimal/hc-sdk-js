@@ -17,6 +17,13 @@ module.exports = {
 		"newline-per-chained-call": ["error", { "ignoreChainWithDepth": 3 }],
 		"max-len": ["error",  { "code": 100, "ignoreTemplateLiterals": true }]
 	},
+	"settings": {
+		'import/resolver': {
+			'configurable': {
+				'config': './src/config/develop'
+			}
+		}
+	},
 	"env": {
 		"browser": true
 	},

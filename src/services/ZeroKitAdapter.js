@@ -1,5 +1,5 @@
+import config from 'config';
 import userRoutes from '../routes/userRoutes';
-import config from '../config';
 import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
 import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
