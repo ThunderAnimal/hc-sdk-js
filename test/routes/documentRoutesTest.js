@@ -26,12 +26,12 @@ describe('documentRoutes', () => {
 		requestStub = sinon.stub().returnsPromise();
 	});
 
-	it('getDownloadUserDocumentToken passes', (done) => {
+	it('getFileDownloadUrl passes', (done) => {
 		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		documentRoutes.getDownloadUserDocumentToken('fakeUserAlias',
+		documentRoutes.getFileDownloadUrl('fakeUserAlias',
 			'fakeDocumentId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
@@ -41,23 +41,15 @@ describe('documentRoutes', () => {
 		requestStub.reset();
 	});
 
-	it('getUploadUserDocumentToken passes', (done) => {
+	it('getFileUploadUrls passes', (done) => {
 		documentRoutes = proxyquire('../../src/routes/documentRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		const params = {
-			organizationId: '1',
-			title: 'fakeTitle',
-			documentType: 'fakeDocType',
-			customFields: '',
-			comment: '',
-		};
-
-		documentRoutes.getUploadUserDocumentToken('fakeUserAlias', params).then((res) => {
+		documentRoutes.getFileUploadUrls('fakeUserAlias', 'fakeRecordId', '42').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('GET');
+			expect(requestStub).to.be.calledWith('POST');
 			done();
 		});
 		requestStub.reset();

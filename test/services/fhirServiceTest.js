@@ -56,25 +56,30 @@ describe('fhir service', () => {
 		},
 	};
 
-	const documentResponse = {
+	const fhirResponse = {
 		record_id: 'fakeRecordId',
 		date: '2017-08-01',
 		user_id: 'fakeUserIId',
-		encrypted_body: 'fakeEncryptedBody',
-		encrypted_tags: [
-			'uzydrHX/3gGWZdZ69LizEA==',
-			'+AJ9MhikiHxSX8sD3qdurw==',
+		body: fhirObject,
+		tags: [
+			'tag1',
+			'tag2',
+			'Patient',
+			'Organization/1',
 		],
 		version: 1,
 		status: 'Active',
 		createdAt: '2017-09-01T13:51:53.741',
 	};
+
 	const incorrectFhirSchema = {
 		resourceType: 'Patient',
 	};
 	let fhirValidatorStub;
 	let fhirRouteStub;
 	let getConformanceStub;
+	let rawFhirResponse;
+
 	beforeEach(() => {
 		fhirValidatorStub = sinon.stub(FhirValidator, 'validate').returnsPromise()
 			.resolves(true);
@@ -101,10 +106,25 @@ describe('fhir service', () => {
 		resolveUserIdStub = sinon.stub(UserService, 'getUserId').returns('fakeUserId');
 
 		fhirService.zeroKitAdapter.decrypt.returnsPromise()
-			.withArgs('fakeEncryptedBody').resolves(JSON.stringify(fhirObject));
+			.withArgs('encryptedBody').resolves(JSON.stringify(fhirObject));
 
 		fhirService.zeroKitAdapter.decrypt.returnsPromise()
 			.withArgs('fakeTagEncKey').resolves('key');
+
+		rawFhirResponse = {
+			record_id: 'fakeRecordId',
+			date: '2017-08-01',
+			user_id: 'fakeUserIId',
+			body: fhirObject,
+			encrypted_tags: [
+				'uzydrHX/3gGWZdZ69LizEA==',
+				'+AJ9MhikiHxSX8sD3qdurw==',
+			],
+			encrypted_body: 'encryptedBody',
+			version: 1,
+			status: 'Active',
+			createdAt: '2017-09-01T13:51:53.741',
+		};
 	});
 
 	it('createFhirRecord succeeds', (done) => {
@@ -113,10 +133,10 @@ describe('fhir service', () => {
 			.returnsPromise().resolves(JSON.stringify('dummySchema'));
 
 		const createFhirStub = sinon.stub(documentRoutes, 'createRecord')
-			.returnsPromise().resolves(documentResponse);
+			.returnsPromise().resolves(fhirResponse);
 
 		fhirService.createFhirRecord(fhirObject, ['tag1', 'tag2']).then((res) => {
-			expect(res).to.equal(documentResponse);
+			expect(res).to.equal(fhirResponse);
 			expect(createFhirStub).to.be.calledOnce;
 			expect(fhirValidatorStub).to.be.calledOnce;
 			expect(resolveUserIdStub).to.be.calledOnce;
@@ -133,7 +153,7 @@ describe('fhir service', () => {
 		fhirValidatorStub.withArgs(incorrectFhirSchema).rejects({ error: 'error' });
 
 		const uploadFhirStub = sinon.stub(documentRoutes, 'createRecord')
-			.returnsPromise().resolves(documentResponse);
+			.returnsPromise().resolves(fhirResponse);
 
 		fhirService.uploadFhirRecord(incorrectFhirSchema, ['tag1', 'tag2']).catch((err) => {
 			expect(err).to.deep.equal({ error: 'error' });
@@ -145,37 +165,38 @@ describe('fhir service', () => {
 
 	it('updateFhirRecord succeeds', (done) => {
 		const updateFhirStub = sinon.stub(documentRoutes, 'updateRecord')
-			.returnsPromise().resolves(documentResponse);
+			.returnsPromise().resolves(fhirResponse);
 
 		fhirService.updateFhirRecord('fakeRecordId', fhirObject, ['tag1', 'tag2']).then((res) => {
-			expect(res).to.equal(documentResponse);
+			expect(res).to.equal(fhirResponse);
 			expect(updateFhirStub).to.be.calledOnce;
 			expect(resolveUserIdStub).to.be.calledOnce;
 			expect(updateFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
 			resolveUserIdStub.restore();
+			updateFhirStub.restore();
 			done();
 		});
 	});
 
 	it('downloadFhirRecord succeeds', (done) => {
 		const downloadFhirStub = sinon.stub(documentRoutes, 'downloadRecord')
-			.returnsPromise().resolves(documentResponse);
+			.returnsPromise().resolves(rawFhirResponse);
 
 		fhirService.downloadFhirRecord('fakeRecordId').then((res) => {
 			expect(res.body).to.deep.equal(fhirObject);
 			expect(downloadFhirStub).to.be.calledOnce;
 			expect(downloadFhirStub).to.be.calledWith('fakeUserId');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
+			downloadFhirStub.restore();
 			done();
 		});
 	});
 
 	it('searchRecords succeeds', (done) => {
-		const documentResponseList = [documentResponse];
+		const fhirResponseList = [rawFhirResponse];
 		const searchRecordsStub = sinon.stub(documentRoutes, 'searchRecords')
-			.returnsPromise().resolves(documentResponseList);
-
+			.returnsPromise().resolves(fhirResponseList);
 
 		const params = {
 			user_ids: ['user1', 'user2'],
@@ -200,7 +221,7 @@ describe('fhir service', () => {
 		};
 
 		fhirService.searchRecords(params).then((res) => {
-			expect(res).to.deep.equal(documentResponseList);
+			expect(res).to.deep.equal(fhirResponseList);
 			expect(searchRecordsStub).to.be.calledOnce;
 			expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
 			expect(userServiceResolveUserStub).to.be.calledOnce;

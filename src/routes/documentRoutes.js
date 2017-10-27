@@ -5,12 +5,12 @@ const apiUrl = config.api;
 
 const documentRoutes = {
 
-	getDownloadUserDocumentToken(userId, recordId) {
-		return hcRequest('GET', `${apiUrl}/users/${userId}/documents/${recordId}/download_access_token`);
+	getFileDownloadUrl(userId, recordId, fileId) {
+		return hcRequest('GET', `${apiUrl}/users/${userId}/documents/${recordId}/files/${fileId}/download_access_token`);
 	},
 
-	getUploadUserDocumentToken(userId, recordId) {
-		return hcRequest('GET', `${apiUrl}/users/${userId}/documents/${recordId}/upload_access_token`);
+	getFileUploadUrls(userId, recordId, fileNumber) {
+		return hcRequest('POST', `${apiUrl}/users/${userId}/documents/${recordId}/tokens`, { file_number: fileNumber });
 	},
 
 	createRecord(userId, data) {

@@ -46,27 +46,33 @@ class FHIRService {
 					date: helpers.formatDateYyyyMmDd(new Date()),
 				};
 				return uploadRequest(UserService.getUserId(), params);
+			})
+			.then((result) => {
+				delete result.encrypted_body;
+				delete result.encrypted_tags;
+				result.body = doc;
+				result.tags = tags;
+				return result;
 			});
 	}
 
 
 	downloadFhirRecord(recordId) {
 		return documentRoutes.downloadRecord(UserService.getUserId(), recordId)
-			.then(result => Promise.all(
-				[
-					this.zeroKitAdapter.decrypt(result.encrypted_body),
-					UserService.resolveUser()
-						.then(res => this.zeroKitAdapter.decrypt(res.tag_encryption_key))
-						.then(res => result.encrypted_tags
-							.map(item => encryptionUtils.decrypt(item, res))),
-				],
-			)
+			.then(result => Promise.all([
+				this.zeroKitAdapter.decrypt(result.encrypted_body),
+				UserService.resolveUser()
+					.then(user => this.zeroKitAdapter.decrypt(user.tag_encryption_key))
+					.then(tek => result.encrypted_tags
+						.map(tag => encryptionUtils.decrypt(tag, tek))),
+			])
 				.then((results) => {
+					delete result.encrypted_body;
+					delete result.encrypted_tags;
 					result.body = JSON.parse(results[0]);
 					result.tags = results[1];
 					return result;
-				}),
-			);
+				}));
 	}
 
 
@@ -93,6 +99,8 @@ class FHIRService {
 						result.encrypted_tags.map(item => encryptionUtils.decrypt(item, tek)),
 					])
 					.then((results) => {
+						delete result.encrypted_body;
+						delete result.encrypted_tags;
 						result.body = results[0];
 						result.tags = results[1];
 						return result;

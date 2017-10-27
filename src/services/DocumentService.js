@@ -9,37 +9,80 @@ class DocumentService {
 	}
 
 	downloadDocument(userId, documentId) {
-		return Promise.all(
-			[
-				documentRoutes.getDownloadUserDocumentToken(userId, documentId)
-					.then(res => azureRoutes.downloadDocument(res.sas_token))
-					.then(res => this.zeroKitAdapter.decrypt(res.content)),
-				this.fhirService.downloadFhirRecord(documentId),
-			],
-		)
-			.then(results => Object.assign({}, { document: results[0] }, results[1]));
+		let documentRecord;
+		return this.fhirService.downloadFhirRecord(documentId)
+			.then((res) => {
+				documentRecord = res;
+				return Promise.all(
+					documentRecord.body.content.map(
+						(documentReference) => {
+							const fileId = documentReference.attachment.url;
+							return documentRoutes
+								.getFileDownloadUrl(userId, documentId, fileId);
+						}));
+			})
+			.then(sasUrls => Promise.all(
+				sasUrls.map(sasUrl => azureRoutes.downloadFile(sasUrl.sas_token))))
+			.then(encryptedFiles => Promise.all(
+				encryptedFiles.map(encryptedFile =>
+					this.zeroKitAdapter.decrypt(encryptedFile.content)),
+			))
+			.then((files) => {
+				documentRecord.files = files;
+				return documentRecord;
+			});
 	}
 
-	uploadDocument(userId, document, options = {}) {
-		let recordId;
-		return Promise.all(
-			[
-				this.zeroKitAdapter.encrypt(document),
-				this.fhirService.createFhirRecord(options, ['document'])
-					.then((res) => {
-						recordId = res.record_id;
-						return documentRoutes.getUploadUserDocumentToken(userId, recordId);
-					}),
-			],
-		)
-			.then((results) => {
-				const encryptedDocument = results[0];
-				const sasToken = results[1].sas_token;
+	uploadDocument(userId, files, metadata = {}, customTags = []) {
+		return this.fhirService.createFhirRecord(metadata, customTags)
+			.then(record => this.addFilesToRecord(record, userId, files));
+	}
 
-				return azureRoutes.uploadDocument(sasToken, encryptedDocument);
+	addFilesToDocument(userId, documentId, files) {
+		return this.fhirService.downloadFhirRecord(documentId)
+			.then(record => this.addFilesToRecord(record, userId, files));
+	}
+
+	addFilesToRecord(documentRecord, userId, files) {
+		let fileInformation;
+		files = files.map(file =>
+			this.zeroKitAdapter.encrypt(file.data)
+				.then(encryptedData =>
+					({ data: encryptedData, title: file.title })));
+
+		return Promise.all([
+			Promise.all(files),
+			documentRoutes.getFileUploadUrls(userId, documentRecord.record_id, files.length),
+		])
+			.then((result) => {
+				const encryptedFiles = result[0];
+				fileInformation = result[1];
+				return Promise.all(encryptedFiles
+					.map((encryptedFile, index) =>
+						azureRoutes
+							.uploadFile(fileInformation[index].sas_token, encryptedFile.data)));
 			})
-			.then(() => documentRoutes.updateRecordStatus(userId, recordId, 'Active'))
-			.then(() => ({ record_id: recordId }));
+			.then(() => {
+				const newAtachements = fileInformation
+					.map((info, index) =>
+						this.createDocumentReference(info.id, files[index].title));
+				documentRecord.body.content.push(...newAtachements);
+				return this.fhirService
+					.updateFhirRecord(documentRecord.record_id, documentRecord.body);
+			});
+	}
+
+	deleteFilesFromDocument(userId, documentId, fileIds) {
+		return this.fhirService.downloadFhirRecord(documentId)
+			.then((record) => {
+				record.body.content = record.body.content.filter(documentReference =>
+					fileIds.indexOf(documentReference.attachment.url) === -1);
+				return this.fhirService.updateFhirRecord(documentId, record.body);
+			});
+	}
+
+	createDocumentReference(fileId, title) {
+		return { attachment: { url: fileId, title } };
 	}
 }
 

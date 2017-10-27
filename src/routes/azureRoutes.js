@@ -2,11 +2,11 @@ import hcRequest from '../lib/hcRequest';
 
 const azureRoutes = {
 
-	downloadDocument(sasUrl) {
+	downloadFile(sasUrl) {
 		return hcRequest('GET', sasUrl);
 	},
 
-	uploadDocument(sasUrl, blobString) {
+	uploadFile(sasUrl, blobString) {
 		const body = { content: blobString };
 		const headers = { 'x-ms-blob-type': 'BlockBlob' };
 		return hcRequest('PUT', sasUrl, body, { headers });

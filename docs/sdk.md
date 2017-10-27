@@ -95,9 +95,11 @@ Only the owner of the documents and those who have explicit permission from the 
 
 To upload the document:
 ```javascript
- HC.uploadDocument('user_id', file, options)
+ let files = [{ data: document, title: "some_title"}];
+
+ HC.uploadDocument('user_id', files, documentReference)
     .then((response) => {
-        // use document metadata which contains document id,status etc.
+        // use document record which contains document id, status etc.
     })
     .catch((error) => {
         // error contains the status and error message
@@ -138,8 +140,27 @@ The response consists of document metadata and the decrypted body. eg. for an im
       "date":"2017-09-14",
       "user_id":"user1",
       // the FHIR format of the document data
-      "body": {          
-        "resourceType":"DocumnetReference" 
+      "body": { 
+        "content" : [
+          {
+            "attachment" : {
+              "id": "file_id_1", 
+              "title": "given_title_1"
+            }
+          },{
+            "attachment" : {
+              "id": "file_id_2", 
+              "title": "given_title_2"
+            }
+          }
+        ],
+        "description" : "Title",
+        "indexed" : "2017-10-18T13:58:12.809Z",
+        "resourceType" : "DocumentReference",
+        "status" : "current",
+        "type" : {
+          "text" : "concept"
+      }
       },
       "tags":[  
          "tag1",
@@ -162,6 +183,33 @@ In the case of any error in uploading and downloading documents, the format is:
     }
 ```
 
+#### Add files to existing docuement
+Adding files to a document requires a logged in user.
+Therefore you need to call ``addFilesToDocument`` and provide the document owners user id, the document id and the files.
+```javascript
+    let files = [{ data: document, title: "some_title"}];
+    HC.addFilesToDocument(userId, documentId, files)
+        .then((response) => {
+            // use document record which contains document id, status etc.
+        })
+        .catch((error) => {
+            // error contains the status and error message
+        });
+```
+
+#### Remove files from an existing document
+Removing files from a document requires a logged in user.
+Therefore you need to call ``deleteFilesFromDocument`` and provide the document owners user id, the document id and the file ids that should be deleted.
+
+```javascript
+    HC.deleteFilesFromDocument(userId, documentId, fileIds)
+        .then((response) => {
+           // use document record which contains document id, status etc.
+       })
+       .catch((error) => {
+           // error contains the status and error message
+       });
+```
 
 ### Upload a FHIR resource
 

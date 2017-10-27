@@ -22,17 +22,21 @@ describe('zerokitAdapter', () => {
 	let userRouteAddTresorStub;
 	let userRoutesResolveUserIdStub;
 	let zKitLoginObject;
+	let zKitLoginObjectPromise;
 	let zKitRegisterObject;
+	let zKitRegisterObjectPromise;
 	let zkit_sdk;
 
 	beforeEach(() => {
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
+		zKitLoginObjectPromise = Promise.resolve(zKitLoginObject);
 		zKitRegisterObject = {
 			register: sinon.stub().returnsPromise().resolves({
 				RegValidationVerifier: '4003a02ffcd1111248df4136d32d533b',
 				MasterFragmentVersion: 1,
 			}),
 		};
+		zKitRegisterObjectPromise = Promise.resolve(zKitRegisterObject);
 
 		zkit_sdk = {
 			getLoginIframe: sinon.stub().returns(zKitLoginObject),
@@ -70,7 +74,7 @@ describe('zerokitAdapter', () => {
 					},
 				});
 
-		zerokitAdapter.login(zKitLoginObject, 'dummyUserAlias', (err, res) => {
+		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUserAlias', (err, res) => {
 			expect(res.user_alias).to.equal('dummyUserAlias');
 			expect(err).to.equal(null);
 			expect(userRoutesResolveUserIdStub).to.be.calledOnce;
@@ -93,7 +97,7 @@ describe('zerokitAdapter', () => {
 				});
 		zerokitAdapter.auth = { idpLogin: sinon.stub().returnsPromise().rejects('error') };
 
-		zerokitAdapter.login(zKitLoginObject, 'dummyUserAlias', (err) => {
+		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUserAlias', (err) => {
 			expect(err).to.equal('error');
 			expect(userRoutesResolveUserIdStub).to.be.calledOnce;
 			expect(zKitLoginObject.login).to.be.calledOnce;
@@ -109,7 +113,7 @@ describe('zerokitAdapter', () => {
 				.returnsPromise().rejects('error');
 		zerokitAdapter.auth = { idpLogin: sinon.stub().yields('error') };
 
-		zerokitAdapter.login(zKitLoginObject, 'dummyUserAlias', (err) => {
+		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUserAlias', (err) => {
 			expect(err).to.equal('error');
 			expect(userRoutesResolveUserIdStub).to.be.calledOnce;
 			userRoutes.resolveUserId.restore();
@@ -124,7 +128,7 @@ describe('zerokitAdapter', () => {
 					user: { id: 'kjhgf', zerokit_id: 'fakeZkitId' },
 				});
 
-		zerokitAdapter.login(zKitLoginObject, 'dummyUserAlias', (err, res) => {
+		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUserAlias', (err, res) => {
 			expect(res.user_alias).to.equal('dummyUserAlias');
 			expect(err).to.equal(null);
 			expect(userRoutesResolveUserIdStub).to.be.calledOnce;
@@ -146,7 +150,7 @@ describe('zerokitAdapter', () => {
 			sinon.stub(userRoutes, 'validateRegistration')
 				.returnsPromise().resolves();
 
-		zerokitAdapter.register(zKitRegisterObject, 'dummyUserAlias', (err, res) => {
+		zerokitAdapter.register(zKitRegisterObjectPromise, 'dummyUserAlias', (err, res) => {
 			expect(res.user_alias).to.equal('dummyUserAlias');
 			expect(err).to.equal(null);
 			expect(userRoutesInitRegisterStub).to.be.calledOnce;
@@ -166,7 +170,7 @@ describe('zerokitAdapter', () => {
 			sinon.stub(userRoutes, 'validateRegistration')
 				.returnsPromise().resolves();
 
-		zerokitAdapter.register(zKitRegisterObject, 'dummyUserAlias', (err) => {
+		zerokitAdapter.register(zKitRegisterObjectPromise, 'dummyUserAlias', (err) => {
 			expect(err).to.equal('error');
 			expect(userRoutesInitRegisterStub).to.be.calledOnce;
 			expect(userRoutesvalidateRegistrationStub).to.not.be.called;

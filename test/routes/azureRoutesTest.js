@@ -25,12 +25,12 @@ describe('azureRoutes', () => {
 		requestStub = sinon.stub().returnsPromise();
 	});
 
-	it('downloadDocument passes', (done) => {
+	it('downloadFile passes', (done) => {
 		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		azureRoutes.downloadDocument('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+		azureRoutes.downloadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('GET');
@@ -40,12 +40,12 @@ describe('azureRoutes', () => {
 	});
 
 
-	it('uploadDocument passes', (done) => {
+	it('uploadFile passes', (done) => {
 		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		azureRoutes.uploadDocument('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+		azureRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('PUT');
@@ -54,12 +54,12 @@ describe('azureRoutes', () => {
 		requestStub.reset();
 	});
 
-	it('uploadDocument returns error if hcRequest returns error', (done) => {
+	it('uploadFile returns error if hcRequest returns error', (done) => {
 		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
 			'../lib/hcRequest': { default: requestStub.rejects('error') },
 		}).default;
 
-		azureRoutes.uploadDocument('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
+		azureRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
 			expect(res).to.equal('error');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('PUT');

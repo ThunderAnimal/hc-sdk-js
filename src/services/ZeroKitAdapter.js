@@ -53,7 +53,7 @@ class ZeroKitAdapter {
 				tek = res.user.tag_encryption_key;
 				sessionHandler.set('HC_User', `${res.user.id},${hcUserAlias}`);
 
-				return zKitLoginObject.login(zKitId);
+				return zKitLoginObject.then(loginObject => loginObject.login(zKitId));
 			})
 			.then(() => this.auth.idpLogin())
 			.then(() => {
@@ -98,7 +98,9 @@ class ZeroKitAdapter {
 		return userRoutes.initRegistration(hcUserAlias)
 			.then((res) => {
 				zKitId = res.zerokit_id;
-				return zKitRegistrationObject.register(zKitId, res.session_id);
+				return zKitRegistrationObject
+					.then(registrationObject =>
+						registrationObject.register(zKitId, res.session_id));
 			})
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
 			.then(() => callback(null, { user_alias: hcUserAlias }))

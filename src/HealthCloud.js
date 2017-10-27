@@ -15,6 +15,9 @@ class HealthCloud {
 		this.getRegistrationForm = zeroKitAdapter.getRegistrationForm.bind(zeroKitAdapter);
 		this.downloadDocument = documentService.downloadDocument.bind(documentService);
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
+		this.addFilesToDocument = documentService.addFilesToDocument.bind(documentService);
+		this.deleteFilesFromDocument =
+			documentService.deleteFilesFromDocument.bind(documentService);
 		this.getUser = UserService.getUser;
 		this.searchRecords = fhirService.searchRecords.bind(fhirService);
 		this.uploadFhirRecord = fhirService.createFhirRecord.bind(fhirService);
