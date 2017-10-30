@@ -30,7 +30,7 @@ describe('HealthCloud', () => {
 		expect(typeof healthCloud.downloadDocument).to.equal('function');
 		expect(typeof healthCloud.uploadDocument).to.equal('function');
 		expect(typeof healthCloud.getUser).to.equal('function');
+		expect(typeof healthCloud.updateUser).to.equal('function');
 		done();
 	});
 });
-

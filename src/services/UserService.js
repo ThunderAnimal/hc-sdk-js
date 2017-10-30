@@ -1,5 +1,10 @@
 import userRoutes from '../routes/userRoutes';
 import sessionHandler from '../lib/sessionHandler';
+import LoginError, { NOT_LOGGED_IN } from '../lib/Error/LoginError';
+import ValidationError, {
+	MISSING_PARAMETERS,
+	INVALID_PARAMETERS,
+} from '../lib/Error/ValidationError';
 
 class UserService {
 	constructor() {
@@ -37,6 +42,36 @@ class UserService {
 				this.user = res.user;
 				return this.user;
 			});
+	}
+
+	updateUser(params) {
+		return new Promise((resolve, reject) => {
+			const userId = this.getUserId();
+
+			if (!userId) {
+				reject(new LoginError(NOT_LOGGED_IN));
+				return;
+			}
+
+			if (!params) {
+				reject(new ValidationError(MISSING_PARAMETERS));
+				return;
+			}
+
+			if (Object.keys(params).length === 0) {
+				reject(new ValidationError(`${INVALID_PARAMETERS}: object is empty`));
+				return;
+			}
+
+			if (typeof params !== 'object') {
+				reject(new ValidationError(`${INVALID_PARAMETERS}: parameter is not an object`));
+				return;
+			}
+
+			userRoutes.updateUser(userId, params)
+				.then(resolve)
+				.catch(reject);
+		});
 	}
 }
 

@@ -77,6 +77,26 @@ describe('userRoutes', () => {
 		});
 	});
 
+	it('updateUser passes', (done) => {
+		requestStub.rejects('error');
+		userRoutes.updateUser({ name: 'fakeName' }).catch((err) => {
+			expect(err).to.equal('error');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('PUT');
+			done();
+		});
+	});
+
+	it('updateUser returns error on request failure', (done) => {
+		requestStub.resolves('pass');
+		userRoutes.updateUser({ name: 'fakeName' }).then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('PUT');
+			done();
+		});
+	});
+
 	afterEach(() => {
 		requestStub.reset();
 	});

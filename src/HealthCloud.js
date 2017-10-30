@@ -19,6 +19,7 @@ class HealthCloud {
 		this.deleteFilesFromDocument =
 			documentService.deleteFilesFromDocument.bind(documentService);
 		this.getUser = UserService.getUser;
+		this.updateUser = UserService.updateUser.bind(UserService);
 		this.searchRecords = fhirService.searchRecords.bind(fhirService);
 		this.uploadFhirRecord = fhirService.createFhirRecord.bind(fhirService);
 		this.downloadFhirRecord = fhirService.downloadFhirRecord.bind(fhirService);
@@ -28,4 +29,3 @@ class HealthCloud {
 }
 
 module.exports = HealthCloud;
-

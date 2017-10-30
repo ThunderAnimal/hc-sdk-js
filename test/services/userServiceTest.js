@@ -8,6 +8,8 @@ import sinonChai from 'sinon-chai';
 import User from '../../src/services/UserService';
 import sessionHandler from '../../src/lib/sessionHandler';
 import userRoutes from '../../src/routes/userRoutes';
+import { NOT_LOGGED_IN } from '../../src/lib/Error/LoginError';
+import { MISSING_PARAMETERS, INVALID_PARAMETERS } from '../../src/lib/Error/ValidationError';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -83,6 +85,59 @@ describe('services/User', () => {
 		});
 	});
 
+	it('updateUser succeeds when capella succeeds', (done) => {
+		const userServiceUserStub =
+			sinon.stub(userRoutes, 'updateUser')
+				.returnsPromise().resolves({});
+		User.updateUser({ name: 'fakeName' }).then(() => {
+			expect(userServiceUserStub).to.be.calledOnce;
+			userRoutes.updateUser.restore();
+			done();
+		});
+	});
+
+	it('updateUser fails when no user is logged in', (done) => {
+		sessionHandler.get.restore();
+		sessionHandlerGetStub =
+			sinon.stub(sessionHandler, 'get').returns(null);
+		User.updateUser({ name: 'fakeName' }).catch((res) => {
+			expect(res.message).to.equal(NOT_LOGGED_IN);
+			done();
+		});
+	});
+
+	it('updateUser fails when capella returns error', (done) => {
+		const userServiceUserStub =
+			sinon.stub(userRoutes, 'updateUser')
+				.returnsPromise().rejects({ error: 'error completing request' });
+		User.updateUser({ name: 'fakeName' }).catch((res) => {
+			expect(res.error).to.equal('error completing request');
+			expect(userServiceUserStub).to.be.calledOnce;
+			userRoutes.updateUser.restore();
+			done();
+		});
+	});
+
+	it('updateUser fails when no parameters are passed', (done) => {
+		User.updateUser().catch((res) => {
+			expect(res.message).to.equal(MISSING_PARAMETERS);
+			done();
+		});
+	});
+
+	it('updateUser fails when parameters is not an object', (done) => {
+		User.updateUser('string').catch((res) => {
+			expect(res.message).to.equal(`${INVALID_PARAMETERS}: parameter is not an object`);
+			done();
+		});
+	});
+
+	it('updateUser fails when parameters is an empty object', (done) => {
+		User.updateUser({}).catch((res) => {
+			expect(res.message).to.equal(`${INVALID_PARAMETERS}: object is empty`);
+			done();
+		});
+	});
 
 	afterEach(() => {
 		sessionHandler.get.restore();

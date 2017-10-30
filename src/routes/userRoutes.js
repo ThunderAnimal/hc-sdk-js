@@ -41,6 +41,11 @@ const userRoutes = {
 		return hcRequest('POST', `${apiUrl}/users/${userId}/tek`, body);
 	},
 
+	updateUser(userId, userData) {
+		const body = { user_data: userData };
+
+		return hcRequest('PUT', `${apiUrl}/users/${userId}`, body);
+	},
 };
 
 export default userRoutes;

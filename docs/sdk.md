@@ -30,11 +30,17 @@ It inserts a healthcloud_sdk object into the global namespace.
 ```
 
 3. Use the functions exposed by the SDK. Currently the functions exposed are:
-    - getRegistrationForm
     - getLoginForm
-    - getUser
-    - uploadDocument
-    - downloadDocument
+		- getRegistrationForm
+		- downloadDocument
+		- uploadDocument
+		- getUser
+		- updateUser
+		- searchRecords
+		- uploadFhirRecord
+		- downloadFhirRecord
+		- updateFhirRecord
+		- deleteRecord
 
 #### Register
 To register a user, append the registration form to a node.
@@ -48,7 +54,7 @@ The ``callback`` function is then called with the standard error and success par
 ```javascript
 HC.getRegistrationForm(document.getElementById("gesundheitsregister"), function(error, success){
     if(error){
-        
+
     }
 });
 ```
@@ -63,7 +69,7 @@ In the case of a successful registration, ``error`` is null, and ``success`` con
 The user will need to login after registration.
 
 #### Login
-The login step is similar to registering. 
+The login step is similar to registering.
 Call ``HC.getLoginForm(parent_node, callback)`` to get the login form appended to ``parent_node``.
 Whenever the user tries to log in to GesundheitsCloud ``callback`` is called to perform corresponding actions.
 As for registration the parameters of the callback function error and success.
@@ -72,10 +78,10 @@ As for registration the parameters of the callback function error and success.
 HC.getLoginForm(document.getElementById("gesundheitslogin"), function(error, success) {})
 ```
 
-The SDK automatically performs the required authentication steps during the login. 
+The SDK automatically performs the required authentication steps during the login.
 
 #### Get the Current User
-You can get the currently active user synchronously by calling getUser. 
+You can get the currently active user synchronously by calling getUser.
 
 ```javascript
  HC.getUser();
@@ -87,6 +93,19 @@ In case of a logged in user getUser returns an user object.
     "user_id": "user_id"
 }
 ```
+
+### Update the Current user
+You can edit user data from the currently logged in user.
+
+```javascript
+// options is an object that contains any kind of property
+ HC.updateUser(options)
+ .then((response) => {
+   // response will be an empty object
+ })
+ .catch((error) => {});
+```
+
 
 #### Upload Document
 Uploading a document requires a logged in user.
@@ -112,7 +131,7 @@ On Success, the response consists the documents metadata:
 ```json
 {
      "record_id": "d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a"     
-} 
+}
 ```
 
 #### Download Document
@@ -120,7 +139,7 @@ To download the document multiple requirements need to be fulfilled:
   - A user is logged in.
   - The logged in user has the right to access the document.
     - The user is the owner of the document
-    - The user has the owners permission to access the document. 
+    - The user has the owners permission to access the document.
 
 To download the document call downloadDocument providing the owners user id and the document id
 ```javascript
@@ -128,7 +147,7 @@ To download the document call downloadDocument providing the owners user id and 
     // the response is the decrypted document
   })
   .catch((error) => {
-    // error contains the status 
+    // error contains the status
   })
 ```
 
@@ -160,7 +179,7 @@ The response consists of document metadata and the decrypted body. eg. for an im
         "status" : "current",
         "type" : {
           "text" : "concept"
-      }
+        }
       },
       "tags":[  
          "tag1",
@@ -175,11 +194,11 @@ The response consists of document metadata and the decrypted body. eg. for an im
 
 In case the user does not have the right to access the document an error will be thrown.
 
-In the case of any error in uploading and downloading documents, the format is: 
+In the case of any error in uploading and downloading documents, the format is:
 ```json
     {
         "status": 403,
-        "error": {} 
+        "error": {}
     }
 ```
 
@@ -213,23 +232,23 @@ Therefore you need to call ``deleteFilesFromDocument`` and provide the document 
 
 ### Upload a FHIR resource
 
-To upload a record into Gesundheitscloud call: 
+To upload a record into Gesundheitscloud call:
 ```javascript
     HC.uploadFhirRecord(fhirJson, tags)
 ```
 The record should given as a Json object according to the FHIR standard.
-Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html). 
+Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
 ``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
 It is important to note, that all tags are also stored encrypted.
 
 ### Update a FHIR resource
 
-To update a record into Gesundheitscloud call: 
+To update a record into Gesundheitscloud call:
 ```javascript
     HC.updateFhirRecord(recordId, fhirJson, tags)
 ```
 The record should given as a Json object according to the FHIR standard.
-Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html). 
+Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
 ``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
 It is important to note, that all tags are also stored encrypted.
 
@@ -252,7 +271,7 @@ To delete a record from Gesundheitscloud call:
 
 ### Search for Records
 
-``searchRecords(params)`` can be used to get all records that match the criteria given in params. 
+``searchRecords(params)`` can be used to get all records that match the criteria given in params.
 Thereby params is an object that can contain multiple criteria.
 
 ```
@@ -274,7 +293,7 @@ To search for records, call :
         });
 
 ```
-where params can be : 
+where params can be :
 ```javascript
     {
         user_ids: ['user1', 'user2'],
@@ -302,7 +321,7 @@ The response format is :
           "status":"Active",
           "createdAt":"2017-09-14T10:48:47.684"
        }]
-      
+
 ```
 
 ### List all documents of a user
@@ -327,18 +346,18 @@ By passing ``tags: ['document']`` as parameter to ``searchRecords(params)`` a li
 
 ```javascript
     function handleFileSelect(evt) {
-        let files = evt.target.files; 
-    
+        let files = evt.target.files;
+
         let f = files[0];
-    
+
         let reader = new FileReader();
-    
+
         reader.onload = function (e) {
             HC.uploadDocument('user_id', e.target.result);
         };
-    
+
         reader.readAsDataURL(f);
     }
-    
+
     document.getElementById('upload').addEventListener('change', handleFileSelect, false);
 ```
