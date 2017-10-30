@@ -42,7 +42,7 @@ const userRoutes = {
 	},
 
 	updateUser(userId, userData) {
-		const body = { user_data: userData };
+		const body = userData;
 
 		return hcRequest('PUT', `${apiUrl}/users/${userId}`, body);
 	},
