@@ -43,8 +43,8 @@ describe('services/User', () => {
 		done();
 	});
 
-	it('getUser succeeds', (done) => {
-		const user = User.getUser();
+	it('getUserIdAndAlias succeeds', (done) => {
+		const user = User.getUserIdAndAlias();
 		expect(user.user_alias).to.equal('fakeUserAlias');
 		expect(user.user_id).to.equal('fakeUserId');
 		expect(sessionHandlerGetStub).to.be.calledTwice;
@@ -52,12 +52,61 @@ describe('services/User', () => {
 		done();
 	});
 
-	it('getUser fails if user not logged in', (done) => {
+	it('getUserIdAndAlias fails if user not logged in', (done) => {
 		sessionHandlerGetStub.returns(null);
-		const user = User.getUser();
+		const user = User.getUserIdAndAlias();
 		expect(user).to.equal(undefined);
 		expect(sessionHandlerGetStub).to.be.calledOnce;
 		done();
+	});
+
+	it('getUser succeeds when capella succeeds', (done) => {
+		User.user = undefined;
+		const user = {
+			user: {
+				id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
+				zerokit_id: '20171009091448.uln45hn4@g6y0wg1tf6.tresorit.io',
+				email: 'katappa',
+				tresor_id: '0000yd5mfs53mvftfh16a5va',
+				user_data: {
+					auto_validate: true,
+				},
+				state: 2,
+				reg_data: {
+					session_id: '',
+					SessionVerifier: '',
+					ValidationVerifier: '',
+					ValidationCode: '',
+				},
+				tag_encryption_key: '/7LjA2xCi3ySsUQR8ovuiVGtF3I5kMgd0ar/9+==',
+			},
+		};
+		const userServiceUserStub =
+			sinon.stub(userRoutes, 'resolveUserId')
+				.returnsPromise().resolves(user);
+
+		User.getUser().then((res) => {
+			expect(res.tag_encryption_key).to.equal(undefined);
+			expect(res.zerokit_id).to.equal(undefined);
+			expect(res.tresor_id).to.equal(undefined);
+			expect(res.user_date).to.deep.equal(user.user_data);
+			expect(userServiceUserStub).to.be.calledOnce;
+			userRoutes.resolveUserId.restore();
+			done();
+		});
+	});
+
+	it('getUser fails when capella returns error', (done) => {
+		User.user = undefined;
+		const userServiceResolveUserStub =
+			sinon.stub(userRoutes, 'resolveUserId')
+				.returnsPromise().rejects({ error: 'error completing request' });
+		User.getUser().catch((res) => {
+			expect(res.error).to.equal('error completing request');
+			expect(userServiceResolveUserStub).to.be.calledOnce;
+			userRoutes.resolveUserId.restore();
+			done();
+		});
 	});
 
 	it('resolveUser succeeds when capella succeeds', (done) => {

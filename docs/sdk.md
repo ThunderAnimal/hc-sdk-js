@@ -80,19 +80,43 @@ HC.getLoginForm(document.getElementById("gesundheitslogin"), function(error, suc
 
 The SDK automatically performs the required authentication steps during the login.
 
-#### Get the Current User
-You can get the currently active user synchronously by calling getUser.
+#### Get the Current UserId and Alias
+You can get the currently active user synchronously by calling getUserIdAndAlias.
 
 ```javascript
- HC.getUser();
+ HC.getUserIdAndAlias();
 ```
-In case of a logged in user getUser returns an user object.
+In case of a logged in user getUserIdAndAlias returns a basic user object.
 ```json
 {   
     "user_alias": "user_alias",
     "user_id": "user_id"
 }
 ```
+#### Get the Current User
+
+You can get the detailed user by calling ``getUser`` function, which returns a promise.
+
+To get the user
+```javascript
+ HC.getUser()
+    .then((response) => {
+    })
+    .catch((error) => {
+    });
+```
+where response is:
+```json
+          {
+				id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
+				email: 'user_email',
+				user_data: {
+					name: 'user_name',
+					...
+				}
+		  }
+```
+
 
 ### Update the Current user
 You can edit user data from the currently logged in user.

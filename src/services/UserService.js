@@ -22,13 +22,25 @@ class UserService {
 		return hcUser ? hcUser.split(',')[1] : undefined;
 	}
 
-	getUser() {
+	getUserIdAndAlias() {
 		const hcUser = sessionHandler.get('HC_User');
 
 		return hcUser && sessionHandler.get('HC_Auth') ? {
 			user_alias: hcUser.split(',')[1],
 			user_id: hcUser.split(',')[0],
 		} : undefined;
+	}
+
+	getUser() {
+		return this.resolveUser()
+			.then((res) => {
+				const userDetails = {
+					email: res.email,
+					id: res.id,
+					user_data: res.user_data,
+				};
+				return userDetails;
+			});
 	}
 
 	resolveUser() {
