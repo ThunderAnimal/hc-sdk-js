@@ -28,10 +28,13 @@ class ZeroKitAdapter {
 
 	getLoginForm(parentElement, callback = () => {}) {
 		parentElement.appendChild(loginForm);
+		const zkitLoginNode = document.getElementById(loginFormIds.zkitLogin);
+		while (zkitLoginNode.firstChild) {
+			zkitLoginNode.removeChild(zkitLoginNode.firstChild);
+		}
 		const zKitLoginObject =
 			this.zeroKit
-				.then(zeroKit => zeroKit.getLoginIframe(
-					document.getElementById(loginFormIds.zkitLogin)));
+				.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode));
 
 		const submit = function (zKitLogin, cb, event) {
 			event.preventDefault();
@@ -80,9 +83,12 @@ class ZeroKitAdapter {
 
 	getRegistrationForm(parentElement, callback = () => {}) {
 		parentElement.appendChild(registrationForm);
+		const zkitRegisterNode = document.getElementById(registrationFormIds.zkitRegistration);
+		while (zkitRegisterNode.firstChild) {
+			zkitRegisterNode.removeChild(zkitRegisterNode.firstChild);
+		}
 		const zKitRegistrationObject =
-			this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(
-				document.getElementById(registrationFormIds.zkitRegistration)));
+			this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(zkitRegisterNode));
 
 		const submit = function (zKitRegistration, cb, event) {
 			event.preventDefault();
