@@ -138,6 +138,14 @@ class ZeroKitAdapter {
 			.then(tresorId => userRoutes.addTresor(UserService.getUserId(), tresorId)
 				.then(() => tresorId)));
 	}
+
+	logout() {
+		return this.zeroKit.then(zerokit => zerokit.logout())
+			.then((res) => {
+				sessionHandler.logout();
+				return res;
+			});
+	}
 }
 
 export default ZeroKitAdapter;

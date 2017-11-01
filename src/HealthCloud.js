@@ -26,6 +26,7 @@ class HealthCloud {
 		this.downloadFhirRecord = fhirService.downloadFhirRecord.bind(fhirService);
 		this.updateFhirRecord = fhirService.updateFhirRecord.bind(fhirService);
 		this.deleteRecord = fhirService.deleteRecord.bind(fhirService);
+		this.logout = zeroKitAdapter.logout.bind(zeroKitAdapter);
 	}
 }
 

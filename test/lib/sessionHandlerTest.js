@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 /* eslint-env mocha */
 import 'babel-polyfill';
 import chai from 'chai';
@@ -28,6 +29,20 @@ describe('sessionHandler', () => {
 	it('set sessionHandler succeeds', (done) => {
 		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
 		expect(document.cookie).to.include('HC_User=fakeUserId,fakeUserAlias');
+		done();
+	});
+
+	it('deleteCookie sessionHandler succeeds', (done) => {
+		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
+		sessionHandler.deleteCookie('HC_User');
+		expect(sessionHandler.get('HC_User')).to.be.undefined;
+		done();
+	});
+
+	it('logout sessionHandler succeeds', (done) => {
+		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
+		sessionHandler.logout();
+		expect(sessionHandler.get('HC_User')).to.be.undefined;
 		done();
 	});
 });

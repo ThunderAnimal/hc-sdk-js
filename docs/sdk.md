@@ -41,6 +41,7 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- downloadFhirRecord
 		- updateFhirRecord
 		- deleteRecord
+		- logout
 
 #### Register
 To register a user, append the registration form to a node.
@@ -357,6 +358,17 @@ By passing ``tags: ['document']`` as parameter to ``searchRecords(params)`` a li
         user_ids: ['user1'],
         tags: ['document']
     });
+```
+
+### Logout
+
+To logout from Gesundheitscloud call:
+```javascript
+    HC.logout()
+        .then((response) => {
+        })
+        .catch((error) => {
+        });
 ```
 
 ### Sample Code

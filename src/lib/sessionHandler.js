@@ -20,6 +20,17 @@ const SessionHandler = {
 		}
 		return undefined;
 	},
+
+	deleteCookie(name) {
+		document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+	},
+
+	logout() {
+		this.deleteCookie('HC_Id');
+		this.deleteCookie('HC_Auth');
+		this.deleteCookie('HC_User');
+		this.deleteCookie('HC_Refresh');
+	},
 };
 
 export default SessionHandler;

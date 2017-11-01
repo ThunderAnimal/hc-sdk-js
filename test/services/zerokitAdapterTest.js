@@ -11,6 +11,7 @@ import userRoutes from '../../src/routes/userRoutes';
 import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 import loginForm from '../../src/templates/loginForm';
 import registrationForm from '../../src/templates/registrationForm';
+import sessionHandler from '../../src/lib/sessionHandler';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -45,6 +46,7 @@ describe('zerokitAdapter', () => {
 			setup: sinon.stub(),
 			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
+			logout: sinon.stub().returnsPromise().resolves('success'),
 		};
 
 		window.document.getElementsByTagName = sinon.stub().returns([{ appendChild: sinon.spy() }]);
@@ -293,6 +295,29 @@ describe('zerokitAdapter', () => {
 
 		};
 		registrationForm.onsubmit({ preventDefault: sinon.spy() });
+	});
+
+	it('logout succeeds', (done) => {
+		zerokitAdapter.logout()
+			.then((res) => {
+				expect(res).to.equal('success');
+				expect(zkit_sdk.logout).to.be.calledOnce;
+				expect(sessionHandler.get('HC_Auth')).to.be.undefined;
+				expect(sessionHandler.get('HC_Id')).to.be.undefined;
+				expect(sessionHandler.get('HC_User')).to.be.undefined;
+				expect(sessionHandler.get('HC_Refresh')).to.be.undefined;
+				done();
+			});
+	});
+
+	it('logout fails if zerokit logout fails', (done) => {
+		zkit_sdk.logout = sinon.stub().returnsPromise().rejects('error');
+		zerokitAdapter.logout()
+			.catch((err) => {
+				expect(err).to.equal('error');
+				expect(zkit_sdk.logout).to.be.calledOnce;
+				done();
+			});
 	});
 
 	afterEach(() => {
