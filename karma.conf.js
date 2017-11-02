@@ -19,7 +19,6 @@ module.exports = function (config) {
 			debug: true,
 			plugin: ['proxyquire-universal'],
 			transform: [
-				['browserify-babel-istanbul', { ignore: ['**/node_modules/**', '**/tests/**'] }],
 				['babelify', { presets: ['es2015'] }],
 				['aliasify', {
 					aliases: {
@@ -62,6 +61,8 @@ module.exports = function (config) {
 
 	if (process.env.TRAVIS) {
 		configuration.browsers = ['Chrome_travis_ci'];
+		configuration.browserify.transform.push(
+			['browserify-babel-istanbul', { ignore: ['**/node_modules/**', '**/tests/**'] }]);
 	}
 
 	config.set(configuration);
