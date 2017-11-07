@@ -19,12 +19,23 @@ const expect = chai.expect;
 describe('services/User', () => {
 	let sessionHandlerGetStub;
 	let sessionHandlerSetStub;
+	let zkitAdapterEncryptStub;
+	let zkitAdapterDecryptStub;
 
 	beforeEach(() => {
 		sessionHandlerGetStub =
 			sinon.stub(sessionHandler, 'get').returns('fakeUserId,fakeUserAlias');
 		sessionHandlerSetStub =
 			sinon.stub(sessionHandler, 'set').returns('fakeUserId,fakeUserAlias');
+		zkitAdapterEncryptStub =
+			sinon.stub().returnsPromise().resolves('encryptedData');
+		zkitAdapterDecryptStub =
+			sinon.stub().returnsPromise().resolves('decryptedData');
+
+		User.zeroKitAdapter = {
+			decrypt: zkitAdapterDecryptStub,
+			encrypt: zkitAdapterEncryptStub,
+		};
 	});
 
 	it('getUserId succeeds', (done) => {
@@ -91,6 +102,7 @@ describe('services/User', () => {
 			expect(res.tresor_id).to.equal(undefined);
 			expect(res.user_date).to.deep.equal(user.user_data);
 			expect(userServiceUserStub).to.be.calledOnce;
+			expect(zkitAdapterDecryptStub).to.be.calledOnce;
 			userRoutes.resolveUserId.restore();
 			done();
 		});
@@ -135,12 +147,22 @@ describe('services/User', () => {
 	});
 
 	it('updateUser succeeds when capella succeeds', (done) => {
+		const user = {
+			id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
+			user_data: {},
+		};
+		const getUserStub =
+			sinon.stub(User, 'getUser')
+				.returnsPromise().resolves(user);
 		const userServiceUserStub =
 			sinon.stub(userRoutes, 'updateUser')
 				.returnsPromise().resolves({});
 		User.updateUser({ name: 'fakeName' }).then(() => {
 			expect(userServiceUserStub).to.be.calledOnce;
+			expect(getUserStub).to.be.calledOnce;
+			expect(zkitAdapterEncryptStub).to.be.calledOnce;
 			userRoutes.updateUser.restore();
+			User.getUser.restore();
 			done();
 		});
 	});
@@ -156,13 +178,22 @@ describe('services/User', () => {
 	});
 
 	it('updateUser fails when capella returns error', (done) => {
+		const user = {
+			id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
+			user_data: {},
+		};
+		const getUserStub =
+			sinon.stub(User, 'getUser')
+				.returnsPromise().resolves(user);
 		const userServiceUserStub =
 			sinon.stub(userRoutes, 'updateUser')
 				.returnsPromise().rejects({ error: 'error completing request' });
 		User.updateUser({ name: 'fakeName' }).catch((res) => {
 			expect(res.error).to.equal('error completing request');
 			expect(userServiceUserStub).to.be.calledOnce;
+			expect(getUserStub).to.be.calledOnce;
 			userRoutes.updateUser.restore();
+			User.getUser.restore();
 			done();
 		});
 	});
@@ -193,5 +224,7 @@ describe('services/User', () => {
 		sessionHandler.set.restore();
 		sessionHandlerGetStub.reset();
 		sessionHandlerSetStub.reset();
+		zkitAdapterEncryptStub.reset();
+		zkitAdapterDecryptStub.reset();
 	});
 });

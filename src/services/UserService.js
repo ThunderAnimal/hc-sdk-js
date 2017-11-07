@@ -10,6 +10,9 @@ class UserService {
 	constructor() {
 		this.user = null;
 	}
+	setZeroKitAdapter(adapter) {
+		this.zeroKitAdapter = adapter;
+	}
 	getUserId() {
 		const hcUser = sessionHandler.get('HC_User');
 
@@ -32,15 +35,32 @@ class UserService {
 	}
 
 	getUser() {
-		return this.resolveUser()
-			.then((res) => {
-				const userDetails = {
-					email: res.email,
-					id: res.id,
-					user_data: res.user_data,
-				};
-				return userDetails;
-			});
+		return new Promise((resolve, reject) => {
+			const user = {
+				id: '',
+				email: '',
+				user_data: {},
+			};
+			this.resolveUser()
+				.then((res) => {
+					user.email = res.email;
+					user.id = res.id;
+
+					if (!res.user_data.encrypted_data) {
+						resolve(user);
+						return null;
+					}
+
+					return res.user_data.encrypted_data;
+				})
+				.then(encryptedUserData => this.zeroKitAdapter.decrypt(encryptedUserData))
+				.then(JSON.parse)
+				.then((userData) => {
+					user.user_data = userData;
+					resolve(user);
+				})
+				.catch(reject);
+		});
 	}
 
 	resolveUser() {
@@ -80,7 +100,18 @@ class UserService {
 				return;
 			}
 
-			userRoutes.updateUser(userId, params)
+			this.getUser()
+				.then((res) => {
+					if (!res.user_data.encrypted_data) {
+						return '{}';
+					}
+					return this.zeroKitAdapter.decrypt(res.user_data.encrypted_data);
+				})
+				.then(userDetails => Object.assign({}, userDetails, params))
+				.then(JSON.stringify)
+				.then(data => this.zeroKitAdapter.encrypt(data))
+				.then(encryptedUserDetails =>
+					userRoutes.updateUser(userId, { encrypted_data: encryptedUserDetails }))
 				.then(resolve)
 				.catch(reject);
 		});

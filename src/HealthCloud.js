@@ -11,6 +11,7 @@ class HealthCloud {
 		const zeroKitAdapter = new ZeroKitAdapter({ authService });
 		const documentService = new DocumentService({ zeroKitAdapter });
 		const fhirService = new FhirService({ zeroKitAdapter });
+		UserService.setZeroKitAdapter(zeroKitAdapter);
 		this.getLoginForm = zeroKitAdapter.getLoginForm.bind(zeroKitAdapter);
 		this.getRegistrationForm = zeroKitAdapter.getRegistrationForm.bind(zeroKitAdapter);
 		this.downloadDocument = documentService.downloadDocument.bind(documentService);
@@ -19,7 +20,7 @@ class HealthCloud {
 		this.addFilesToDocument = documentService.addFilesToDocument.bind(documentService);
 		this.deleteFilesFromDocument =
 			documentService.deleteFilesFromDocument.bind(documentService);
-		this.getUserIdAndAlias = UserService.getUserIdAndAlias;
+		this.getUserIdAndAlias = UserService.getUserIdAndAlias.bind(UserService);
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
 		this.searchRecords = fhirService.searchRecords.bind(fhirService);
@@ -32,4 +33,3 @@ class HealthCloud {
 }
 
 module.exports = HealthCloud;
-
