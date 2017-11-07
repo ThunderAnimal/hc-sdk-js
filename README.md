@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/gesundheitscloud/hc-sdk-js.svg?token=6V7y4qkm7an1Wx4Zdpf2&branch=develop)](https://travis-ci.com/gesundheitscloud/hc-sdk-js)
+[![Build Status](https://travis-ci.org/gesundheitscloud/hc-sdk-js.svg?branch=develop)](https://travis-ci.org/gesundheitscloud/hc-sdk-js)
 [![codecov](https://codecov.io/gh/gesundheitscloud/hc-sdk-js/branch/develop/graph/badge.svg?token=FcHHp38bcr)](https://codecov.io/gh/gesundheitscloud/hc-sdk-js)
 
 # GesundheitsCloud Web SDK
@@ -16,16 +16,28 @@ To use the SDK, you need to create a client id from GesundheitsCloud. Please get
 - node, npm/yarn
 
 In the directory run:
- ```
- npm install
- ```
+```bash
+npm install
+```
 
 This SDK uses webpack for its bundling task.
 Building the SDK bundle is done with :
 
- ```bash
+That will by default build with staging configurations
+```bash
  npm run build
 ```
+
+To build explicit with staging configurations: run
+```bash
+npm run build:staging
+```
+
+To build explicit with sandbox configurations: run
+```bash
+npm run build:sandbox
+```
+
 During development, you can let webpack watch for file changes and rebuild your bundle using:
  ```bash
  npm run watch
