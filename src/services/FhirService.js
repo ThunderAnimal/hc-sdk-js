@@ -14,7 +14,11 @@ class FHIRService {
 		const updateRequest =
 			(userId, params) => documentRoutes.updateRecord(userId, recordId, params);
 
-		return this.uploadFhirRecord(jsonFHIR, tags, updateRequest);
+		return this.downloadFhirRecord(recordId)
+			.then((res) => {
+				const newFhirJson = Object.assign(res.body, jsonFHIR);
+				return this.uploadFhirRecord(newFhirJson, tags, updateRequest);
+			});
 	}
 
 	createFhirRecord(jsonFhir, tags = []) {

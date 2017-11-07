@@ -34,6 +34,7 @@ class DocumentService {
 	}
 
 	uploadDocument(userId, files, metadata = {}, customTags = []) {
+		customTags = [...customTags, ...['type:document']];
 		return this.fhirService.createFhirRecord(metadata, customTags)
 			.then(record => this.addFilesToRecord(record, userId, files));
 	}
@@ -67,8 +68,11 @@ class DocumentService {
 					.map((info, index) =>
 						this.createDocumentReference(info.id, files[index].title));
 				documentRecord.body.content.push(...newAtachements);
-				return this.fhirService
-					.updateFhirRecord(documentRecord.record_id, documentRecord.body);
+				return this.fhirService.updateFhirRecord(
+					documentRecord.record_id,
+					documentRecord.body,
+					documentRecord.tags,
+				);
 			});
 	}
 
@@ -79,6 +83,12 @@ class DocumentService {
 					fileIds.indexOf(documentReference.attachment.url) === -1);
 				return this.fhirService.updateFhirRecord(documentId, record.body);
 			});
+	}
+
+	updateDocumentMetadata(recordId, jsonFHIR, tags = []) {
+		// don't update the content as it is internally handled by SDK
+		if (jsonFHIR.content) delete jsonFHIR.content;
+		return this.fhirService.updateFhirRecord(recordId, jsonFHIR, tags);
 	}
 
 	createDocumentReference(fileId, title) {

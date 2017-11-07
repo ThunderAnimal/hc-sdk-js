@@ -100,6 +100,9 @@ describe('DocumentService', () => {
 				.resolves(documentReferenceRecordFactory([attachmentContent]));
 
 		documentService.uploadDocument(userId, [attachmentContent], metadata.body).then(() => {
+			expect(documentService.fhirService.createFhirRecord)
+				.to.be.calledWith(metadata.body, ['type:document']);
+			documentService.fhirService.createFhirRecord.calledOnce;
 			documentService.fhirService.uploadFhirRecord.calledOnce;
 			expect(getFileUploadUrlsStub).to.be.calledOnce;
 			expect(uploadFileStub).to.be.calledOnce;
@@ -129,6 +132,60 @@ describe('DocumentService', () => {
 			expect(updateRecordStatusStub).to.be.not.called;
 			documentRoutes.getFileUploadUrls.restore();
 			azureRoutes.uploadFile.restore();
+			done();
+		});
+	});
+
+	it('updateDocumentMetadata passes when updateFhirRecord passes ', (done) => {
+		documentService.fhirService.updateFhirRecord = sinon.stub()
+			.returnsPromise().resolves('success');
+		const jsonFhir = {
+			author: [{
+				reference: 'author',
+			}],
+			type: 'type',
+			content: [],
+		};
+
+		documentService.updateDocumentMetadata('recordId', jsonFhir).then((res) => {
+			expect(res).to.equal('success');
+			expect(documentService.fhirService.updateFhirRecord).to.be.calledWith('recordId', {
+				author: [{
+					reference: 'author',
+				}],
+				type: 'type',
+			});
+			expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
+			done();
+		});
+	});
+
+	it('updateDocumentMetadata fails when updateFhirRecord fails ', (done) => {
+		documentService.fhirService.updateFhirRecord = sinon.stub()
+			.returnsPromise().rejects('error');
+
+		const jsonFhir = {
+			author: [{
+				reference: 'author',
+			}],
+			type: 'type',
+			content: [],
+		};
+
+		documentService.updateDocumentMetadata('recordId', jsonFhir).catch((err) => {
+			expect(err).to.equal('error');
+			expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
+			done();
+		});
+	});
+
+	it('updateDocumentMetadata returns error when getFileUploadUrls fails ', (done) => {
+		documentService.fhirService.updateFhirRecord = sinon.stub()
+			.returnsPromise().resolves('success');
+
+		documentService.updateDocumentMetadata(userId, [file]).then((res) => {
+			expect(res).to.equal('success');
+			expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
 			done();
 		});
 	});
