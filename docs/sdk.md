@@ -47,23 +47,25 @@ It inserts a healthcloud_sdk object into the global namespace.
 To register a user, append the registration form to a node.
 Therefore you need to call  ``HC.getRegistrationForm(parent_node, callback)``.
 Hence the form is then appended to ``parent_node``.
-The ``callback`` function is then called with the standard error and success parameters, whenever the user is pressing the "register" button.
+``getRegistrationForm`` returns a promise that will be resolved or rejected when user tries to register.
 
 ```html
 <div id="gesundheitsregister"></div>
 ```
 ```javascript
-HC.getRegistrationForm(document.getElementById("gesundheitsregister"), function(error, success){
-    if(error){
-
-    }
+HC.getRegistrationForm(document.getElementById("gesundheitsregister"))
+.then((response) => {
+  // User successfully registered
+})
+.catch((error) => {
+  // Error on register
 });
 ```
 
-In the case of a successful registration, ``error`` is null, and ``success`` contains the user id as below.
+In the case of a successful registration, ``error`` is contains a message, and ``response`` contains the user id as below.
 ```json
     {
-        "user_id": "user_id"
+        "user_alias": "hcUserAlias"
     }
 ```
 
@@ -72,11 +74,16 @@ The user will need to login after registration.
 #### Login
 The login step is similar to registering.
 Call ``HC.getLoginForm(parent_node, callback)`` to get the login form appended to ``parent_node``.
-Whenever the user tries to log in to GesundheitsCloud ``callback`` is called to perform corresponding actions.
-As for registration the parameters of the callback function error and success.
+After user tries to login the request result will be processed as a promise.
 
 ```javascript
-HC.getLoginForm(document.getElementById("gesundheitslogin"), function(error, success) {})
+HC.getLoginForm(document.getElementById("gesundheitslogin"))
+.then((response) => {
+  // User successfully logged in
+})
+.catch((error) => {
+  // Error on login
+});
 ```
 
 The SDK automatically performs the required authentication steps during the login.
@@ -184,16 +191,16 @@ The response consists of document metadata and the decrypted body. eg. for an im
       "date":"2017-09-14",
       "user_id":"user1",
       // the FHIR format of the document data
-      "body": { 
+      "body": {
         "content" : [
           {
             "attachment" : {
-              "id": "file_id_1", 
+              "id": "file_id_1",
               "title": "given_title_1"
             }
           },{
             "attachment" : {
-              "id": "file_id_2", 
+              "id": "file_id_2",
               "title": "given_title_2"
             }
           }

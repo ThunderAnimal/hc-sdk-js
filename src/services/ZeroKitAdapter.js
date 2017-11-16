@@ -26,29 +26,33 @@ class ZeroKitAdapter {
 		});
 	}
 
-	getLoginForm(parentElement, callback = () => {}) {
-		parentElement.appendChild(loginForm);
-		const zkitLoginNode = document.getElementById(loginFormIds.zkitLogin);
-		while (zkitLoginNode.firstChild) {
-			zkitLoginNode.removeChild(zkitLoginNode.firstChild);
-		}
-		const zKitLoginObject =
-			this.zeroKit
-				.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode));
+	getLoginForm(parentElement) {
+		return new Promise((resolve, reject) => {
+			parentElement.appendChild(loginForm);
+			const zkitLoginNode = document.getElementById(loginFormIds.zkitLogin);
+			while (zkitLoginNode.firstChild) {
+				zkitLoginNode.removeChild(zkitLoginNode.firstChild);
+			}
+			const zKitLoginObject =
+				this.zeroKit
+					.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode));
 
-		const submit = function (zKitLogin, cb, event) {
-			event.preventDefault();
-			this.login(zKitLogin, document.getElementById(loginFormIds.hcUserLogin).value, cb);
-		};
+			const submit = function (zKitLogin, event) {
+				event.preventDefault();
+				this.login(zKitLogin, document.getElementById(loginFormIds.hcUserLogin).value)
+					.then(resolve)
+					.catch(reject);
+			};
 
-		loginForm.onsubmit = submit.bind(this, zKitLoginObject, callback);
+			loginForm.onsubmit = submit.bind(this, zKitLoginObject);
+		});
 	}
 
-	login(zKitLoginObject, hcUserAlias, callback) {
+	login(zKitLoginObject, hcUserAlias) {
 		let tresorId;
 		let userId;
 		let tek;
-		userRoutes.resolveUserId(hcUserAlias)
+		return userRoutes.resolveUserId(hcUserAlias)
 			.then((res) => {
 				const zKitId = res.user.zerokit_id;
 				tresorId = res.user.tresor_id;
@@ -69,9 +73,8 @@ class ZeroKitAdapter {
 				if (!tek) {
 					this.createTek(res);
 				}
-				callback(null, { user_id: userId, user_alias: hcUserAlias });
-			})
-			.catch(err => callback(err));
+				return { user_id: userId, user_alias: hcUserAlias };
+			});
 	}
 
 	createTek(tresorId) {
@@ -82,24 +85,28 @@ class ZeroKitAdapter {
 	}
 
 	getRegistrationForm(parentElement, callback = () => {}) {
-		parentElement.appendChild(registrationForm);
-		const zkitRegisterNode = document.getElementById(registrationFormIds.zkitRegistration);
-		while (zkitRegisterNode.firstChild) {
-			zkitRegisterNode.removeChild(zkitRegisterNode.firstChild);
-		}
-		const zKitRegistrationObject =
-			this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(zkitRegisterNode));
+		return new Promise((resolve, reject) => {
+			parentElement.appendChild(registrationForm);
+			const zkitRegisterNode = document.getElementById(registrationFormIds.zkitRegistration);
+			while (zkitRegisterNode.firstChild) {
+				zkitRegisterNode.removeChild(zkitRegisterNode.firstChild);
+			}
+			const zKitRegistrationObject =
+				this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(zkitRegisterNode));
 
-		const submit = function (zKitRegistration, cb, event) {
-			event.preventDefault();
-			const userAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
-			return this.register(zKitRegistration, userAlias, cb);
-		};
+			const submit = function (zKitRegistration, cb, event) {
+				event.preventDefault();
+				const userAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
+				this.register(zKitRegistration, userAlias)
+					.then(resolve)
+					.catch(reject);
+			};
 
-		registrationForm.onsubmit = submit.bind(this, zKitRegistrationObject, callback);
+			registrationForm.onsubmit = submit.bind(this, zKitRegistrationObject, callback);
+		});
 	}
 
-	register(zKitRegistrationObject, hcUserAlias, callback) {
+	register(zKitRegistrationObject, hcUserAlias) {
 		let zKitId;
 		return userRoutes.initRegistration(hcUserAlias)
 			.then((res) => {
@@ -109,8 +116,7 @@ class ZeroKitAdapter {
 						registrationObject.register(zKitId, res.session_id));
 			})
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
-			.then(() => callback(null, { user_alias: hcUserAlias }))
-			.catch(error => callback(error));
+			.then(() => ({ user_alias: hcUserAlias }));
 	}
 
 	encrypt(plainText) {
