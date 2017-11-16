@@ -6,7 +6,7 @@ module.exports = (env) => {
 		entry: `${__dirname}/src/HealthCloud.js`,
 		devtool: 'source-map',
 		output: {
-			path: `/Users/iris/Projects/hc-terra/public/lib`,
+			path: `${__dirname}/dest`,
 			filename: 'healthcloud_sdk.js',
 			library: 'healthcloud_sdk',
 			libraryTarget: 'umd',
