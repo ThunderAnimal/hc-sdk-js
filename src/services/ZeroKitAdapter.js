@@ -113,19 +113,29 @@ class ZeroKitAdapter {
 			.catch(error => callback(error));
 	}
 
-	encrypt(string) {
+	encrypt(plainText) {
 		return this.getTresor()
-			.then(res => this.zeroKit.then(zeroKit => zeroKit.encrypt(res, string)));
+			.then(tresorId => this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, plainText)));
 	}
 
-	decrypt(encryptedData) {
-		return this.zeroKit.then(zeroKit => zeroKit.decrypt(encryptedData));
+	decrypt(cipherText) {
+		return this.zeroKit.then(zeroKit => zeroKit.decrypt(cipherText));
+	}
+
+	encryptBlob(plainBlob) {
+		return this.getTresor()
+			.then(tresorId => this.zeroKit.then(zeroKit =>
+				zeroKit.encryptBlob(tresorId, plainBlob)));
+	}
+
+	decryptBlob(cipherBlob) {
+		return this.zeroKit.then(zeroKit => zeroKit.decryptBlob(cipherBlob));
 	}
 
 	getTresor() {
 		return UserService.resolveUser()
-			.then((res) => {
-				let tresorId = res.tresor_id;
+			.then((user) => {
+				let tresorId = user.tresor_id;
 				if (!tresorId) {
 					tresorId = this.createTresor();
 				}

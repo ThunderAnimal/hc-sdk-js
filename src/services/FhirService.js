@@ -3,7 +3,7 @@ import documentRoutes from '../routes/documentRoutes';
 import UserService from '../services/UserService';
 import Tags from '../lib/Tags';
 import encryptionUtils from '../lib/EncryptionUtils';
-import helpers from '../lib/dateHelper';
+import dateHelper from '../lib/dateHelper';
 
 class FHIRService {
 	constructor(options = {}) {
@@ -47,7 +47,7 @@ class FHIRService {
 				const params = {
 					encrypted_body: results[0],
 					encrypted_tags: results[1],
-					date: helpers.formatDateYyyyMmDd(new Date()),
+					date: dateHelper.formatDateYyyyMmDd(new Date()),
 				};
 				return uploadRequest(UserService.getUserId(), params);
 			})
@@ -84,20 +84,20 @@ class FHIRService {
 		let tek;
 		return UserService.resolveUser()
 			.then(res => this.zeroKitAdapter.decrypt(res.tag_encryption_key))
-			.then((res) => {
-				tek = res;
+			.then((tagEncryptionKey) => {
+				tek = tagEncryptionKey;
 				if (params.tags) {
 					params.tags = params.tags
-						.map(item => encryptionUtils.encrypt(item.toLowerCase(), res)).join(',');
+						.map(item => encryptionUtils.encrypt(item.toLowerCase(), tek)).join(',');
 				}
 				if (params.user_ids) {
 					params.user_ids = params.user_ids.join(',');
 				}
 				return params;
 			})
-			.then(res => documentRoutes.searchRecords(params))
-			.then((res) => {
-				const promises = res.map(result => Promise.all(
+			.then(queryParams => documentRoutes.searchRecords(queryParams))
+			.then((searchResults) => {
+				const promises = searchResults.map(result => Promise.all(
 					[
 						this.zeroKitAdapter.decrypt(result.encrypted_body),
 						result.encrypted_tags.map(item => encryptionUtils.decrypt(item, tek)),

@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import documentRoutes from '../../src/routes/documentRoutes';
-import azureRoutes from '../../src/routes/azureRoutes';
+import fileRoutes from '../../src/routes/fileRoutes';
 import DocumentService from '../../src/services/DocumentService';
 
 sinonStubPromise(sinon);
@@ -49,10 +49,24 @@ describe('DocumentService', () => {
 		return basicRecord;
 	};
 
+	// stubs
+	let zeroKitAdapter;
+	let getFileDownloadUrlStub;
+	let getFileUploadUrlsStub;
+	let uploadFileStub;
+	let downloadFileStub;
+	let updateRecordStatusStub;
+
 	beforeEach(() => {
-		const zeroKitAdapter = {
+		zeroKitAdapter = {
 			decrypt: sinon.stub(),
-			encrypt: sinon.stub(),
+			encrypt: sinon.stub().returnsPromise()
+				.withArgs(file)
+				.resolves(encryptedFile),
+			decryptBlob: sinon.stub(),
+			encryptBlob: sinon.stub().returnsPromise()
+				.withArgs(file)
+				.resolves(encryptedFile),
 		};
 
 		documentService = new DocumentService({ zeroKitAdapter });
@@ -60,17 +74,25 @@ describe('DocumentService', () => {
 		documentService.fhirService.createFhirRecord = sinon.stub()
 			.returnsPromise().resolves(documentReferenceRecord);
 
-		documentService.zeroKitAdapter.encrypt.returnsPromise().withArgs(file)
-			.resolves(encryptedFile);
+		documentService.zeroKitAdapter.encrypt;
+
+		getFileDownloadUrlStub =
+			sinon.stub(documentRoutes, 'getFileDownloadUrl').returnsPromise();
+
+		getFileUploadUrlsStub =
+			sinon.stub(documentRoutes, 'getFileUploadUrls').returnsPromise();
+
+		uploadFileStub = sinon.stub(fileRoutes, 'uploadFile').returnsPromise();
+
+		downloadFileStub = sinon.stub(fileRoutes, 'downloadFile').returnsPromise();
+
+		updateRecordStatusStub =
+			sinon.stub(documentRoutes, 'updateRecordStatus').returnsPromise();
 	});
 
 	it('downloadDocument succeeds', (done) => {
-		const getUserDocumentSASStub =
-			sinon.stub(documentRoutes, 'getFileDownloadUrl')
-				.returnsPromise().resolves({ sas_token: sasToken });
-		const azureRoutesStub =
-			sinon.stub(azureRoutes, 'downloadFile')
-				.returnsPromise().resolves({ content: encryptedFile });
+		getFileDownloadUrlStub.resolves({ sas_token: sasToken });
+		downloadFileStub.resolves({ content: encryptedFile });
 
 		documentService.fhirService.downloadFhirRecord = sinon.stub()
 			.returnsPromise().resolves(documentReferenceRecordFactory([encryptedFile]));
@@ -78,9 +100,9 @@ describe('DocumentService', () => {
 		documentService.zeroKitAdapter.decrypt = sinon.stub().returnsPromise().resolves(file);
 
 		documentService.downloadDocument(userId, recordId).then((res) => {
-			expect(azureRoutesStub).to.be.calledOnce;
-			expect(documentService.zeroKitAdapter.decrypt).to.be.calledOnce;
-			expect(getUserDocumentSASStub).to.be.calledOnce;
+			expect(downloadFileStub).to.be.calledOnce;
+			expect(documentService.zeroKitAdapter.decryptBlob).to.be.calledOnce;
+			expect(getFileDownloadUrlStub).to.be.calledOnce;
 			expect(res).to.deep.equal(documentReferenceRecordFactory([attachmentContent]));
 			done();
 		});
@@ -89,12 +111,8 @@ describe('DocumentService', () => {
 	it('uploadDocument succeeds', (done) => {
 		const metadata = documentReferenceRecordFactory([]);
 
-		const getFileUploadUrlsStub =
-			sinon.stub(documentRoutes, 'getFileUploadUrls')
-				.returnsPromise().resolves([{ sas_token: sasToken }]);
-		const uploadFileStub =
-			sinon.stub(azureRoutes, 'uploadFile')
-				.returnsPromise().resolves({ content: encryptedFile });
+		getFileUploadUrlsStub.resolves([{ sas_token: sasToken }]);
+		uploadFileStub.resolves({ content: encryptedFile });
 		documentService.fhirService.updateFhirRecord =
 			sinon.stub().returnsPromise()
 				.resolves(documentReferenceRecordFactory([attachmentContent]));
@@ -108,30 +126,20 @@ describe('DocumentService', () => {
 			expect(uploadFileStub).to.be.calledOnce;
 			expect(uploadFileStub).to.be.calledWith(sasToken, encryptedFile);
 			expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
-			documentRoutes.getFileUploadUrls.restore();
-			azureRoutes.uploadFile.restore();
 			done();
 		});
 	});
 
 	it('uploadDocument returns error when getFileUploadUrls fails ', (done) => {
-		const getFileUploadUrlsStub =
-			sinon.stub(documentRoutes, 'getFileUploadUrls')
-				.returnsPromise().rejects('error');
-		const azureUploadRoutesStub =
-			sinon.stub(azureRoutes, 'uploadFile')
-				.returnsPromise();
-		const updateRecordStatusStub =
-			sinon.stub(documentRoutes, 'updateRecordStatus')
-				.returnsPromise();
+		getFileUploadUrlsStub.rejects('error');
+		uploadFileStub.resolves();
+		updateRecordStatusStub.resolves();
 
 		documentService.uploadDocument(userId, [file]).catch((err) => {
 			expect(err).to.equal('error');
 			expect(getFileUploadUrlsStub).to.be.calledOnce;
-			expect(azureUploadRoutesStub).to.be.not.called;
+			expect(uploadFileStub).to.be.not.called;
 			expect(updateRecordStatusStub).to.be.not.called;
-			documentRoutes.getFileUploadUrls.restore();
-			azureRoutes.uploadFile.restore();
 			done();
 		});
 	});
@@ -193,12 +201,9 @@ describe('DocumentService', () => {
 	it('addFilesToDocument loads files up and adds them to the documentReference', (done) => {
 		documentService.fhirService.downloadFhirRecord = sinon.stub()
 			.returnsPromise().resolves(documentReferenceRecordFactory([attachmentContent]));
-		const getFileUploadUrlsStub =
-			sinon.stub(documentRoutes, 'getFileUploadUrls')
-				.returnsPromise().resolves([{ sas_token: sasToken, id: file }]);
-		const uploadFileStub =
-			sinon.stub(azureRoutes, 'uploadFile')
-				.returnsPromise().resolves({ content: encryptedFile });
+
+		getFileUploadUrlsStub.resolves([{ sas_token: sasToken, id: file }]);
+		uploadFileStub.resolves({ content: encryptedFile });
 		documentService.fhirService.updateFhirRecord =
 			sinon.stub().returnsPromise()
 				.resolves(documentReferenceRecordFactory([file, file]).body);
@@ -231,6 +236,10 @@ describe('DocumentService', () => {
 
 
 	afterEach(() => {
-
+		getFileDownloadUrlStub.restore();
+		downloadFileStub.restore();
+		getFileUploadUrlsStub.restore();
+		uploadFileStub.restore();
+		updateRecordStatusStub.restore();
 	});
 });

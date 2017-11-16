@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import proxy from 'proxyquireify';
-import '../../src/routes/azureRoutes';
+import '../../src/routes/fileRoutes';
 
 const proxyquire = proxy(require);
 
@@ -16,9 +16,9 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 
-describe('azureRoutes', () => {
+describe('fileRoutes', () => {
 	let	requestStub;
-	let azureRoutes;
+	let fileRoutes;
 
 
 	beforeEach(() => {
@@ -26,11 +26,11 @@ describe('azureRoutes', () => {
 	});
 
 	it('downloadFile passes', (done) => {
-		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
+		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		azureRoutes.downloadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+		fileRoutes.downloadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('GET');
@@ -41,11 +41,11 @@ describe('azureRoutes', () => {
 
 
 	it('uploadFile passes', (done) => {
-		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
+		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
 
-		azureRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+		fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('PUT');
@@ -55,11 +55,11 @@ describe('azureRoutes', () => {
 	});
 
 	it('uploadFile returns error if hcRequest returns error', (done) => {
-		azureRoutes = proxyquire('../../src/routes/azureRoutes', {
+		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
 			'../lib/hcRequest': { default: requestStub.rejects('error') },
 		}).default;
 
-		azureRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
+		fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
 			expect(res).to.equal('error');
 			expect(requestStub).to.be.calledOnce;
 			expect(requestStub).to.be.calledWith('PUT');

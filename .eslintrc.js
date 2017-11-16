@@ -11,7 +11,7 @@ module.exports = {
 		"class-methods-use-this": 0,
 		"arrow-body-style":  ["error", "as-needed"],
 		"camelcase": 1,
-		"object-curly-newline": [2, {"minProperties": 3, "multiline": true, "consistent": true}],
+		"object-curly-newline": [2, {"minProperties": 4, "multiline": true, "consistent": true}],
 		"prefer-const": 1,
 		"no-unused-vars": 1,
 		"newline-per-chained-call": ["error", { "ignoreChainWithDepth": 3 }],

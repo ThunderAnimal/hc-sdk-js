@@ -18,41 +18,40 @@ const expect = chai.expect;
 describe('hcRequest', () => {
 	let requestSetStub;
 	let requestSendStub;
+	let requestResponseTypeStub;
+	let requestQueryStub;
 	let requestStub;
 	let hcRequest;
 
 	beforeEach(() => {
-	});
+		requestSendStub = sinon.stub().returnsPromise();
 
-	it('hcRequest passes when api sends successful response', (done) => {
-		requestSendStub = sinon.stub().returnsPromise().resolves(
-			{ ok: true, body: { status: '201' } },
-		);
-
-		requestSetStub = sinon.stub().returns({
+		requestResponseTypeStub = sinon.stub().returns({
 			send: requestSendStub,
-			set: sinon.stub().returns({
-				send: requestSendStub,
-				set: this,
-				query: this,
-			}),
-			query: sinon.stub().returns({
-				send: requestSendStub,
-				set: this,
-				query: this,
-			}),
 		});
 
+		requestQueryStub = sinon.stub().returns({
+			responseType: requestResponseTypeStub,
+		});
+
+		requestSetStub = sinon.stub().returns({
+			query: requestQueryStub,
+		});
 
 		requestStub = sinon.stub().returns({
 			set: requestSetStub,
-			send: requestSendStub,
-			query: requestSetStub,
 		});
 
 		hcRequest = proxyquire('../../src/lib/hcRequest', {
 			'superagent-bluebird-promise': requestStub,
 		}).default;
+	});
+
+	it('hcRequest passes when api sends successful response', (done) => {
+		requestSendStub.resolves(
+			{ ok: true, body: { status: '201' } },
+		);
+
 		hcRequest('POST', 'path').then((res) => {
 			expect(res.status).to.equal('201');
 			expect(requestStub).to.be.calledWith('POST');
@@ -62,34 +61,10 @@ describe('hcRequest', () => {
 	});
 
 	it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
-		requestSendStub = sinon.stub();
-
-		requestSendStub.returnsPromise().onCall(0).rejects({
+		requestSendStub.onCall(0).rejects({
 			status: '401', message: 'Your Authorization Token has expired',
 		});
-		requestSendStub.returnsPromise().onCall(1).resolves({ ok: true, body: { status: '201' } });
-
-
-		requestSetStub = sinon.stub().returns({
-			send: requestSendStub,
-			set: sinon.stub().returns({
-				send: requestSendStub,
-				set: this,
-				query: this,
-			}),
-			query: sinon.stub().returns({
-				send: requestSendStub,
-				set: this,
-				query: this,
-			}),
-		});
-
-
-		requestStub = sinon.stub().returns({
-			set: requestSetStub,
-			send: requestSendStub,
-			query: requestSetStub,
-		});
+		requestSendStub.onCall(1).resolves({ ok: true, body: { status: '201' } });
 
 		const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({
 			access_token: 'fakeAccessToken', refresh_token: 'fakeRefreshToken',
@@ -122,6 +97,8 @@ describe('hcRequest', () => {
 	afterEach(() => {
 		requestSetStub.reset();
 		requestSendStub.reset();
+		requestQueryStub.reset();
+		requestResponseTypeStub.reset();
 		requestStub.reset();
 	});
 });

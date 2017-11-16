@@ -139,7 +139,7 @@ Only the owner of the documents and those who have explicit permission from the 
 
 To upload the document:
 ```javascript
- let files = [{ data: document, title: "some_title"}];
+ let files = [new File()];
 
  HC.uploadDocument('user_id', files, documentReference)
     .then((response) => {
@@ -231,7 +231,7 @@ In the case of any error in uploading and downloading documents, the format is:
 Adding files to a document requires a logged in user.
 Therefore you need to call ``addFilesToDocument`` and provide the document owners user id, the document id and the files.
 ```javascript
-    let files = [{ data: document, title: "some_title"}];
+    let files = [new File()];
     HC.addFilesToDocument(userId, documentId, files)
         .then((response) => {
             // use document record which contains document id, status etc.
@@ -382,17 +382,9 @@ To logout from Gesundheitscloud call:
 
 ```javascript
     function handleFileSelect(evt) {
-        let files = evt.target.files;
+        let files = [...evt.target.files];
 
-        let f = files[0];
-
-        let reader = new FileReader();
-
-        reader.onload = function (e) {
-            HC.uploadDocument('user_id', e.target.result);
-        };
-
-        reader.readAsDataURL(f);
+        HC.uploadDocument('user_id', files);
     }
 
     document.getElementById('upload').addEventListener('change', handleFileSelect, false);

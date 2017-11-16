@@ -25,7 +25,7 @@ const isAuthorisedPath = path => ['documents', 'records'].some(el => path.includ
 
 const isExpired = error => error.status === '401' && error.message.includes('expired');
 
-const hcRequest = function (type, path, body, { query = {}, headers = {} } = {}) {
+const hcRequest = (type, path, body, { query = {}, headers = {}, responseType = '' } = {}) => {
 	let retries = 0;
 
 	if (isAuthorisedPath(path))	{
@@ -35,6 +35,7 @@ const hcRequest = function (type, path, body, { query = {}, headers = {} } = {})
 	const promise = () => request(type, path)
 		.set(headers)
 		.query(query)
+		.responseType(responseType)
 		.send(body)
 		.then(res => res.body || res.text)
 		.catch((err) => {
@@ -45,6 +46,7 @@ const hcRequest = function (type, path, body, { query = {}, headers = {} } = {})
 			}
 			throw buildCustomError(err);
 		});
+
 	return promise();
 };
 
