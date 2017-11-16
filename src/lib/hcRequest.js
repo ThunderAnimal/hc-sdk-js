@@ -23,29 +23,31 @@ const sendRefreshToken = () => {
 
 const isAuthorisedPath = path => ['documents', 'records'].some(el => path.includes(el));
 
-const isExpired = error => error.status === '401' && error.message.includes('expired');
+const isExpired = error => error.status === 401 && error.message.includes('expired');
 
 const hcRequest = (type, path, body, { query = {}, headers = {}, responseType = '' } = {}) => {
 	let retries = 0;
 
-	if (isAuthorisedPath(path))	{
-		headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
-	}
 
-	const promise = () => request(type, path)
-		.set(headers)
-		.query(query)
-		.responseType(responseType)
-		.send(body)
-		.then(res => res.body || res.text)
-		.catch((err) => {
-			if (isExpired(err) && retries < 2) {
-				retries += 1;
-				return sendRefreshToken()
-					.then(() => promise());
-			}
-			throw buildCustomError(err);
-		});
+	const promise = () => {
+		if (isAuthorisedPath(path))	{
+			headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
+		}
+		return request(type, path)
+			.set(headers)
+			.query(query)
+			.responseType(responseType)
+			.send(body)
+			.then(res => res.body || res.text)
+			.catch((err) => {
+				if (isExpired(err) && retries < 2) {
+					retries += 1;
+					return sendRefreshToken()
+						.then(() => promise());
+				}
+				throw buildCustomError(err);
+			});
+	};
 
 	return promise();
 };
