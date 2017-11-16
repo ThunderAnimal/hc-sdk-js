@@ -79,9 +79,7 @@ describe('services/User', () => {
 				zerokit_id: '20171009091448.uln45hn4@g6y0wg1tf6.tresorit.io',
 				email: 'katappa',
 				tresor_id: '0000yd5mfs53mvftfh16a5va',
-				user_data: {
-					auto_validate: true,
-				},
+				user_data: {},
 				state: 2,
 				reg_data: {
 					session_id: '',

@@ -6,10 +6,7 @@ const apiUrl = config.api;
 const userRoutes = {
 
 	initRegistration(hcUserAlias) {
-		const body = {
-			email: hcUserAlias,
-			user_data: { auto_validate: true },
-		};
+		const body = { email: hcUserAlias };
 
 		return hcRequest('POST', `${apiUrl}/users/register/init`, body);
 	},

@@ -97,9 +97,7 @@ describe('fhir service', () => {
 				zerokit_id: '20170906023153.xxut8mkm@xfjx51bvoe.tresorit.io',
 				email: 'mmm',
 				tresor_id: '0000hi1bxswvamnc1luphqdr',
-				user_data: {
-					auto_validate: true,
-				},
+				user_data: {},
 				state: 2,
 				tag_encryption_key: 'fakeTagEncKey',
 			});
