@@ -17,9 +17,14 @@ before_install:
 script:
   - npm test
   - npm run build:${ENV}
-after_success:
-  - scripts/publish_sdk.sh ${ENV}
-
+  
+deploy:
+  provider: script
+  script: scripts/publish_sdk.sh ${ENV}
+  skip_cleanup: true
+  on:
+    branch: develop
+    
 env:
   global:
     - ENV=staging
