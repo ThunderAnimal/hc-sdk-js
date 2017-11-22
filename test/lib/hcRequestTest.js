@@ -69,13 +69,12 @@ describe('hcRequest', () => {
 		const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({
 			access_token: 'fakeAccessToken', refresh_token: 'fakeRefreshToken',
 		});
+		const getAccessTokkenStub = sinon.stub().returns('token');
 
 		hcRequest = proxyquire('../../src/lib/hcRequest', {
 			'./sessionHandler': {
 				default: {
-					get() {
-						return 'token';
-					},
+					get: getAccessTokkenStub,
 					set: sinon.stub().returns(true),
 				},
 			},
@@ -89,6 +88,7 @@ describe('hcRequest', () => {
 			.then((res) => {
 				expect(res.status).to.equal('201');
 				expect(getRefreshTokenStub).to.be.calledOnce;
+				expect(getAccessTokkenStub.callCount).to.equal(3);
 				done();
 			});
 	});
