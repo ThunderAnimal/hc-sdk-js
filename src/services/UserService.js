@@ -46,7 +46,7 @@ class UserService {
 					user.email = res.email;
 					user.id = res.id;
 
-					if (!res.user_data.encrypted_data) {
+					if (!res.user_data || !res.user_data.encrypted_data) {
 						resolve(user);
 						return null;
 					}
@@ -102,7 +102,7 @@ class UserService {
 
 			this.getUser()
 				.then((res) => {
-					if (!res.user_data.encrypted_data) {
+					if (!res.user_data || !res.user_data.encrypted_data) {
 						return '{}';
 					}
 					return this.zeroKitAdapter.decrypt(res.user_data.encrypted_data);
