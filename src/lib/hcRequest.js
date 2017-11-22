@@ -23,7 +23,8 @@ const sendRefreshToken = () => {
 
 const isAuthorisedPath = path => ['documents', 'records'].some(el => path.includes(el));
 
-const isExpired = error => error.status === 401 && error.message.includes('expired');
+const isExpired = error =>
+	error.status === 401 && error.res && error.res.header['www-authenticate'].includes('expired');
 
 const hcRequest = (type, path, body, { query = {}, headers = {}, responseType = '' } = {}) => {
 	let retries = 0;
