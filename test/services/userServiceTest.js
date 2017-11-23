@@ -98,6 +98,7 @@ describe('services/User', () => {
 			expect(res.tag_encryption_key).to.equal(undefined);
 			expect(res.zerokit_id).to.equal(undefined);
 			expect(res.tresor_id).to.equal(undefined);
+			expect(res.state).to.equal(2);
 			expect(res.user_date).to.deep.equal(user.user_data);
 			expect(userServiceUserStub).to.be.calledOnce;
 			expect(zkitAdapterDecryptStub).to.be.calledOnce;

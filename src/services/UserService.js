@@ -40,11 +40,13 @@ class UserService {
 				id: '',
 				email: '',
 				user_data: {},
+				state: '',
 			};
 			this.resolveUser()
 				.then((res) => {
 					user.email = res.email;
 					user.id = res.id;
+					user.state = res.state;
 
 					if (!res.user_data || !res.user_data.encrypted_data) {
 						resolve(user);
