@@ -266,23 +266,19 @@ Therefore you need to call ``deleteFilesFromDocument`` and provide the document 
 
 To upload a record into Gesundheitscloud call:
 ```javascript
-    HC.uploadFhirRecord(fhirJson, tags)
+    HC.uploadFhirRecord(fhirJson)
 ```
 The record should given as a Json object according to the FHIR standard.
 Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
-``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
-It is important to note, that all tags are also stored encrypted.
 
 ### Update a FHIR resource
 
 To update a record into Gesundheitscloud call:
 ```javascript
-    HC.updateFhirRecord(recordId, fhirJson, tags)
+    HC.updateFhirRecord(recordId, fhirJson)
 ```
 The record should given as a Json object according to the FHIR standard.
 Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
-``tags`` is optional and enables you add custom tags to your record. Therefore ``tags`` expected to be an array of strings.
-It is important to note, that all tags are also stored encrypted.
 
 ### Download a FHIR record
 
@@ -292,7 +288,7 @@ To download a record from Gesundheitscloud call:
 ```
 
 This returns a promise that resolves to an object that contains ``tags`` and ``body``.
-Thereby ``tags`` is an array of strings that contains not only the custom but automatically created tags and ``body`` is the json object, that has been uploaded.
+Thereby ``tags`` is an array of strings that contains automatically generated tags and ``body`` is the json object, that has been uploaded.
 
 ### Delete a record/document
 
@@ -312,7 +308,6 @@ Thereby params is an object that can contain multiple criteria.
  offset (optional, number) ... Number of records to skip when retrieving. Defaults to 0 if no value is provided.
  start_date (optional, date) ... Earliest date for which to return records
  end_date (optional, date) ... Latest date for which to return records
- tags (optional, array of strings) ... List of tags on which to search. Only records that have all the provided tags are returned.
 ```
 To search for records, call :
 
@@ -333,7 +328,6 @@ where params can be :
         offset: 20,
         start_date: '2017-06-06',
         end_date: '2017-08-08',
-        tags: ['tag1', 'tag2']
     };
 ```
 The response format is :
@@ -358,13 +352,10 @@ The response format is :
 
 ### List all documents of a user
 
-By passing ``tags: ['document']`` as parameter to ``searchRecords(params)`` a list of all documents metadata will be received. ``downloadDocument`` can then be called to get an individual document blob.
+By calling ``getDocuments`` the metadata of all the documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
 
 ```javascript
-    HC.searchRecords({
-        user_ids: ['user1'],
-        tags: ['document']
-    });
+    HC.getDocuments();
 ```
 
 ### Logout

@@ -1,7 +1,7 @@
 import documentRoutes from '../routes/documentRoutes';
 import fileRoutes from '../routes/fileRoutes';
 import FhirService from './FhirService';
-import dateHelper from '../lib/dateHelper';
+import taggingUtils from '../lib/taggingUtils';
 
 class DocumentService {
 	constructor(options = {}) {
@@ -12,8 +12,8 @@ class DocumentService {
 	downloadDocument(userId, documentId) {
 		let documentRecord;
 		return this.fhirService.downloadFhirRecord(documentId)
-			.then((res) => {
-				documentRecord = res;
+			.then((record) => {
+				documentRecord = record;
 				return Promise.all(
 					documentRecord.body.content.map(
 						(documentReference) => {
@@ -43,9 +43,8 @@ class DocumentService {
 			});
 	}
 
-	uploadDocument(userId, files, metadata = {}, customTags = []) {
-		customTags = [...customTags, ...['type:document']];
-		return this.fhirService.createFhirRecord(metadata, customTags)
+	uploadDocument(userId, files, metadata = {}) {
+		return this.fhirService.createFhirRecord(metadata)
 			.then(record => this.addFilesToRecord(record, userId, files));
 	}
 
@@ -88,9 +87,7 @@ class DocumentService {
 				documentRecord.body.content.push(...attachments);
 				return this.fhirService.updateFhirRecord(
 					documentRecord.record_id,
-					documentRecord.body,
-					documentRecord.tags,
-				);
+					documentRecord.body);
 			});
 	}
 
@@ -98,15 +95,15 @@ class DocumentService {
 		return this.fhirService.downloadFhirRecord(documentId)
 			.then((record) => {
 				record.body.content = record.body.content.filter(documentReference =>
-					fileIds.indexOf(documentReference.attachment.url) === -1);
+					fileIds.indexOf(documentReference.attachment.id) === -1);
 				return this.fhirService.updateFhirRecord(documentId, record.body);
 			});
 	}
 
-	updateDocumentMetadata(recordId, jsonFHIR, tags = []) {
+	updateDocumentMetadata(recordId, jsonFHIR) {
 		// don't update the content as it is internally handled by SDK
 		if (jsonFHIR.content) delete jsonFHIR.content;
-		return this.fhirService.updateFhirRecord(recordId, jsonFHIR, tags);
+		return this.fhirService.updateFhirRecord(recordId, jsonFHIR);
 	}
 
 	createDocumentReference(fileId, title, contentType, creation) {
@@ -118,6 +115,12 @@ class DocumentService {
 				creation,
 			},
 		};
+	}
+
+	getDocuments() {
+		return this.fhirService.searchRecords({
+			tags: [taggingUtils.buildTag('resourceType', 'documentReference')],
+		});
 	}
 }
 

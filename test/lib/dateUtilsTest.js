@@ -3,7 +3,7 @@ import 'babel-polyfill';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
-import dateHelper from '../../src/lib/dateHelper';
+import dateUtils from '../../src/lib/dateUtils';
 
 chai.use(sinonChai);
 
@@ -12,7 +12,7 @@ const expect = chai.expect;
 describe('date helper', () => {
 	it('converts date to yyyy-mm-dd format', (done) => {
 		const date = new Date('2017-04-11');
-		const formattedDate = dateHelper.formatDateYyyyMmDd(date);
+		const formattedDate = dateUtils.formatDateYyyyMmDd(date);
 		expect(formattedDate).to.equal('2017-04-11');
 		done();
 	});

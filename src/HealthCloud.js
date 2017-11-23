@@ -12,9 +12,11 @@ class HealthCloud {
 		const documentService = new DocumentService({ zeroKitAdapter });
 		const fhirService = new FhirService({ zeroKitAdapter });
 		UserService.setZeroKitAdapter(zeroKitAdapter);
+
 		this.getLoginForm = zeroKitAdapter.getLoginForm.bind(zeroKitAdapter);
 		this.getRegistrationForm = zeroKitAdapter.getRegistrationForm.bind(zeroKitAdapter);
 		this.downloadDocument = documentService.downloadDocument.bind(documentService);
+		this.getDocuments = documentService.getDocuments.bind(documentService);
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
 		this.updateDocumentMetadata = documentService.updateDocumentMetadata.bind(documentService);
 		this.addFilesToDocument = documentService.addFilesToDocument.bind(documentService);

@@ -165,7 +165,7 @@ describe('fhir service', () => {
 		const updateFhirStub = sinon.stub(documentRoutes, 'updateRecord')
 			.returnsPromise().resolves(fhirResponse);
 		const downloadFhirRecordStub = sinon.stub(fhirService, 'downloadFhirRecord')
-			.returnsPromise().resolves({ body: { content: 'content' } });
+			.returnsPromise().resolves({ body: { content: 'content' }, tags: [] });
 
 		fhirService.updateFhirRecord('fakeRecordId', fhirObject, ['tag1', 'tag2']).then((res) => {
 			expect(res).to.equal(fhirResponse);

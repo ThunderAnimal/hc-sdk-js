@@ -43,17 +43,17 @@ class UserService {
 				state: '',
 			};
 			this.resolveUser()
-				.then((res) => {
-					user.email = res.email;
-					user.id = res.id;
-					user.state = res.state;
+				.then((resolvedUser) => {
+					user.email = resolvedUser.email;
+					user.id = resolvedUser.id;
+					user.state = resolvedUser.state;
 
-					if (!res.user_data || !res.user_data.encrypted_data) {
+					if (!resolvedUser.user_data || !resolvedUser.user_data.encrypted_data) {
 						resolve(user);
 						return null;
 					}
 
-					return res.user_data.encrypted_data;
+					return resolvedUser.user_data.encrypted_data;
 				})
 				.then(encryptedUserData => this.zeroKitAdapter.decrypt(encryptedUserData))
 				.then(JSON.parse)

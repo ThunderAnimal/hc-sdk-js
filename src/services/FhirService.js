@@ -1,53 +1,53 @@
 import fhirValidator from '../lib/fhirValidator';
 import documentRoutes from '../routes/documentRoutes';
 import UserService from '../services/UserService';
-import Tags from '../lib/Tags';
+import taggingUtils from '../lib/taggingUtils';
 import encryptionUtils from '../lib/EncryptionUtils';
-import dateHelper from '../lib/dateHelper';
+import dateUtils from '../lib/dateUtils';
 
 class FHIRService {
 	constructor(options = {}) {
 		this.zeroKitAdapter = options.zeroKitAdapter;
 	}
 
-	updateFhirRecord(recordId, jsonFHIR, tags = []) {
+	updateFhirRecord(recordId, fhirObject) {
 		const updateRequest =
 			(userId, params) => documentRoutes.updateRecord(userId, recordId, params);
 
 		return this.downloadFhirRecord(recordId)
-			.then((res) => {
-				const newFhirJson = Object.assign(res.body, jsonFHIR);
-				return this.uploadFhirRecord(newFhirJson, tags, updateRequest);
+			.then((record) => {
+				const updatedFhirObject = Object.assign(record.body, fhirObject);
+				return this.uploadFhirRecord(updatedFhirObject, updateRequest);
 			});
 	}
 
-	createFhirRecord(jsonFhir, tags = []) {
-		return this.uploadFhirRecord(jsonFhir, tags, documentRoutes.createRecord);
+	createFhirRecord(fhirObject) {
+		return this.uploadFhirRecord(fhirObject, documentRoutes.createRecord);
 	}
 
-	uploadFhirRecord(jsonFHIR, tags, uploadRequest) {
-		return fhirValidator.validate(jsonFHIR)
+	uploadFhirRecord(fhirObject, uploadRequest) {
+		return fhirValidator.validate(fhirObject)
 			.then(() => {
-				tags = [...tags, ...(new Tags()).createTagsFromFHIR(jsonFHIR)];
-				return this.uploadRecordWithTags(jsonFHIR, tags, uploadRequest);
+				const tags = taggingUtils.generateTagsFromFhirObject(fhirObject);
+				return this.uploadRecord(fhirObject, tags, uploadRequest);
 			});
 	}
 
-	uploadRecordWithTags(doc, tags, uploadRequest) {
+	uploadRecord(doc, tags, uploadRequest) {
 		return Promise.all(
 			[
 				this.zeroKitAdapter.encrypt(JSON.stringify(doc)),
 				UserService.resolveUser()
-					.then(res => this.zeroKitAdapter.decrypt(res.tag_encryption_key))
-					.then(res => tags
-						.map(item => encryptionUtils.encrypt(item.toLowerCase().trim(), res))),
+					.then(user => this.zeroKitAdapter.decrypt(user.tag_encryption_key))
+					.then(tagEncryptionKey => tags
+						.map(tag => encryptionUtils.encrypt(tag, tagEncryptionKey))),
 			],
 		)
 			.then((results) => {
 				const params = {
 					encrypted_body: results[0],
 					encrypted_tags: results[1],
-					date: dateHelper.formatDateYyyyMmDd(new Date()),
+					date: dateUtils.formatDateYyyyMmDd(new Date()),
 				};
 				return uploadRequest(UserService.getUserId(), params);
 			})
@@ -79,7 +79,6 @@ class FHIRService {
 				}));
 	}
 
-
 	searchRecords(params) {
 		let tek;
 		return UserService.resolveUser()
@@ -88,7 +87,7 @@ class FHIRService {
 				tek = tagEncryptionKey;
 				if (params.tags) {
 					params.tags = params.tags
-						.map(item => encryptionUtils.encrypt(item.toLowerCase(), tek)).join(',');
+						.map(tag => encryptionUtils.encrypt(tag, tek)).join(',');
 				}
 				if (params.user_ids) {
 					params.user_ids = params.user_ids.join(',');
@@ -105,7 +104,7 @@ class FHIRService {
 					.then((results) => {
 						delete result.encrypted_body;
 						delete result.encrypted_tags;
-						result.body = results[0];
+						result.body = JSON.parse(results[0]);
 						result.tags = results[1];
 						return result;
 					}),

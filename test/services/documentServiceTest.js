@@ -20,8 +20,16 @@ describe('DocumentService', () => {
 	const recordId = 'record_id';
 	const sasToken = 'sas_token';
 	const encryptedFile = 'encrypted_file';
-	const file = 'file';
-	const attachmentContent = { data: file, title: 'file' };
+	const file = {
+		name: 'file',
+		lastModifiedDate: new Date('Mon Nov 20 2017 12:58:01 GMT+0100 (CET)'),
+	};
+	const attachmentContent = {
+		data: file,
+		title: file.name,
+		id: 'id',
+		creation: file.lastModifiedDate,
+	};
 
 	const emptyDocumentReference = {
 		description: 'Title',
@@ -119,7 +127,7 @@ describe('DocumentService', () => {
 
 		documentService.uploadDocument(userId, [attachmentContent], metadata.body).then(() => {
 			expect(documentService.fhirService.createFhirRecord)
-				.to.be.calledWith(metadata.body, ['type:document']);
+				.to.be.calledWith(metadata.body);
 			documentService.fhirService.createFhirRecord.calledOnce;
 			documentService.fhirService.uploadFhirRecord.calledOnce;
 			expect(getFileUploadUrlsStub).to.be.calledOnce;
