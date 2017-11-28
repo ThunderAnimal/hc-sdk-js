@@ -26,6 +26,10 @@ const userRoutes = {
 		return hcRequest('POST', `${apiUrl}/users/resolve`, body);
 	},
 
+	getUserDetails(userId) {
+		return hcRequest('GET', `${apiUrl}/users/${userId}`);
+	},
+
 	addTresor(userId, tresorId) {
 		const body = { user_id: userId, tresor_id: tresorId };
 

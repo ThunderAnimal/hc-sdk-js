@@ -67,6 +67,16 @@ describe('userRoutes', () => {
 		});
 	});
 
+	it('getUserDetails passes', (done) => {
+		requestStub.resolves('pass');
+		userRoutes.getUserDetails('test').then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('GET');
+			done();
+		});
+	});
+
 	it('add tresor passes', (done) => {
 		requestStub.resolves('pass');
 		userRoutes.addTresor('userId', 'test').then((res) => {

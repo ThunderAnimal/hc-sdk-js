@@ -91,7 +91,7 @@ describe('services/User', () => {
 			},
 		};
 		const userServiceUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
+			sinon.stub(userRoutes, 'getUserDetails')
 				.returnsPromise().resolves(user);
 
 		User.getUser().then((res) => {
@@ -102,7 +102,7 @@ describe('services/User', () => {
 			expect(res.user_date).to.deep.equal(user.user_data);
 			expect(userServiceUserStub).to.be.calledOnce;
 			expect(zkitAdapterDecryptStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
+			userRoutes.getUserDetails.restore();
 			done();
 		});
 	});
@@ -110,37 +110,51 @@ describe('services/User', () => {
 	it('getUser fails when capella returns error', (done) => {
 		User.user = undefined;
 		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
+			sinon.stub(userRoutes, 'getUserDetails')
 				.returnsPromise().rejects({ error: 'error completing request' });
 		User.getUser().catch((res) => {
 			expect(res.error).to.equal('error completing request');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
+			userRoutes.getUserDetails.restore();
 			done();
 		});
 	});
 
 	it('resolveUser succeeds when capella succeeds', (done) => {
 		const userServiceUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
+			sinon.stub(userRoutes, 'getUserDetails')
 				.returnsPromise().resolves({ user: 'user' });
 		User.resolveUser().then((res) => {
 			expect(res).to.equal('user');
 			expect(userServiceUserStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
+			userRoutes.getUserDetails.restore();
+			done();
+		});
+	});
+
+	it('resolveUser fails when user not logged in', (done) => {
+		const userServiceResolveUserStub =
+			sinon.stub(userRoutes, 'getUserDetails')
+				.returnsPromise().resolves({ user: 'user' });
+		User.user = undefined;
+		sessionHandlerGetStub.returns(null);
+		User.resolveUser().catch((res) => {
+			expect(res.message).to.equal(NOT_LOGGED_IN);
+			expect(userServiceResolveUserStub).to.not.be.called;
+			userRoutes.getUserDetails.restore();
 			done();
 		});
 	});
 
 	it('resolveUser fails when capella returns error', (done) => {
 		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
+			sinon.stub(userRoutes, 'getUserDetails')
 				.returnsPromise().rejects({ error: 'error completing request' });
 		User.user = undefined;
 		User.resolveUser().catch((res) => {
 			expect(res.error).to.equal('error completing request');
 			expect(userServiceResolveUserStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
+			userRoutes.getUserDetails.restore();
 			done();
 		});
 	});

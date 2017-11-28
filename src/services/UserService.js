@@ -71,7 +71,13 @@ class UserService {
 				resolve(this.user);
 			});
 		}
-		return userRoutes.resolveUserId(this.getUserAlias())
+
+		const userId = this.getUserId();
+		if (!userId) {
+			return Promise.reject(new LoginError(NOT_LOGGED_IN));
+		}
+
+		return userRoutes.getUserDetails(userId)
 			.then((res) => {
 				this.user = res.user;
 				return this.user;
