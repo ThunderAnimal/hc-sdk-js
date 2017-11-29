@@ -78,6 +78,11 @@ class UserService {
 			});
 	}
 
+	resolveUserByAlias(alias) {
+		return userRoutes.resolveUserId(alias)
+			.then(res => res.user);
+	}
+
 	updateUser(params) {
 		return new Promise((resolve, reject) => {
 			const userId = this.getUserId();

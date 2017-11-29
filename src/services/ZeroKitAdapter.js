@@ -155,6 +155,31 @@ class ZeroKitAdapter {
 				.then(() => tresorId)));
 	}
 
+	grantPermission(alias) {
+		let grantee;
+		let tresorId;
+		let operationId;
+
+		return Promise.all(
+			[
+				UserService.resolveUserByAlias(alias),
+				this.getTresor(),
+			],
+		)
+			.then((result) => {
+				grantee = result[0];
+				tresorId = result[1];
+				return this.zeroKit;
+			})
+			.then(zeroKit => zeroKit.shareTresor(tresorId, grantee.zerokit_id))
+			.then((response) => {
+				operationId = response;
+				return userRoutes.verifyShareAndGrantPermission(UserService.getUserId(),
+					grantee.id, operationId);
+			})
+			.then(() => operationId);
+	}
+
 	logout() {
 		return this.zeroKit.then(zerokit => zerokit.logout())
 			.then((res) => {

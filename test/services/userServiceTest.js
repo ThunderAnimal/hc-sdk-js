@@ -145,6 +145,31 @@ describe('services/User', () => {
 		});
 	});
 
+	it('resolveUserByAlias succeeds', (done) => {
+		const userServiceUserStub =
+			sinon.stub(userRoutes, 'resolveUserId')
+				.returnsPromise().resolves({ user: 'user' });
+		User.resolveUserByAlias('alias').then((res) => {
+			expect(res).to.equal('user');
+			expect(userServiceUserStub).to.be.calledOnce;
+			userRoutes.resolveUserId.restore();
+			done();
+		});
+	});
+
+	it('resolveUserByAlias failes', (done) => {
+		const userServiceResolveUserStub =
+			sinon.stub(userRoutes, 'resolveUserId')
+				.returnsPromise().rejects({ error: 'error completing request' });
+		User.user = undefined;
+		User.resolveUserByAlias('alias').catch((res) => {
+			expect(res.error).to.equal('error completing request');
+			expect(userServiceResolveUserStub).to.be.calledOnce;
+			userRoutes.resolveUserId.restore();
+			done();
+		});
+	});
+
 	it('updateUser succeeds when capella succeeds', (done) => {
 		const user = {
 			id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',

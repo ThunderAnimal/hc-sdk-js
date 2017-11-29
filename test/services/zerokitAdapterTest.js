@@ -27,6 +27,7 @@ describe('zerokitAdapter', () => {
 	let zKitRegisterObject;
 	let zKitRegisterObjectPromise;
 	let zkit_sdk;
+	let userRouteVerifyShareAndGrantPermissionStub;
 
 	beforeEach(() => {
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
@@ -47,6 +48,7 @@ describe('zerokitAdapter', () => {
 			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
 			logout: sinon.stub().returnsPromise().resolves('success'),
+			shareTresor: sinon.stub().returnsPromise().resolves('fakeOperationId'),
 		};
 
 		window.document.getElementsByTagName = sinon.stub().returns([{ appendChild: sinon.spy() }]);
@@ -62,6 +64,9 @@ describe('zerokitAdapter', () => {
 		zerokitAdapter.zeroKit = Promise.resolve(zkit_sdk);
 		userRouteAddTresorStub =
 			sinon.stub(userRoutes, 'addTresor')
+				.returnsPromise().resolves();
+		userRouteVerifyShareAndGrantPermissionStub =
+			sinon.stub(userRoutes, 'verifyShareAndGrantPermission')
 				.returnsPromise().resolves();
 	});
 
@@ -335,7 +340,39 @@ describe('zerokitAdapter', () => {
 			});
 	});
 
+	it('grantPermission succeeds', (done) => {
+		userRoutesResolveUserIdStub =
+			sinon.stub(userRoutes, 'resolveUserId')
+				.returnsPromise().resolves({
+					user: {
+						id: 'kjhgf',
+						zerokit_id: 'fakeZkitId',
+						tresor_id: 'fakeTresorId',
+					},
+				});
+		zerokitAdapter.grantPermission('fakeGranteeEmail')
+			.then((res) => {
+				expect(res).to.equal('fakeOperationId');
+				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
+				expect(zkit_sdk.shareTresor).to.be.calledOnce;
+				expect(userRouteVerifyShareAndGrantPermissionStub).to.be.calledOnce;
+				done();
+			});
+	});
+
+	it('grantPermission fails if zerokit shareTresor fails', (done) => {
+		zkit_sdk.shareTresor = sinon.stub().returnsPromise().rejects('error');
+		zerokitAdapter.grantPermission('fakeGranteeEmail')
+			.catch((err) => {
+				expect(err).to.equal('error');
+				expect(zkit_sdk.shareTresor).to.be.calledOnce;
+				done();
+			});
+		done();
+	});
+
 	afterEach(() => {
 		userRoutes.addTresor.restore();
+		userRoutes.verifyShareAndGrantPermission.restore();
 	});
 });

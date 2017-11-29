@@ -32,6 +32,12 @@ const userRoutes = {
 		return hcRequest('POST', `${apiUrl}/tresors`, body);
 	},
 
+	verifyShareAndGrantPermission(ownerId, granteeId, OperationId) {
+		const body = { grantee_id: granteeId, operation_id: OperationId };
+
+		return hcRequest('POST', `${apiUrl}/users/${ownerId}/permissions`, body);
+	},
+
 	addTagEncryptionKey(userId, secret) {
 		const body = { tek: secret };
 

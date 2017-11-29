@@ -7,7 +7,7 @@ For more information about the platform please see our [website](https://www.ges
 To use the SDK, you need to create a client id from GesundheitsCloud. Please get in touch with us at info@gesundheitscloud.de.
 
 ## Usage
-The SDK allows you to register a user with GesundheitsCloud, log in the user, upload and download your sensitive documents with end-to-end encryption. It internally does all the work needed to prove the identity to the server without leaking the password.
+The SDK allows you to register a user with GesundheitsCloud, log in the user, upload or download your sensitive documents and share your data with another user, all with end-to-end encryption. It internally does all the work needed to prove the identity to the server without leaking the password.
 
 The SDK compiles into a bundle, which can then be imported into the project.
 
@@ -41,6 +41,7 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- downloadFhirRecord
 		- updateFhirRecord
 		- deleteRecord
+		- grantPermission
 		- logout
 
 #### Register
@@ -356,6 +357,14 @@ By calling ``getDocuments`` the metadata of all the documents of the user logged
 
 ```javascript
     HC.getDocuments();
+```
+
+### Share data with another user
+
+In order to share all data of the current user with another Gesundheitscloud's user, namely *grantee*, call:
+
+```javascript
+    HC.grantPermission('granteeEmailAddress')
 ```
 
 ### Logout

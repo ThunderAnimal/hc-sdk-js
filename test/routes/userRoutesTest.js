@@ -77,6 +77,28 @@ describe('userRoutes', () => {
 		});
 	});
 
+	it('verifyShareAndGrantPermission passes', (done) => {
+		requestStub.resolves('pass');
+		userRoutes.verifyShareAndGrantPermission('ownerId',
+			'granteeId', 'operationId').then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('POST');
+			done();
+		});
+	});
+
+	it('verifyShareAndGrantPermission returns error on request failure', (done) => {
+		requestStub.rejects('error');
+		userRoutes.verifyShareAndGrantPermission('ownerId',
+			'granteeId', 'operationId').catch((err) => {
+			expect(err).to.equal('error');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('POST');
+			done();
+		});
+	});
+
 	it('updateUser passes', (done) => {
 		requestStub.resolves('pass');
 		userRoutes.updateUser({ name: 'fakeName' }).then((res) => {
