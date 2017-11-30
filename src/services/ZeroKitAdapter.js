@@ -5,6 +5,8 @@ import UserService from './UserService';
 import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
 import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
 import encryptionUtils from '../lib/EncryptionUtils';
+import validationUtils from '../lib/validationUtils';
+import ValidationError from '../lib/Error/ValidationError';
 
 
 class ZeroKitAdapter {
@@ -49,6 +51,10 @@ class ZeroKitAdapter {
 	}
 
 	login(zKitLoginObject, hcUserAlias) {
+		if (!validationUtils.validateEmail(hcUserAlias)) {
+			return Promise.reject(new ValidationError('Not a valid email'));
+		}
+
 		let tresorId;
 		let userId;
 		let tek;
@@ -107,6 +113,9 @@ class ZeroKitAdapter {
 	}
 
 	register(zKitRegistrationObject, hcUserAlias) {
+		if (!validationUtils.validateEmail(hcUserAlias)) {
+			return Promise.reject(new ValidationError('Not a valid email'));
+		}
 		let zKitId;
 		return userRoutes.initRegistration(hcUserAlias)
 			.then((res) => {
