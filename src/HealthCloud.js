@@ -24,11 +24,6 @@ class HealthCloud {
 		this.getUserIdAndAlias = UserService.getUserIdAndAlias.bind(UserService);
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
-		this.searchRecords = fhirService.searchRecords.bind(fhirService);
-		this.uploadFhirRecord = fhirService.createFhirRecord.bind(fhirService);
-		this.downloadFhirRecord = fhirService.downloadFhirRecord.bind(fhirService);
-		this.updateFhirRecord = fhirService.updateFhirRecord.bind(fhirService);
-		this.deleteRecord = fhirService.deleteRecord.bind(fhirService);
 		this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);
 		this.logout = zeroKitAdapter.logout.bind(zeroKitAdapter);
 

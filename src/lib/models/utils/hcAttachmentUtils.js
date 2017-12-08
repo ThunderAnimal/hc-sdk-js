@@ -7,7 +7,7 @@ const schema = {
 		title: { type: 'string' },
 		type: { type: 'string' },
 	},
-	required: ['creationDate', 'type'],
+	required: [],
 };
 
 const ajv = new Ajv();

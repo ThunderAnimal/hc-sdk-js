@@ -34,15 +34,11 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- getRegistrationForm
 		- downloadDocument
 		- uploadDocument
+		- updateDocument
 		- deleteDocument
 		- getDocuments
 		- getUser
 		- updateUser
-		- searchRecords
-		- uploadFhirRecord
-		- downloadFhirRecord
-		- updateFhirRecord
-		- deleteRecord
 		- grantPermission
 		- logout
 
@@ -281,101 +277,20 @@ To delete a Document from the GesundheitsCloud call:
 ```
 Thereby ``hcDocument`` is a HealthCloud-Document
 
-#### List all documents of a user (without files)
+#### List documents of a user (without files)
 
-By calling ``getDocuments`` the metadata of all the documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
+By calling ``getDocuments`` all documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
 
 ```javascript
-    HC.getDocuments();
+    HC.getDocuments()
+        .then(documents => {});
 ```
-
-
-### Upload a FHIR resource
-
-To upload a record into Gesundheitscloud call:
-```javascript
-    HC.uploadFhirRecord(fhirJson)
+For filtering those Documents you can add an object of parameters to the call. Possible parameters are:
 ```
-The record should given as a Json object according to the FHIR standard.
-Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
-
-### Update a FHIR resource
-
-To update a record into Gesundheitscloud call:
-```javascript
-    HC.updateFhirRecord(recordId, fhirJson)
-```
-The record should given as a Json object according to the FHIR standard.
-Possible structures of the Json object can be viewed in FHIRs [Guide to resouces](https://hl7.org/fhir/DSTU2/resourceguide.html).
-
-### Download a FHIR record
-
-To download a record from Gesundheitscloud call:
-```javascript
-    HC.downloadFhirRecord(recordId)
-```
-
-This returns a promise that resolves to an object that contains ``tags`` and ``body``.
-Thereby ``tags`` is an array of strings that contains automatically generated tags and ``body`` is the json object, that has been uploaded.
-
-### Delete a record
-
-To delete a record from Gesundheitscloud call:
-```javascript
-    HC.deleteRecord(recordId)
-```
-
-### Search for Records
-
-``searchRecords(params)`` can be used to get all records that match the criteria given in params.
-Thereby params is an object that can contain multiple criteria.
-
-```
- user_ids (optional, array of strings) ... List of IDs of user whose records are to be searched.
  limit (optional, number) ... Maximum number of records to retrieve. Defaults to some sensible value (20?) if no value is provided. Has a sensible max (100?).
  offset (optional, number) ... Number of records to skip when retrieving. Defaults to 0 if no value is provided.
  start_date (optional, date) ... Earliest date for which to return records
  end_date (optional, date) ... Latest date for which to return records
-```
-To search for records, call :
-
-```javascript
-    HC.searchRecords(params)
-        .then((response) => {
-        })
-        .catch((error) => {
-            // error contains the status and error message
-        });
-
-```
-where params can be :
-```javascript
-    {
-        user_ids: ['user1', 'user2'],
-        limit: 20,
-        offset: 20,
-        start_date: '2017-06-06',
-        end_date: '2017-08-08',
-    };
-```
-The response format is :
-```json
-    [{  
-          "record_id":"d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a",
-          "date":"2017-09-14",
-          "user_id":"user1",
-          "body": {
-            "resourceType":"Patient"
-          },
-          "tags":[  
-             "tag1",
-             "tag2"
-          ],
-          "version":1,
-          "status":"Active",
-          "createdAt":"2017-09-14T10:48:47.684"
-       }]
-
 ```
 
 ### Share data with another user
@@ -395,23 +310,4 @@ To logout from Gesundheitscloud call:
         })
         .catch((error) => {
         });
-```
-
-### Sample Code
-#### For uploading the document
-
-```html
-<form enctype="multipart/form-data">
-    <input id="upload" type="file"   accept="image/png" name="files[]" size=30>
-</form>
-```
-
-```javascript
-    function handleFileSelect(evt) {
-        let files = [...evt.target.files];
-
-        HC.uploadDocument('user_id', files);
-    }
-
-    document.getElementById('upload').addEventListener('change', handleFileSelect, false);
 ```

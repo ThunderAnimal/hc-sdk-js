@@ -106,13 +106,12 @@ class DocumentService {
 	}
 
 	deleteDocument(userId, hcDocument) {
-		return this.fhirService.deleteRecord(hcDocument.id, userId);
+		return this.fhirService.deleteRecord(userId, hcDocument.id);
 	}
 
-	getDocuments() {
-		return this.fhirService.searchRecords({
-			tags: [taggingUtils.buildTag('resourceType', 'documentReference')],
-		})
+	getDocuments(params = {}) {
+		params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
+		return this.fhirService.searchRecords(params)
 			.then(records =>
 				records.map((record) => {
 					const hcDocument = hcDocumentUtils.fromFhirObject(record.body);
