@@ -14,7 +14,7 @@ The SDK compiles into a bundle, which can then be imported into the project.
 ## Bundling
 Refer to README.md for bundling the SDK.
 
-## Setup
+## Using the SDK
 
 1.  Import the javascript file from the provided URL (see example below). You may need to modify the version number later.
 It inserts a healthcloud_sdk object into the global namespace.
@@ -34,6 +34,8 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- getRegistrationForm
 		- downloadDocument
 		- uploadDocument
+		- deleteDocument
+		- getDocuments
 		- getUser
 		- updateUser
 		- searchRecords
@@ -44,7 +46,7 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- grantPermission
 		- logout
 
-#### Register
+### Register
 To register a user, append the registration form to a node.
 Therefore you need to call  ``HC.getRegistrationForm(parent_node, callback)``.
 Hence the form is then appended to ``parent_node``.
@@ -72,7 +74,7 @@ In the case of a successful registration, ``error`` is contains a message, and `
 
 The user will need to login after registration.
 
-#### Login
+### Login
 The login step is similar to registering.
 Call ``HC.getLoginForm(parent_node, callback)`` to get the login form appended to ``parent_node``.
 After user tries to login the request result will be processed as a promise.
@@ -89,7 +91,7 @@ HC.getLoginForm(document.getElementById("gesundheitslogin"))
 
 The SDK automatically performs the required authentication steps during the login.
 
-#### Get the Current UserId and Alias
+### Get the Current UserId and Alias
 You can get the currently active user synchronously by calling getUserIdAndAlias.
 
 ```javascript
@@ -102,7 +104,7 @@ In case of a logged in user getUserIdAndAlias returns a basic user object.
     "user_id": "user_id"
 }
 ```
-#### Get the Current User
+### Get the Current User
 
 You can get the detailed user by calling ``getUser`` function, which returns a promise.
 
@@ -139,6 +141,49 @@ You can edit user data from the currently logged in user.
  .catch((error) => {});
 ```
 
+### Documents
+
+#### Document
+All operations on Documents are based on the hcDocument.
+For creating a Document you can either create it by using hcDocument in models it or create an object in the format on your own. 
+The constructor takes the following 
+- files: array of native Files, you usually get the File objects as a FileList from an HTML input element
+- type: string, 'Document' by default
+- title: string
+- creationDate: date, the current Date by default
+- author: string
+
+```html
+  <form>
+    <input type="file" id="files" multiple>
+    <button type="button" onclick="uploadDocument(document.getElementById('files').files)">Upload Documents</button>
+  </form>
+  <script>
+    createDocument = (fileList) => {
+    	let files = [...fileList];
+    	return new HC.models.HCDocument({ files })
+    }
+  </script>
+```
+
+The resulting object has the following attributes:
+- attachments: Attachments created from the files
+- type: string
+- creationDate: date
+- title: string
+- author: string
+- id: string, created by platform on upload, do not change
+
+#### Attachment
+An attachment contains the file specific data.
+```javascript
+let hcAttachment = new HC.models.Attachment({file});
+```
+The resulting object has the following attributes:
+- file: a js-file
+- title: string, by default extracted from the file object
+- type: string, by default extracted from the file object
+- creationDate: date, by default extracted from the file object;
 
 #### Upload Document
 Uploading a document requires a logged in user.
@@ -147,24 +192,13 @@ Only the owner of the documents and those who have explicit permission from the 
 
 To upload the document:
 ```javascript
- let files = [new File()];
-
- HC.uploadDocument('user_id', files, documentReference)
-    .then((response) => {
-        // use document record which contains document id, status etc.
+ HC.uploadDocument('user_id', hcDocument)
+    .then((hcDocument) => {
+        // the uploaded hcDocument with id
     })
     .catch((error) => {
         // error contains the status and error message
     });
-```
-where options is formed as per FHIR standard for document. (https://www.hl7.org/fhir/documentreference.html)
-Example: https://www.hl7.org/fhir/documentreference-example.json
-
-On Success, the response consists the documents metadata:
-```json
-{
-     "record_id": "d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a"     
-}
 ```
 
 #### Download Document
@@ -176,54 +210,15 @@ To download the document multiple requirements need to be fulfilled:
 
 To download the document call downloadDocument providing the owners user id and the document id
 ```javascript
-  HC.downloadDocument('user_id','record_id').then((response) => {
-    // the response is the decrypted document
+  HC.downloadDocument('user_id','document_id').then((hcDocument) => {
+    // the requested hcDocument
   })
   .catch((error) => {
     // error contains the status
   })
 ```
 
-The response consists of document metadata and the decrypted body. eg. for an image file:
-
-```json
-  {  
-      "record_id":"d6dc12e4-6e1d-4bfa-b49d-fa2f00d6f84a",
-      "date":"2017-09-14",
-      "user_id":"user1",
-      // the FHIR format of the document data
-      "body": {
-        "content" : [
-          {
-            "attachment" : {
-              "id": "file_id_1",
-              "title": "given_title_1"
-            }
-          },{
-            "attachment" : {
-              "id": "file_id_2",
-              "title": "given_title_2"
-            }
-          }
-        ],
-        "description" : "Title",
-        "indexed" : "2017-10-18T13:58:12.809Z",
-        "resourceType" : "DocumentReference",
-        "status" : "current",
-        "type" : {
-          "text" : "concept"
-        }
-      },
-      "tags":[  
-         "tag1",
-         "tag2"
-      ],
-      "version":1,
-      "status":"Active",
-      "createdAt":"2017-09-14T10:48:47.684",
-      "document":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeoAAAMECAYAAABwvGbhAAAMFGlDQ1BJQ0MgUHJvZmlsZQAASIm"                     
-  }
-```
+The response is a hcDocument with the js file-object
 
 In case the user does not have the right to access the document an error will be thrown.
 
@@ -235,33 +230,65 @@ In the case of any error in uploading and downloading documents, the format is:
     }
 ```
 
-#### Add files to existing docuement
+#### Update a Document
+For changing a Document you simply change the hcDocument Object. 
+It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to sync the object with the GesundheitsCloud.
+There are multiple attributes that should not be changed:
+ * the ID of the Document or its Attachments
+ * the file of an Attachment
+
+##### Add files to existing docuement
+
 Adding files to a document requires a logged in user.
-Therefore you need to call ``addFilesToDocument`` and provide the document owners user id, the document id and the files.
-```javascript
-    let files = [new File()];
-    HC.addFilesToDocument(userId, documentId, files)
-        .then((response) => {
-            // use document record which contains document id, status etc.
-        })
-        .catch((error) => {
-            // error contains the status and error message
-        });
-```
-
-#### Remove files from an existing document
-Removing files from a document requires a logged in user.
-Therefore you need to call ``deleteFilesFromDocument`` and provide the document owners user id, the document id and the file ids that should be deleted.
+Therefore you need to create attachments and push them to the attachments array of the hcDocument.
+It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to sync the object with the GesundheitsCloud.
 
 ```javascript
-    HC.deleteFilesFromDocument(userId, documentId, fileIds)
-        .then((response) => {
-           // use document record which contains document id, status etc.
+    let hcAttachment = new HC.models.Attachment({ file });
+    hcDocument.attachments.push(hcAttachment);
+
+    HC.updateDocument(userId, hcDocument)
+        .then((hcDocument) => {
+           // the updated hcDocument
        })
        .catch((error) => {
            // error contains the status and error message
        });
 ```
+
+##### Remove files from an existing document
+Removing files from a document requires a logged in user.
+Therefore you need to remove the corresponding attachments from the attachments of the hcDocument.
+It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to sync the object with the GesundheitsCloud.
+
+```javascript
+    hcDocument.attachments.pop(0);
+
+    HC.updateDocument(userId, hcDocument)
+        .then((hcDocument) => {
+           // the updated hcDocument
+       })
+       .catch((error) => {
+           // error contains the status and error message
+       });
+```
+
+#### Delete a Document
+
+To delete a Document from the GesundheitsCloud call:
+```javascript
+    HC.deleteDocument(userId, hcDocument)
+```
+Thereby ``hcDocument`` is a HealthCloud-Document
+
+#### List all documents of a user (without files)
+
+By calling ``getDocuments`` the metadata of all the documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
+
+```javascript
+    HC.getDocuments();
+```
+
 
 ### Upload a FHIR resource
 
@@ -291,7 +318,7 @@ To download a record from Gesundheitscloud call:
 This returns a promise that resolves to an object that contains ``tags`` and ``body``.
 Thereby ``tags`` is an array of strings that contains automatically generated tags and ``body`` is the json object, that has been uploaded.
 
-### Delete a record/document
+### Delete a record
 
 To delete a record from Gesundheitscloud call:
 ```javascript
@@ -349,14 +376,6 @@ The response format is :
           "createdAt":"2017-09-14T10:48:47.684"
        }]
 
-```
-
-### List all documents of a user
-
-By calling ``getDocuments`` the metadata of all the documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
-
-```javascript
-    HC.getDocuments();
 ```
 
 ### Share data with another user

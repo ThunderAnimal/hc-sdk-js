@@ -1,10 +1,10 @@
 import userRoutes from '../routes/userRoutes';
 import sessionHandler from '../lib/sessionHandler';
-import LoginError, { NOT_LOGGED_IN } from '../lib/Error/LoginError';
+import LoginError, { NOT_LOGGED_IN } from '../lib/errors/LoginError';
 import ValidationError, {
 	MISSING_PARAMETERS,
 	INVALID_PARAMETERS,
-} from '../lib/Error/ValidationError';
+} from '../lib/errors/ValidationError';
 
 class UserService {
 	constructor() {

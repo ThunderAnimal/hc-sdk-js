@@ -113,10 +113,10 @@ class FHIRService {
 			});
 	}
 
-	deleteRecord(documentId, userId = undefined) {
+	deleteRecord(recordId, userId) {
 		if (!userId) userId = UserService.getUserId();
 
-		return documentRoutes.deleteRecord(userId, documentId);
+		return documentRoutes.deleteRecord(userId, recordId);
 	}
 }
 

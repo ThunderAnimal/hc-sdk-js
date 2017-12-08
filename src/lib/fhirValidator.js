@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 
-import ValidationError from './Error/ValidationError';
+import ValidationError from './errors/ValidationError';
 import fhirRoutes from '../routes/fhirRoutes';
 
 const ajv = new Ajv({ extendRefs: true });

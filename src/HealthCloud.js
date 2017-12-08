@@ -3,7 +3,8 @@ import AuthService from './services/AuthService';
 import DocumentService from './services/DocumentService';
 import UserService from './services/UserService';
 import FhirService from './services/FhirService';
-
+import HCDocument from './lib/models/HCDocument';
+import HCAttachment from './lib/models/HCAttachment';
 
 class HealthCloud {
 	constructor(options) {
@@ -16,12 +17,10 @@ class HealthCloud {
 		this.getLoginForm = zeroKitAdapter.getLoginForm.bind(zeroKitAdapter);
 		this.getRegistrationForm = zeroKitAdapter.getRegistrationForm.bind(zeroKitAdapter);
 		this.downloadDocument = documentService.downloadDocument.bind(documentService);
+		this.deleteDocument = documentService.deleteDocument.bind(documentService);
 		this.getDocuments = documentService.getDocuments.bind(documentService);
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
-		this.updateDocumentMetadata = documentService.updateDocumentMetadata.bind(documentService);
-		this.addFilesToDocument = documentService.addFilesToDocument.bind(documentService);
-		this.deleteFilesFromDocument =
-			documentService.deleteFilesFromDocument.bind(documentService);
+		this.updateDocument = documentService.updateDocument.bind(documentService);
 		this.getUserIdAndAlias = UserService.getUserIdAndAlias.bind(UserService);
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
@@ -32,6 +31,11 @@ class HealthCloud {
 		this.deleteRecord = fhirService.deleteRecord.bind(fhirService);
 		this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);
 		this.logout = zeroKitAdapter.logout.bind(zeroKitAdapter);
+
+		this.models = {
+			HCDocument,
+			HCAttachment,
+		};
 	}
 }
 

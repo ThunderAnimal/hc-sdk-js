@@ -6,7 +6,7 @@ import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
 import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
 import encryptionUtils from '../lib/EncryptionUtils';
 import validationUtils from '../lib/validationUtils';
-import ValidationError from '../lib/Error/ValidationError';
+import ValidationError from '../lib/errors/ValidationError';
 
 
 class ZeroKitAdapter {

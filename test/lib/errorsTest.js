@@ -3,8 +3,8 @@ import 'babel-polyfill';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
-import ValidationError from '../../src/lib/Error/ValidationError';
-import LoginError from '../../src/lib/Error/LoginError';
+import ValidationError from '../../src/lib/errors/ValidationError';
+import LoginError from '../../src/lib/errors/LoginError';
 
 chai.use(sinonChai);
 

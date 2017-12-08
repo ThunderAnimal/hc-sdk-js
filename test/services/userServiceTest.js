@@ -8,8 +8,8 @@ import sinonChai from 'sinon-chai';
 import User from '../../src/services/UserService';
 import sessionHandler from '../../src/lib/sessionHandler';
 import userRoutes from '../../src/routes/userRoutes';
-import { NOT_LOGGED_IN } from '../../src/lib/Error/LoginError';
-import { MISSING_PARAMETERS, INVALID_PARAMETERS } from '../../src/lib/Error/ValidationError';
+import { NOT_LOGGED_IN } from '../../src/lib/errors/LoginError';
+import { MISSING_PARAMETERS, INVALID_PARAMETERS } from '../../src/lib/errors/ValidationError';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);

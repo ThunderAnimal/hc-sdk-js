@@ -2,6 +2,9 @@ import documentRoutes from '../routes/documentRoutes';
 import fileRoutes from '../routes/fileRoutes';
 import FhirService from './FhirService';
 import taggingUtils from '../lib/taggingUtils';
+import HCDocument from '../lib/models/HCDocument';
+import hcDocumentUtils from '../lib/models/utils/hcDocumentUtils';
+import ValidationError from '../lib/errors/ValidationError';
 
 class DocumentService {
 	constructor(options = {}) {
@@ -10,17 +13,14 @@ class DocumentService {
 	}
 
 	downloadDocument(userId, documentId) {
-		let documentRecord;
+		let hcDocument;
 		return this.fhirService.downloadFhirRecord(documentId)
 			.then((record) => {
-				documentRecord = record;
+				hcDocument = hcDocumentUtils.fromFhirObject(record.body);
 				return Promise.all(
-					documentRecord.body.content.map(
-						(documentReference) => {
-							const fileId = documentReference.attachment.id;
-							return documentRoutes
-								.getFileDownloadUrl(userId, documentId, fileId);
-						}));
+					hcDocument.attachments.map(attachment =>
+						documentRoutes.getFileDownloadUrl(userId, documentId, attachment.id)),
+				);
 			})
 			.then(sasUrls => Promise.all(
 				sasUrls.map(sasUrl => fileRoutes.downloadFile(sasUrl.sas_token))))
@@ -30,97 +30,95 @@ class DocumentService {
 			.then((blobs) => {
 				let attachment;
 				return blobs.map((blob, index) => {
-					attachment = documentRecord.body.content[index].attachment;
-					return new File([blob], attachment.title, {
-						type: attachment.contentType,
-						lastModifiedDate: new Date(attachment.creation),
+					attachment = hcDocument.attachments[index];
+					attachment.file = new File([blob], attachment.title, {
+						type: attachment.type,
+						lastModifiedDate: attachment.creation,
 					});
+					return attachment;
 				});
 			})
-			.then((files) => {
-				documentRecord.files = files;
-				return documentRecord;
+			.then((attachments) => {
+				hcDocument.attachments = attachments;
+				hcDocument.id = documentId;
+				return hcDocument;
 			});
 	}
 
-	uploadDocument(userId, files, metadata = {}) {
-		return this.fhirService.createFhirRecord(metadata)
-			.then(record => this.addFilesToRecord(record, userId, files));
+	uploadDocument(userId, hcDocument) {
+		if (!hcDocumentUtils.isValid(hcDocument)) {
+			return Promise.reject(new ValidationError('Not a valid hcDocument'));
+		}
+
+		return this.fhirService.createFhirRecord(hcDocumentUtils.toFhirObject(hcDocument))
+			.then((record) => {
+				hcDocument.id = record.record_id;
+				return this.updateDocument(userId, hcDocument);
+			});
 	}
 
-	addFilesToDocument(userId, documentId, files) {
-		return this.fhirService.downloadFhirRecord(documentId)
-			.then(record => this.addFilesToRecord(record, userId, files));
-	}
+	updateDocument(userId, hcDocument) {
+		if (!hcDocumentUtils.isValid(hcDocument)) {
+			return Promise.reject(new ValidationError('Not a valid hcDocument'));
+		}
 
-	addFilesToRecord(documentRecord, userId, files) {
-		let uploadInformation;
+		let newAttachments = [];
+		const oldAttachments = [];
+		hcDocument.attachments.forEach((attachment) => {
+			if (attachment.id) {
+				oldAttachments.push(attachment);
+			} else {
+				newAttachments.push(attachment);
+			}
+		});
 
-		files = files.map(file => this.zeroKitAdapter.encryptBlob(file)
-			.then(encryptedBlob => ({
-				data: encryptedBlob,
-				title: file.name,
-				type: file.type,
-				lastModified: (file.lastModifiedDate || new Date()).toISOString(),
-			})));
+		newAttachments = newAttachments.map(attachment =>
+			this.zeroKitAdapter.encryptBlob(attachment.file)
+				.then(encryptedBlob => ({ attachment, encryptedData: encryptedBlob })));
 
 		return Promise.all([
-			Promise.all(files),
-			documentRoutes.getFileUploadUrls(userId, documentRecord.record_id, files.length),
+			Promise.all(newAttachments),
+			newAttachments.length ?
+				documentRoutes.getFileUploadUrls(userId, hcDocument.id, newAttachments.length) :
+				Promise.resolve([]),
 		])
 			.then((result) => {
-				files = result[0];
-				uploadInformation = result[1];
+				newAttachments = result[0];
+				const uploadInformation = result[1];
 				return Promise.all(
-					files
-						.map((encryptedFile, index) => fileRoutes
-							.uploadFile(uploadInformation[index].sas_token, encryptedFile.data)),
+					newAttachments.map((attachment, index) => {
+						attachment.attachment.id = uploadInformation[index].id;
+						return fileRoutes
+							.uploadFile(
+								uploadInformation[index].sas_token,
+								attachment.encryptedData);
+					}),
 				);
 			})
 			.then(() => {
-				const attachments = uploadInformation
-					.map((info, index) =>
-						this.createDocumentReference(info.id,
-							files[index].title,
-							files[index].type,
-							files[index].lastModified));
-				documentRecord.body.content.push(...attachments);
+				newAttachments = newAttachments.map(attachment => attachment.attachment);
+				hcDocument.attachments = [...oldAttachments, ...newAttachments];
 				return this.fhirService.updateFhirRecord(
-					documentRecord.record_id,
-					documentRecord.body);
-			});
+					hcDocument.id,
+					hcDocumentUtils.toFhirObject(hcDocument));
+			})
+			.then(record => hcDocument);
 	}
 
-	deleteFilesFromDocument(userId, documentId, fileIds) {
-		return this.fhirService.downloadFhirRecord(documentId)
-			.then((record) => {
-				record.body.content = record.body.content.filter(documentReference =>
-					fileIds.indexOf(documentReference.attachment.id) === -1);
-				return this.fhirService.updateFhirRecord(documentId, record.body);
-			});
-	}
-
-	updateDocumentMetadata(recordId, jsonFHIR) {
-		// don't update the content as it is internally handled by SDK
-		if (jsonFHIR.content) delete jsonFHIR.content;
-		return this.fhirService.updateFhirRecord(recordId, jsonFHIR);
-	}
-
-	createDocumentReference(fileId, title, contentType, creation) {
-		return {
-			attachment: {
-				id: fileId,
-				title,
-				contentType,
-				creation,
-			},
-		};
+	deleteDocument(userId, hcDocument) {
+		return this.fhirService.deleteRecord(hcDocument.id, userId);
 	}
 
 	getDocuments() {
 		return this.fhirService.searchRecords({
 			tags: [taggingUtils.buildTag('resourceType', 'documentReference')],
-		});
+		})
+			.then(records =>
+				records.map((record) => {
+					const hcDocument = hcDocumentUtils.fromFhirObject(record.body);
+					hcDocument.id = record.record_id;
+					return hcDocument;
+				}));
 	}
 }
 
