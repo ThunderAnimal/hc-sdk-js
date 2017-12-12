@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/gesundheitscloud/hc-sdk-js.svg?branch=develop)](https://travis-ci.org/gesundheitscloud/hc-sdk-js)
-[![codecov](https://codecov.io/gh/gesundheitscloud/hc-sdk-js/branch/develop/graph/badge.svg?token=FcHHp38bcr)](https://codecov.io/gh/gesundheitscloud/hc-sdk-js)
+[![Build Status](https://travis-ci.org/gesundheitscloud/hc-sdk-js.svg?branch=master)](https://travis-ci.org/gesundheitscloud/hc-sdk-js)
+[![codecov](https://codecov.io/gh/gesundheitscloud/hc-sdk-js/branch/master/graph/badge.svg?token=FcHHp38bcr)](https://codecov.io/gh/gesundheitscloud/hc-sdk-js)
 
 # GesundheitsCloud Web SDK
 This is the Javascript Web SDK of GesundheitsCloud, which encapsulates the backend functionality of the platform and enables end-to-end encryption of patient data. It allows users to store sensitive health data on the secure GesundheitsCloud platform and share it to authorized people and applications.
