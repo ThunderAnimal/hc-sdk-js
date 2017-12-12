@@ -16,7 +16,7 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('services/User', () => {
+describe('services/UserService', () => {
 	let sessionHandlerGetStub;
 	let sessionHandlerSetStub;
 	let zkitAdapterEncryptStub;
@@ -162,9 +162,9 @@ describe('services/User', () => {
 	it('resolveUserByAlias succeeds', (done) => {
 		const userServiceUserStub =
 			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({ user: 'user' });
+				.returnsPromise().resolves({ uid: 'id', zerokit_id: 'zerokit_id' });
 		User.resolveUserByAlias('alias').then((res) => {
-			expect(res).to.equal('user');
+			expect(res).to.deep.equal({ id: 'id', zeroKitId: 'zerokit_id' });
 			expect(userServiceUserStub).to.be.calledOnce;
 			userRoutes.resolveUserId.restore();
 			done();

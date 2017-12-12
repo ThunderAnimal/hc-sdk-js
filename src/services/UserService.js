@@ -86,7 +86,7 @@ class UserService {
 
 	resolveUserByAlias(alias) {
 		return userRoutes.resolveUserId(alias)
-			.then(res => res.user);
+			.then(user => ({ id: user.uid, zeroKitId: user.zerokit_id }));
 	}
 
 	updateUser(params) {

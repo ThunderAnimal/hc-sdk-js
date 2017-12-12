@@ -29,6 +29,8 @@ describe('zerokitAdapter', () => {
 	let zKitRegisterObjectPromise;
 	let zkit_sdk;
 	let userRouteVerifyShareAndGrantPermissionStub;
+	let getUserStub;
+	let resolveUserByAliasStub;
 
 	beforeEach(() => {
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
@@ -72,6 +74,18 @@ describe('zerokitAdapter', () => {
 		userRouteVerifyShareAndGrantPermissionStub =
 			sinon.stub(userRoutes, 'verifyShareAndGrantPermission')
 				.returnsPromise().resolves();
+
+		resolveUserByAliasStub =
+			sinon.stub().returnsPromise().resolves({
+				id: 'kjhgf',
+				zeroKitId: 'fakeZkitId',
+			});
+		getUserStub = sinon.stub().returnsPromise().resolves({
+			tresor_id: 'fakeTresorId',
+		});
+
+		UserService.resolveUserByAlias = resolveUserByAliasStub;
+		UserService.getUser = getUserStub;
 	});
 
 	it('login fails when email is invalid', (done) => {
@@ -83,24 +97,12 @@ describe('zerokitAdapter', () => {
 	});
 
 	it('login succeeds', (done) => {
-		userRoutesResolveUserIdStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({
-					user: {
-						id: 'kjhgf',
-						zerokit_id: 'fakeZkitId',
-						tresor_id: 'fakeTresorId',
-					},
-				});
-
-
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.then((res) => {
 				expect(res.user_alias).to.equal('dummyUser@domain.com');
 				expect(addTagEncryptionKeyStub).to.be.calledOnce;
-				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
+				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
-				userRoutes.resolveUserId.restore();
 
 				done();
 			});
@@ -108,58 +110,40 @@ describe('zerokitAdapter', () => {
 
 
 	it('callback returns error if idpLogin fails', (done) => {
-		userRoutesResolveUserIdStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({
-					user: {
-						id: 'kjhgf',
-						zerokit_id: 'fakeZkitId',
-						tresor_id: 'fakeTresorId',
-					},
-				});
 		zerokitAdapter.auth = { idpLogin: sinon.stub().returnsPromise().rejects('error') };
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.catch((err) => {
 				expect(err).to.equal('error');
-				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
+				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
-				userRoutes.resolveUserId.restore();
 
 				done();
 			});
 	});
 
 	it('callback returns error if user route fails to resolve user ', (done) => {
-		userRoutesResolveUserIdStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().rejects('error');
+		resolveUserByAliasStub.rejects();
 		zerokitAdapter.auth = { idpLogin: sinon.stub().yields('error') };
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.catch((err) => {
-				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
-				userRoutes.resolveUserId.restore();
+				expect(resolveUserByAliasStub).to.be.calledOnce;
 				done();
 			});
 	});
 
 	it('tresor is created after login if user doesn\'t have one already', (done) => {
-		userRoutesResolveUserIdStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({
-					user: { id: 'kjhgf', zerokit_id: 'fakeZkitId' },
-				});
+		getUserStub.resolves({ tag_encryption_key: '' });
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.then((res) => {
 				expect(res.user_alias).to.equal('dummyUser@domain.com');
-				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
+				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(userRouteAddTresorStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
 				expect(zkit_sdk.createTresor).to.be.calledOnce;
 				expect(addTagEncryptionKeyStub).to.be.calledOnce;
-				userRoutes.resolveUserId.restore();
 				done();
 			});
 	});
@@ -354,19 +338,11 @@ describe('zerokitAdapter', () => {
 			zerokit_id: 'fakeZkitId',
 			tresor_id: 'fakeTresorId',
 		};
-		userRoutesResolveUserIdStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({
-					user: {
-						id: 'kjhgf',
-						zerokit_id: 'fakeZkitId',
-						tresor_id: 'fakeTresorId',
-					},
-				});
+
 		zerokitAdapter.grantPermission('fakeGranteeEmail')
 			.then((res) => {
 				expect(res).to.equal('fakeOperationId');
-				expect(userRoutesResolveUserIdStub).to.be.calledOnce;
+				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(zkit_sdk.shareTresor).to.be.calledOnce;
 				expect(userRouteVerifyShareAndGrantPermissionStub).to.be.calledOnce;
 				UserService.user = undefined;

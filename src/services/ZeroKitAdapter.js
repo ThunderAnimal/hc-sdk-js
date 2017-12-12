@@ -58,18 +58,19 @@ class ZeroKitAdapter {
 		let tresorId;
 		let userId;
 		let tek;
-		return userRoutes.resolveUserId(hcUserAlias)
-			.then((res) => {
-				const zKitId = res.user.zerokit_id;
-				tresorId = res.user.tresor_id;
-				userId = res.user.id;
-				tek = res.user.tag_encryption_key;
-				sessionHandler.set('HC_User', `${res.user.id},${hcUserAlias}`);
+		return UserService.resolveUserByAlias(hcUserAlias)
+			.then((user) => {
+				const zeroKitId = user.zeroKitId;
+				userId = user.id;
+				sessionHandler.set('HC_User', `${userId},${hcUserAlias}`);
 
-				return zKitLoginObject.then(loginObject => loginObject.login(zKitId));
+				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
 			})
 			.then(() => this.auth.idpLogin())
-			.then(() => {
+			.then(() => UserService.getUser())
+			.then((user) => {
+				tresorId = user.tresor_id;
+				tek = user.tag_encryption_key;
 				if (!tresorId) {
 					return this.createTresor();
 				}
@@ -180,7 +181,7 @@ class ZeroKitAdapter {
 				tresorId = result[1];
 				return this.zeroKit;
 			})
-			.then(zeroKit => zeroKit.shareTresor(tresorId, grantee.zerokit_id))
+			.then(zeroKit => zeroKit.shareTresor(tresorId, grantee.zeroKitId))
 			.then((response) => {
 				operationId = response;
 				return userRoutes.verifyShareAndGrantPermission(UserService.getUserId(),
