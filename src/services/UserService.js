@@ -72,7 +72,11 @@ class UserService {
 			return Promise.reject(new LoginError(NOT_LOGGED_IN));
 		}
 
-		return userRoutes.getGrantedPermissions(userId, granteeId);
+		return userRoutes.getGrantedPermissions(userId, granteeId)
+			.then(permissions => permissions.map((permission) => {
+				delete permission.owner_id;
+				return permission;
+			}));
 	}
 
 	resolveUser() {

@@ -121,13 +121,12 @@ describe('services/UserService', () => {
 	});
 
 	it('getGrantedPermissions succeeds when altair succeeds', (done) => {
-		const apiResponse = { status: true };
 		const userServiceGrantedPermissionsStub =
 			sinon.stub(userRoutes, 'getGrantedPermissions')
-				.returnsPromise().resolves(apiResponse);
+				.returnsPromise().resolves([{ owner_id: 'a', grantee_id: 'b' }]);
 		User.getGrantedPermissions().then((res) => {
 			userRoutes.getGrantedPermissions.restore();
-			expect(res).to.equal(apiResponse);
+			expect(res).to.deep.equal([{ grantee_id: 'b' }]);
 			expect(userServiceGrantedPermissionsStub).to.be.calledOnce;
 			done();
 		});
