@@ -120,6 +120,46 @@ describe('services/UserService', () => {
 		});
 	});
 
+	it('getGrantedPermissions succeeds when altair succeeds', (done) => {
+		const apiResponse = { status: true };
+		const userServiceGrantedPermissionsStub =
+			sinon.stub(userRoutes, 'getGrantedPermissions')
+				.returnsPromise().resolves(apiResponse);
+		User.getGrantedPermissions().then((res) => {
+			userRoutes.getGrantedPermissions.restore();
+			expect(res).to.equal(apiResponse);
+			expect(userServiceGrantedPermissionsStub).to.be.calledOnce;
+			done();
+		});
+	});
+
+	it('getGrantedPermissions fails when user not logged in', (done) => {
+		const userServiceGrantedPermissionsStub =
+			sinon.stub(userRoutes, 'getGrantedPermissions')
+				.returnsPromise().resolves({});
+		User.user = undefined;
+		sessionHandlerGetStub.returns(null);
+		User.getGrantedPermissions().catch((res) => {
+			userRoutes.getGrantedPermissions.restore();
+			expect(res.message).to.equal(NOT_LOGGED_IN);
+			expect(userServiceGrantedPermissionsStub).to.not.be.called;
+			done();
+		});
+	});
+
+	it('getGrantedPermissions fails when altair returns error', (done) => {
+		const userServiceGrantedPermissionStub =
+			sinon.stub(userRoutes, 'getGrantedPermissions')
+				.returnsPromise().rejects({ error: 'error completing request' });
+		User.user = undefined;
+		User.getGrantedPermissions().catch((res) => {
+			userRoutes.getGrantedPermissions.restore();
+			expect(res.error).to.equal('error completing request');
+			expect(userServiceGrantedPermissionStub).to.be.calledOnce;
+			done();
+		});
+	});
+
 	it('resolveUser succeeds when capella succeeds', (done) => {
 		const userServiceUserStub =
 			sinon.stub(userRoutes, 'getUserDetails')

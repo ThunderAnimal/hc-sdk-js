@@ -30,6 +30,10 @@ const userRoutes = {
 		return hcRequest('GET', `${apiUrl}/users/${userId}`);
 	},
 
+	getGrantedPermissions(userId, granteeId) {
+		return hcRequest('GET', `${apiUrl}/users/${userId}/permissions?grantee_id=${granteeId}`);
+	},
+
 	addTresor(userId, tresorId) {
 		const body = { user_id: userId, tresor_id: tresorId };
 

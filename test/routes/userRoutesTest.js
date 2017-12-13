@@ -77,6 +77,26 @@ describe('userRoutes', () => {
 		});
 	});
 
+	it('getGrantedPermissions passes', (done) => {
+		requestStub.resolves('pass');
+		userRoutes.getGrantedPermissions('userId', 'granteeId').then((res) => {
+			expect(res).to.equal('pass');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('GET');
+			done();
+		});
+	});
+
+	it('getGrantedPermissions returns error on request failure', (done) => {
+		requestStub.rejects('error');
+		userRoutes.getGrantedPermissions('userId', 'granteeId').catch((err) => {
+			expect(err).to.equal('error');
+			expect(requestStub).to.be.calledOnce;
+			expect(requestStub).to.be.calledWith('GET');
+			done();
+		});
+	});
+
 	it('add tresor passes', (done) => {
 		requestStub.resolves('pass');
 		userRoutes.addTresor('userId', 'test').then((res) => {

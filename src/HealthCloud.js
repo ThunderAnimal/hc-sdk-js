@@ -25,6 +25,7 @@ class HealthCloud {
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
 		this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);
+		this.getGrantedPermissions = UserService.getGrantedPermissions.bind(UserService);
 		this.logout = zeroKitAdapter.logout.bind(zeroKitAdapter);
 
 		this.models = {

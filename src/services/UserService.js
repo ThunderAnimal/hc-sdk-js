@@ -65,6 +65,16 @@ class UserService {
 		});
 	}
 
+	getGrantedPermissions(granteeId) {
+		const userId = this.getUserId();
+
+		if (!userId) {
+			return Promise.reject(new LoginError(NOT_LOGGED_IN));
+		}
+
+		return userRoutes.getGrantedPermissions(userId, granteeId);
+	}
+
 	resolveUser() {
 		if (this.user) {
 			return new Promise((resolve) => {
