@@ -1,13 +1,22 @@
 const tagIds = {
 	hcUserLogin: 'hcUserLogin',
 	zkitLogin: 'zkitLogin',
+	submitBtn: 'submitBtn',
 };
 
 const loginForm = document.createElement('form');
 loginForm.innerHTML = `
-  <input type="text" id="${tagIds.hcUserLogin}" placeholder="Email">
-  <div id="${tagIds.zkitLogin}"/></div>
-  <button>Einloggen</button>
+	<div class="row">
+		<label>E-Mail-Adresse</label>
+		<input type="text" id="${tagIds.hcUserLogin}">
+	</div>
+	<div class="row">
+		<label>Passwort</label>
+	  <div id="${tagIds.zkitLogin}"/></div>
+	</div>
+	<div class="row">
+  	<button id="${tagIds.submitBtn}">ANMELDEN</button>
+	</div>
 `;
 
 export { tagIds };

@@ -3,10 +3,12 @@ import userRoutes from '../routes/userRoutes';
 import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
 import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
+import formStyles from '../templates/formStyles';
 import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
 import encryptionUtils from '../lib/EncryptionUtils';
 import validationUtils from '../lib/validationUtils';
 import ValidationError from '../lib/errors/ValidationError';
+import stylesUtils from '../lib/stylesUtils';
 
 
 class ZeroKitAdapter {
@@ -37,13 +39,23 @@ class ZeroKitAdapter {
 			}
 			const zKitLoginObject =
 				this.zeroKit
-					.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode));
+					.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode))
+					.then(() => {
+						stylesUtils.appendStyles(formStyles);
+					});
 
 			const submit = function (zKitLogin, event) {
 				event.preventDefault();
+				document.getElementById(loginFormIds.submitBtn).disabled = true;
 				this.login(zKitLogin, document.getElementById(loginFormIds.hcUserLogin).value)
-					.then(resolve)
-					.catch(reject);
+					.then((response) => {
+						document.getElementById(loginFormIds.submitBtn).disabled = false;
+						resolve(response);
+					})
+					.catch((error) => {
+						document.getElementById(loginFormIds.submitBtn).disabled = false;
+						reject(error);
+					});
 			};
 
 			loginForm.onsubmit = submit.bind(this, zKitLoginObject);
