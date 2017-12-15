@@ -1,4 +1,7 @@
 export default `
+.hidden {
+	display: none;
+}
 #gesundheitslogin iframe,
 #gesundheitslogin form,
 #gesundheitslogin input,
