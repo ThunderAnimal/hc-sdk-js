@@ -39,9 +39,9 @@ class ZeroKitAdapter {
 			}
 			const zKitLoginObject =
 				this.zeroKit
-					.then(zeroKit => zeroKit.getLoginIframe(zkitLoginNode))
-					.then(() => {
+					.then((zeroKit) => {
 						stylesUtils.appendStyles(formStyles);
+						return zeroKit.getLoginIframe(zkitLoginNode);
 					});
 
 			const submit = function (zKitLogin, event) {
