@@ -79,7 +79,7 @@ class ZeroKitAdapter {
 				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
 			})
 			.then(() => this.auth.idpLogin())
-			.then(() => UserService.getUser())
+			.then(() => UserService.resolveUser())
 			.then((user) => {
 				tresorId = user.tresor_id;
 				tek = user.tag_encryption_key;

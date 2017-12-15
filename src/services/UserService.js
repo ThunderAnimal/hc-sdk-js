@@ -80,7 +80,7 @@ class UserService {
 	}
 
 	resolveUser() {
-		if (this.user) {
+		if (this.user && this.user.tag_encryption_key && this.user.tresor_id) {
 			return new Promise((resolve) => {
 				resolve(this.user);
 			});

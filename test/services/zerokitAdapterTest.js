@@ -29,7 +29,7 @@ describe('zerokitAdapter', () => {
 	let zKitRegisterObjectPromise;
 	let zkit_sdk;
 	let userRouteVerifyShareAndGrantPermissionStub;
-	let getUserStub;
+	let resolveUserStub;
 	let resolveUserByAliasStub;
 
 	beforeEach(() => {
@@ -80,12 +80,12 @@ describe('zerokitAdapter', () => {
 				id: 'kjhgf',
 				zeroKitId: 'fakeZkitId',
 			});
-		getUserStub = sinon.stub().returnsPromise().resolves({
+		resolveUserStub = sinon.stub().returnsPromise().resolves({
 			tresor_id: 'fakeTresorId',
 		});
 
 		UserService.resolveUserByAlias = resolveUserByAliasStub;
-		UserService.getUser = getUserStub;
+		UserService.resolveUser = resolveUserStub;
 	});
 
 	it('login fails when email is invalid', (done) => {
@@ -134,7 +134,7 @@ describe('zerokitAdapter', () => {
 	});
 
 	it('tresor is created after login if user doesn\'t have one already', (done) => {
-		getUserStub.resolves({ tag_encryption_key: '' });
+		resolveUserStub.resolves({ tag_encryption_key: '' });
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.then((res) => {
@@ -201,6 +201,8 @@ describe('zerokitAdapter', () => {
 			id: 'kjhgf',
 			zerokit_id: 'fakeZkitId',
 		};
+
+		resolveUserStub.resolves({ tag_encryption_key: '' });
 
 		zerokitAdapter.encrypt('doc').then((res) => {
 			expect(res).to.equal('encryptedDoc');
