@@ -1,7 +1,4 @@
 language: node_js
-matrix:
-  include:
-    - node_js: '7'
 
 cache: yarn
 services: docker
@@ -14,28 +11,48 @@ before_install:
   - export CHROME_BIN=chromium-browser
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-script:
-  - npm test
-  - npm run build:${ENV}
-  
-deploy:
-  provider: script
-  script: scripts/publish_sdk.sh ${ENV}
-  skip_cleanup: true
-  on:
-    branch: master
-    
+
 env:
   global:
-    - ENV=staging
     # DOCKER_PASSWORD
     - secure: dIZomGeV5y/VYJnOdkaWK6dVZnq4p2I+5Lwo1ib4Z1hSoRNhEf8eXOLpFOvD3T6G1t+zi83Ae0mzwvkVWM0EIAFCAsHuTXz+yyKX/JOJiygCSta6dlDg3Vsmk5ucT6h9HYRJfrvfJts1A4uADEV/p+4iVdAXNrIC7UznuutFrfoLrj2MzvYo1dukAV2UxRD2o4qQRfqfHLL2ECIhk2jsMy3JGva/MU8G0+hKGWauhawLDqvldWJfKcTmZOGy9ZOxI+ihvwW1ENIA4FCf/Fr4E2OnEQh2irRmiJJ6eL/kKrnjWk/buEFo1fFMgAYYr4hEoKPmpzu6RmugEHow49m/Vm1uuQD4DjkLNbykslyVF2XQur/aJzUfdbtgQjNoVE2eqmqXotgeksJHIGkrjHt0ZVR98AmLRAE2zVyMlg6gZxksWiTq0yMHqKKijlqHUkOEU+pNm/wvu3Tq1/rijNtJzWczXFRlpb8vkay6hvnPC4RrPUprkScr6Qybv9VoaCUIWaK3iSf2CfePYRd9js0drXZDq5jnX2qGgMJ3nd0d1f91rUpwAlMbEfI23RsD2YmNvOENPWMYq1DqGW92vJPj6STZwvB0SGQo59Ogl6U93MneJ1tivVc8Yvl3w4/v6Myb/LowP2Y1IPQTW/nSUphpLXb0hpsbRts1J8eqxPJTadU=
     # NAMESPACE
     - secure: o2Eqah1I97sA2AmL9+u3mehxE7Szqmi4SSLnKSmmytg/rnT5AiaceEk/sqJX/moYhS7Nlpc0kw2dHxH9EI3X7KraiTwQbuzpFanDDOxz1nBtKPd43ODpX7IqnBinDoSqxA9P0V3KSu9GIxEavPMjW/C7zgaG+Vn7i0/jQTFVcfbZBGhP6aGdDoIYsqeR8PcO7P9ZIpxWEEuT1odSc19WsMbHT2b3O1oE709MWa0UIRiZT8YXgeYHBHRwk9PStgad5ZL7hEbf9B/EZPAFwl8BY9OuioFsUjCP/HvwmyMCSwpr/mloWyZxGIsHbpHwVT7cgO3+w5vXLVOP9L3cLJWz6Q6R6+U1azdP1TU6ZBTTPuE08IEwoV/BuvXuxlaiFzIYTWv2Wkw+dqgPpNIcpKHzaCJ/LA5TPhfSTiZgajTGpQN9kbTIUqsWihIkCldFP/XO0OC+ZA83w0r2dhtmb91TW0y8icYntJbVMg7hyenW5jlTcFIfkjHa7We4RwULsXpVzGQ8JYe4apirG9HxwWO18XzwNiF11M8L+6hmgi/1shGybIn0TsrwAyjqQ7hQaKHn3PoCgIsSvt9eMhOMm8Hgn7K+QelX/bj9GCTzblrCJlCBsPWko2lQbbaUlKL3e0qU9+OaGYE6YDV0XmZxU+MlgHeZ+2hJbFzCXtnVCb7p64Y=
-    # KEY
-    - secure: ZZVx3o6xDngkon6tOxz28VSjY037+deExhRyMAGrlnFpNXIa1aRxVu8HD4X9HoQPNiMp2XBJod0y0WCdLFye2KBu5QTn3aycWnt0Ucp2MbP1cX1lKEMXZZ2BnbazLrGjlratYluPvd2QRZsFTDLfsHQe85bYysTQoHr6gRpt7h1sy9eKe2QKBtNA8Mp6nBAPSK98pD66jU/SYENYS971rvwFH9C+tbB0rUAY5Dfi99uiMrAKnrh05v3dHlCgRhZn3Bb4zOgPlvOgrK7JalSRRfFSogCaCe+sHv6oUZac4s1kBuLvNikR09wW/7b7ZpJzEC9hq5SEWEPawUTOUfyO0dmO+N1ogu/f0d+X2elhJ4Fw1GWYPXEdep0RWHpKVb8ZrG+cFGvPM9tHFJt0QIG/j+MYX2dv08l1pkIkhGD8Bku0qhoHiJaUWIYkI2C/4ZEXZEGtOngLMEFysos4grFq/yTPftoVm63PTT3MTcBRgZK2Y+4Ng7m1eAO/oU1qMjhf44nJS6sWU9dti4q7eajj+NUvvN26XYpJTlCH6Z05K+PfEL3wkCjXe7HhaOw7q1Pmd3WAPEy+8gmJfVI1082zC/t4IDX2JgazxgmByKVqbUCVc+ornEyy70khmid3sKXOYe+1AILu0tOwumdN3VTm5HueOvvBCQ7nue2HnhLd5xc=
     # GITHUB_TOKEN
     - secure: qG11tLV4qUw2/40sDOYMgoPUnhqcJiEuAHKES6PgCaCxpCLSowpBnoXmnBO18MZoPRsfz3oMuj2bQizXjJnx2mjtX1achy2AvDa2OXsXHPD1F+fRnbsj+KUeHPsg6eo5tdri/YOV52X1JW1l4kyklrS+2qSAzPBjzslHtXB2dTtYRcwxbdaoaAQjzblJNxxbAGHV88ZOy4wzknvIdGJ1UvWe9gE7XW5mLqsoU5WBZPn4TVMuOcg0gtZR4T1SKa/Xl0c2+JikBLT4s8sQSQN+5aW0BifyK4X0N9rTegGco06ZpdDPp5hpqbrh/dJKa2nE03MXL66H3kbMiORPaCmGXPkxWUM0YwyB1f6WCaKuhWblYd3UJp6u/mPHBJesYF3vUElsycW/mY05BHxE+CvtTeHV+WwB2PDsBYL/mYGQLQxOxbf1ch+I47mHdqzl/ahjzmI0N8XTLlrjlSbXcRk6d2oiYecW6OLiFP5PrFRwRQga4XaJeabM65wnxbh5d922Ba5BMxRqxgpx6vOrLQ8ocIQEkh6i7FeqbX7Ez8IOWJRYY98CCt4sWmMgou0KVHoFR+d2hkp1yfQsBVHCZZlzwDpb+pHsnT0jXXGw8xTRgHlP0HoXfC7Hbm+qucJD6796H1HPIE/FfbSqmMU/VBjug4CZ7176QnuXsr+StpexOzY=
+
+jobs:
+  include:
+    - stage: build staging
+      node_js: "7"
+      env:
+        - ENV=staging
+        # KEY
+        - secure: ZZVx3o6xDngkon6tOxz28VSjY037+deExhRyMAGrlnFpNXIa1aRxVu8HD4X9HoQPNiMp2XBJod0y0WCdLFye2KBu5QTn3aycWnt0Ucp2MbP1cX1lKEMXZZ2BnbazLrGjlratYluPvd2QRZsFTDLfsHQe85bYysTQoHr6gRpt7h1sy9eKe2QKBtNA8Mp6nBAPSK98pD66jU/SYENYS971rvwFH9C+tbB0rUAY5Dfi99uiMrAKnrh05v3dHlCgRhZn3Bb4zOgPlvOgrK7JalSRRfFSogCaCe+sHv6oUZac4s1kBuLvNikR09wW/7b7ZpJzEC9hq5SEWEPawUTOUfyO0dmO+N1ogu/f0d+X2elhJ4Fw1GWYPXEdep0RWHpKVb8ZrG+cFGvPM9tHFJt0QIG/j+MYX2dv08l1pkIkhGD8Bku0qhoHiJaUWIYkI2C/4ZEXZEGtOngLMEFysos4grFq/yTPftoVm63PTT3MTcBRgZK2Y+4Ng7m1eAO/oU1qMjhf44nJS6sWU9dti4q7eajj+NUvvN26XYpJTlCH6Z05K+PfEL3wkCjXe7HhaOw7q1Pmd3WAPEy+8gmJfVI1082zC/t4IDX2JgazxgmByKVqbUCVc+ornEyy70khmid3sKXOYe+1AILu0tOwumdN3VTm5HueOvvBCQ7nue2HnhLd5xc=
+      script:
+        - npm test
+        - npm run build:${ENV}
+      deploy:
+        provider: script
+        script: scripts/publish_sdk.sh ${ENV}
+        skip_cleanup: true
+        on:
+          branch: master
+    - stage: build sandbox
+      node_js: "7"
+      env:
+        - ENV=sandbox
+        # KEY
+        - secure: Pr5wRAwt9B+jg93oOsCwAe4zayyGbUkpt37epL6Zb+pCSnAiewVmjw7A6DN7qlPk7SDeALXefTapWrGPniztVjnDRX16x7ISWv8snzg3oonFTKh90QQQ+rkacBgHoZHUZAKcnewVGvyavMXwZAFRzB34RYkIOBGDB2Q7w7v9evYJHvAxPnEFyvRid3+WEML9fXR8bX6UT7uRIj9y21p+VhdSlesfN7IgRGWC5L2QwV/OZePoURPcyavK7F60PSg6Izx0V7t1i5Qe1h88qjkaJ+2VXywrM4FLKPuTJyoLMe7XxHQfdc6KibiZ1kcbhKN+6/JLyqMcxSjjfs1bRqA0t8j0+Zgj3EqzFTZwUnPzcJ7UKpUzAQg/AoDr4rZ0zqet+nZ8o2jg/MGjkSs4DOqe1NUsv1B66T488Oy1LyjL98bXrvcXVBVQuXgcSFiu2En9SRvfDKybygrT8Vtz7sdcT20tArSV4mN8r7Er8hFc3c0mHcwjIqYUrO/vJqyMh/RC2iddHj2vMLWpQBfVDZulaTgKrN66qyEzkNMKHX8hvag66yd4w2nLZpGNLOerblpGz9kgmqlGUqsrxl9FesJbCIJK3fPlGnUJvMVeybnSasZqXbAev1jIJUUjaziDN7jlf9VsV/B3kaF0AciV2LM4IYe1xC7vZKyK/xhSuuqCAfM=
+      script:
+        - npm test
+        - npm run build:${ENV}
+      deploy:
+        provider: script
+        script: scripts/publish_sdk.sh ${ENV}
+        skip_cleanup: true
+        on:
+          branch: master
 
 notifications:
   slack:
