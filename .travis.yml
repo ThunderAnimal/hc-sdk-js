@@ -42,6 +42,7 @@ jobs:
       node_js: "7"
       env:
         - ENV=sandbox
+        - FILENAME_SUFFIX=_latest
         # KEY
         - secure: Pr5wRAwt9B+jg93oOsCwAe4zayyGbUkpt37epL6Zb+pCSnAiewVmjw7A6DN7qlPk7SDeALXefTapWrGPniztVjnDRX16x7ISWv8snzg3oonFTKh90QQQ+rkacBgHoZHUZAKcnewVGvyavMXwZAFRzB34RYkIOBGDB2Q7w7v9evYJHvAxPnEFyvRid3+WEML9fXR8bX6UT7uRIj9y21p+VhdSlesfN7IgRGWC5L2QwV/OZePoURPcyavK7F60PSg6Izx0V7t1i5Qe1h88qjkaJ+2VXywrM4FLKPuTJyoLMe7XxHQfdc6KibiZ1kcbhKN+6/JLyqMcxSjjfs1bRqA0t8j0+Zgj3EqzFTZwUnPzcJ7UKpUzAQg/AoDr4rZ0zqet+nZ8o2jg/MGjkSs4DOqe1NUsv1B66T488Oy1LyjL98bXrvcXVBVQuXgcSFiu2En9SRvfDKybygrT8Vtz7sdcT20tArSV4mN8r7Er8hFc3c0mHcwjIqYUrO/vJqyMh/RC2iddHj2vMLWpQBfVDZulaTgKrN66qyEzkNMKHX8hvag66yd4w2nLZpGNLOerblpGz9kgmqlGUqsrxl9FesJbCIJK3fPlGnUJvMVeybnSasZqXbAev1jIJUUjaziDN7jlf9VsV/B3kaF0AciV2LM4IYe1xC7vZKyK/xhSuuqCAfM=
       script:
