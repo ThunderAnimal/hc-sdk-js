@@ -3,7 +3,7 @@ import hcRequest from '../lib/hcRequest';
 const fileRoutes = {
 
 	downloadFile(sasUrl) {
-		return hcRequest('GET', sasUrl, {}, { responseType: 'blob' });
+		return hcRequest('GET', sasUrl, { responseType: 'blob' });
 	},
 
 	uploadFile(sasUrl, blob) {
@@ -11,7 +11,7 @@ const fileRoutes = {
 			'x-ms-blob-type': 'BlockBlob',
 			'Content-Type': 'application/octet-stream',
 		};
-		return hcRequest('PUT', sasUrl, blob, { headers });
+		return hcRequest('PUT', sasUrl, { body: blob, headers });
 	},
 
 };

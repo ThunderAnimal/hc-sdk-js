@@ -21,18 +21,21 @@ const sendRefreshToken = () => {
 		});
 };
 
-const isAuthorisedPath = path => ['documents', 'records', 'permissions']
-	.some(el => path.includes(el));
-
 const isExpired = error =>
 	error.status === 401 && error.res && error.res.header['www-authenticate'].includes('expired');
 
-const hcRequest = (type, path, body, { query = {}, headers = {}, responseType = '' } = {}) => {
+const hcRequest = (type, path, {
+	body = {},
+	query = {},
+	headers = {},
+	responseType = '',
+	authorize = false,
+} = {}) => {
 	let retries = 0;
 
 
 	const promise = () => {
-		if (isAuthorisedPath(path))	{
+		if (authorize)	{
 			headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
 		}
 		return request(type, path)

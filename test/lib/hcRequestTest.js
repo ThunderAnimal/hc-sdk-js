@@ -85,7 +85,7 @@ describe('hcRequest', () => {
 			'superagent-bluebird-promise': requestStub,
 		}).default;
 
-		hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId')
+		hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
 			.then((res) => {
 				expect(res.status).to.equal('201');
 				expect(getRefreshTokenStub).to.be.calledOnce;

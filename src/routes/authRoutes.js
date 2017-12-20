@@ -12,7 +12,7 @@ const authRoutes = {
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${apiUrl}/auth/token`, body, { headers });
+		return hcRequest('POST', `${apiUrl}/auth/token`, { body, headers });
 	},
 
 	getRefreshTokenFromCode(body) {
@@ -21,7 +21,7 @@ const authRoutes = {
 			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
 		};
 
-		return hcRequest('POST', `${apiUrl}/auth/token`, body, { headers });
+		return hcRequest('POST', `${apiUrl}/auth/token`, { body, headers });
 	},
 };
 
