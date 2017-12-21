@@ -346,10 +346,28 @@ describe('zerokitAdapter', () => {
 
 		zerokitAdapter.grantPermission('fakeGranteeEmail')
 			.then((res) => {
-				expect(res).to.equal('fakeOperationId');
 				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(zkit_sdk.shareTresor).to.be.calledOnce;
 				expect(userRouteVerifyShareAndGrantPermissionStub).to.be.calledOnce;
+				UserService.user = undefined;
+				done();
+			});
+	});
+
+	it('grantPermission swallows error when zerokit returns AlreadyMember error', (done) => {
+		zkit_sdk.shareTresor = sinon.stub().returnsPromise().rejects({ message: 'AlreadyMember' });
+
+		UserService.user = {
+			id: 'kjhgf',
+			zerokit_id: 'fakeZkitId',
+			tresor_id: 'fakeTresorId',
+		};
+
+		zerokitAdapter.grantPermission('fakeGranteeEmail')
+			.then((res) => {
+				expect(resolveUserByAliasStub).to.be.calledOnce;
+				expect(zkit_sdk.shareTresor).to.be.calledOnce;
+				expect(userRouteVerifyShareAndGrantPermissionStub).to.not.be.calledOnce;
 				UserService.user = undefined;
 				done();
 			});
@@ -363,7 +381,6 @@ describe('zerokitAdapter', () => {
 				expect(zkit_sdk.shareTresor).to.be.calledOnce;
 				done();
 			});
-		done();
 	});
 
 	afterEach(() => {

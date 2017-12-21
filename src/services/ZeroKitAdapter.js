@@ -169,7 +169,6 @@ class ZeroKitAdapter {
 	grantPermission(granteeAlias) {
 		let grantee;
 		let owner;
-		let operationId;
 
 		return Promise.all(
 			[
@@ -187,12 +186,13 @@ class ZeroKitAdapter {
 				return this.zeroKit.then(zeroKit =>
 					zeroKit.shareTresor(owner.tresorId, grantee.zeroKitId));
 			})
-			.then((response) => {
-				operationId = response;
-				return userRoutes
-					.verifyShareAndGrantPermission(owner.id, grantee.id, operationId);
+			.then((operationId) => {
+				userRoutes.verifyShareAndGrantPermission(owner.id, grantee.id, operationId);
 			})
-			.then(() => operationId);
+			.catch((err) => {
+				if (err.message === 'AlreadyMember') return;
+				throw err;
+			});
 	}
 
 	logout() {
