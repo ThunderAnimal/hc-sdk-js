@@ -67,7 +67,7 @@ describe('zerokitAdapter', () => {
 
 		zerokitAdapter = new ZerokitAdapter('dummyZerokitadapter');
 
-		zerokitAdapter.auth = { idpLogin: sinon.stub().returnsPromise().resolves('') };
+		zerokitAdapter.authService = { idpLogin: sinon.stub().returnsPromise().resolves('') };
 		zerokitAdapter.zeroKitAdapter = {
 			decrypt: sinon.stub().returnsPromise().resolves('decryptedDocument'),
 			encrypt: sinon.stub().returnsPromise().resolves('encrypteddocument'),
@@ -116,7 +116,7 @@ describe('zerokitAdapter', () => {
 
 
 	it('callback returns error if idpLogin fails', (done) => {
-		zerokitAdapter.auth = { idpLogin: sinon.stub().returnsPromise().rejects('error') };
+		zerokitAdapter.authService = { idpLogin: sinon.stub().returnsPromise().rejects('error') };
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.catch((err) => {
@@ -130,7 +130,7 @@ describe('zerokitAdapter', () => {
 
 	it('callback returns error if user route fails to resolve user ', (done) => {
 		resolveUserByAliasStub.rejects();
-		zerokitAdapter.auth = { idpLogin: sinon.stub().yields('error') };
+		zerokitAdapter.authService = { idpLogin: sinon.stub().yields('error') };
 
 		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
 			.catch((err) => {

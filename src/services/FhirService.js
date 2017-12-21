@@ -28,7 +28,10 @@ class FHIRService {
 	uploadFhirRecord(ownerId, fhirObject, uploadRequest) {
 		return fhirValidator.validate(fhirObject)
 			.then(() => {
-				const tags = taggingUtils.generateTagsFromFhirObject(fhirObject);
+				const tags = [
+					...taggingUtils.generateTagsFromFhirObject(fhirObject),
+					taggingUtils.buildTag('client', this.zeroKitAdapter.authService.clientId),
+				];
 				return this.uploadRecord(ownerId, fhirObject, tags, uploadRequest);
 			});
 	}

@@ -13,6 +13,8 @@ import encryptionUtils from '../../src/lib/EncryptionUtils';
 import fhirValidator from '../../src/lib/fhirValidator';
 import ZeroKitAdapter from '../../src/services/ZeroKitAdapter';
 import taggingUtils from '../../src/lib/taggingUtils';
+import stringUtils from '../../src/lib/stringUtils';
+
 
 import testVariables from '../testUtils/testVariables';
 import userResources from '../testUtils/userResources';
@@ -27,6 +29,7 @@ const expect = chai.expect;
 describe('services/fhirService', () => {
 	let zeroKitAdapter;
 	let fhirService;
+	let authService = { clientId: testVariables.clientId };
 
 	let createRecordStub;
 	let decryptStub;
@@ -72,6 +75,7 @@ describe('services/fhirService', () => {
 		zeroKitAdapter = {
 			decrypt: decryptStub,
 			encrypt: encryptStub,
+			authService,
 		};
 		fhirService = new FhirService({ zeroKitAdapter });
 	});
@@ -80,6 +84,8 @@ describe('services/fhirService', () => {
 		fhirService.createFhirRecord(testVariables.userId, fhirResources.documentReference)
 			.then((result) => {
 				expect(createRecordStub).to.be.calledOnce;
+				expect(tagEncryptStub.getCall(1).args[0])
+					.to.equal(`client=${stringUtils.addPercentEncoding(testVariables.clientId)}`);
 				expect(createRecordStub).to.be.calledWith(testVariables.userId);
 				expect(validateStub).to.be.calledOnce;
 				expect(validateStub).to.be.calledWith(fhirResources.documentReference);
@@ -129,8 +135,6 @@ describe('services/fhirService', () => {
 	});
 
 	it('searchRecords succeeds', (done) => {
-		const secondUserId = 'userId2';
-		const secondTag = 'tag2';
 		const params = {
 			user_ids: [testVariables.userId, testVariables.secondUserId],
 			limit: 20,

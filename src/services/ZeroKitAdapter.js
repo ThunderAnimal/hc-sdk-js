@@ -13,7 +13,7 @@ import stylesUtils from '../lib/stylesUtils';
 
 class ZeroKitAdapter {
 	constructor(options) {
-		this.auth = options.authService;
+		this.authService = options.authService;
 		this.zeroKit = new Promise((resolve, reject) => {
 			const script = document.createElement('script');
 			script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
@@ -78,7 +78,7 @@ class ZeroKitAdapter {
 
 				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
 			})
-			.then(() => this.auth.idpLogin())
+			.then(() => this.authService.idpLogin())
 			.then(() => UserService.getInternalUser())
 			.then((user) => {
 				({ tresorId, tek } = user);
