@@ -3,11 +3,16 @@ const tagIds = {
 	zkitRegistration: 'zkitRegistration',
 };
 
-const registrationForm = document.createElement('form');
+const registrationForm = document.createElement('div');
 registrationForm.innerHTML = `
-  <input type="text" id="${tagIds.hcUserRegister}" placeholder="Email">
-  <div id="${tagIds.zkitRegistration}"></div>
-  <button>Registrieren</button>
+	<div class="row">
+		<label>E-Mail-Adresse</label>
+  	<input type="text" id="${tagIds.hcUserRegister}" placeholder="Email">
+	</div>
+	<div class="row">
+		<label>Passwort</label>
+  	<div id="${tagIds.zkitRegistration}"></div>
+	</div>
 `;
 
 export { tagIds };

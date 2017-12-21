@@ -16,12 +16,14 @@ class HealthCloud {
 
 		this.getLoginForm = zeroKitAdapter.getLoginForm.bind(zeroKitAdapter);
 		this.getRegistrationForm = zeroKitAdapter.getRegistrationForm.bind(zeroKitAdapter);
+		this.register = zeroKitAdapter.register.bind(zeroKitAdapter);
 		this.downloadDocument = documentService.downloadDocument.bind(documentService);
 		this.deleteDocument = documentService.deleteDocument.bind(documentService);
 		this.getDocuments = documentService.getDocuments.bind(documentService);
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
 		this.updateDocument = documentService.updateDocument.bind(documentService);
 		this.getCurrentUser = UserService.getCurrentUser.bind(UserService);
+		this.getUserIdByAlias = UserService.getUserIdForAlias.bind(UserService);
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
 		this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);

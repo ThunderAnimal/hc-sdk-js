@@ -3,71 +3,86 @@ export default `
 	display: none;
 }
 #gesundheitslogin iframe,
-#gesundheitslogin form,
+#gesundheitsregister iframe,
+#gesundheitslogin div,
+#gesundheitsregister div,
 #gesundheitslogin input,
-#gesundheitslogin button {
+#gesundheitsregister input,
+#gesundheitslogin button,
+#gesundheitsregister button {
 	margin: 0;
 	padding: 0;
 	border: 0;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 }
 
-#gesundheitslogin iframe {
+#gesundheitslogin iframe,
+#gesundheitsregister iframe {
   width: 100%;
+}
+
+#gesundheitslogin iframe {
   height: 4rem;
 }
 
+#gesundheitsregister iframe {
+  width: 100%;
+  height: 8rem;
+}
+
 #gesundheitslogin iframe input,
+#gesundheitsregister iframe input,
 #gesundheitslogin button,
-#gesundheitslogin input {
+#gesundheitsregister button,
+#gesundheitslogin input,
+#gesundheitsregister input {
   overflow: visible;
 }
 
-#gesundheitslogin label {
+#gesundheitslogin label,
+#gesundheitsregister label {
   color: #909499;
   line-height: 2rem;
 }
 
-#gesundheitslogin .row {
+#gesundheitslogin .row,
+#gesundheitsregister .row {
   padding: 0.3rem 0;
 }
 
 #gesundheitslogin input:not([type]),
-#gesundheitslogin input:not(.browser-default) {
+#gesundheitsregister input:not([type]),
+#gesundheitslogin input:not(.browser-default),
+#gesundheitsregister input:not(.browser-default) {
   color: #999999;
-  background-color: white;
   border: none;
-  border-bottom: 2px solid transparent;
+	background-color: transparent;
+  border-bottom: 1px solid rgba(0,0,0,0.87);
   border-radius: 0;
   outline: none;
   height: 3rem;
-  width: 88% !important;
+  width: 100% !important;
   font-size: 1rem;
-  padding: 0 5%;
   margin: 0 5px 5px 0px !important;
-  -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  -webkit-box-sizing: content-box !important;
-          box-sizing: content-box !important;
-  -webkit-transition: all 0.3s;
   transition: all 0.3s;
 }
 
 #gesundheitslogin input:not([type]):focus:not([readonly]),
-#gesundheitslogin input:not(.browser-default):focus:not([readonly]) {
+#gesundheitslogin input:not(.browser-default):focus:not([readonly]),
+#gesundheitsregister input:not([type]):focus:not([readonly]),
+#gesundheitsregister input:not(.browser-default):focus:not([readonly]) {
   border-bottom: 2px solid #3E8FF5;
-  -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
 }
 
 #gesundheitslogin input:not([type]):focus:not([readonly]) + label,
-#gesundheitslogin input:not(.browser-default):focus:not([readonly]) + label {
+#gesundheitslogin input:not(.browser-default):focus:not([readonly]) + label,
+#gesundheitsregister input:not([type]):focus:not([readonly]) + label,
+#gesundheitsregister input:not(.browser-default):focus:not([readonly]) + label {
   color: #26a69a;
 }
 
-#gesundheitslogin input:not(.browser-default) + label:after {
+#gesundheitslogin input:not(.browser-default) + label:after,
+#gesundheitsregister input:not(.browser-default) + label:after {
   display: block;
   content: "";
   position: absolute;
@@ -78,7 +93,8 @@ export default `
   transition: .2s opacity ease-out, .2s color ease-out;
 }
 
-#gesundheitslogin button {
+#gesundheitslogin button,
+#gesundheitsregister button {
   width: 98%;
   height: 3rem;
   background: inherit;
@@ -87,16 +103,15 @@ export default `
   border: none;
   border-radius: 2px;
   cursor: pointer;
-  -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
-  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.266666666666667);
 }
 
-#gesundheitslogin button:hover {
+#gesundheitslogin button:hover,
+#gesundheitsregister button:hover {
   background-color: #2576DC;
 }
 
-#gesundheitslogin button:disabled {
+#gesundheitslogin button:disabled,
+#gesundheitsregister button:disabled {
   background-color: grey;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;

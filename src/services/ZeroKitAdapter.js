@@ -14,6 +14,7 @@ import stylesUtils from '../lib/stylesUtils';
 class ZeroKitAdapter {
 	constructor(options) {
 		this.authService = options.authService;
+		this.zKitRegistrationObject = null;
 		this.zeroKit = new Promise((resolve, reject) => {
 			const script = document.createElement('script');
 			script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
@@ -102,40 +103,38 @@ class ZeroKitAdapter {
 				.then(() => res)));
 	}
 
-	getRegistrationForm(parentElement, callback = () => {}) {
+	getRegistrationForm(parentElement) {
 		return new Promise((resolve, reject) => {
 			parentElement.appendChild(registrationForm);
 			const zkitRegisterNode = document.getElementById(registrationFormIds.zkitRegistration);
 			while (zkitRegisterNode.firstChild) {
 				zkitRegisterNode.removeChild(zkitRegisterNode.firstChild);
 			}
-			const zKitRegistrationObject =
-				this.zeroKit.then(zeroKit => zeroKit.getRegistrationIframe(zkitRegisterNode));
-
-			const submit = function (zKitRegistration, cb, event) {
-				event.preventDefault();
-				const userAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
-				this.register(zKitRegistration, userAlias)
-					.then(resolve)
+			this.zKitRegistrationObject =
+				this.zeroKit
+					.then((zeroKit) => {
+						stylesUtils.appendStyles(formStyles);
+						resolve();
+						return zeroKit.getRegistrationIframe(zkitRegisterNode);
+					})
 					.catch(reject);
-			};
-
-			registrationForm.onsubmit = submit.bind(this, zKitRegistrationObject, callback);
 		});
 	}
 
-	register(zKitRegistrationObject, hcUserAlias) {
+	register() {
+		const hcUserAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
 		if (!validationUtils.validateEmail(hcUserAlias)) {
 			return Promise.reject(new ValidationError('Not a valid email'));
 		}
 		let zKitId;
+		let sessionId;
 		return userRoutes.initRegistration(hcUserAlias)
 			.then((res) => {
 				zKitId = res.zerokit_id;
-				return zKitRegistrationObject
-					.then(registrationObject =>
-						registrationObject.register(zKitId, res.session_id));
+				sessionId = res.session_id;
+				return this.zKitRegistrationObject;
 			})
+			.then(registrationObject => registrationObject.register(zKitId, sessionId))
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
 			.then(() => ({ alias: hcUserAlias }));
 	}

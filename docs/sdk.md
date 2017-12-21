@@ -44,21 +44,33 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- logout
 
 ### Register
-To register a user, append the registration form to a node.
-Therefore you need to call  ``HC.getRegistrationForm(parent_node, callback)``.
-Hence the form is then appended to ``parent_node``.
-``getRegistrationForm`` returns a promise that will be resolved or rejected when user tries to register.
+To register a user, append the registration form to a node and call ``HC.register``.
+This registration form contains name and password field, a submit button needs to be supplied by SDK user.
+Therefore you need to call  ``HC.getRegistrationForm(parent_node)``. Hence the form is then appended to ``parent_node`` element.
+You will also need a ``<button/>`` tag that has a click event listener. This listener should call ``HC.register`` to perform registration.
+Both ``HC.getRegistrationForm`` and ``HC.register`` returns promises.
 
 ```html
 <div id="gesundheitsregister"></div>
+<button id="submitRegister">Register</button>
 ```
 ```javascript
 HC.getRegistrationForm(document.getElementById("gesundheitsregister"))
 .then((response) => {
-  // User successfully registered
+  // Login form was loaded successfully
 })
 .catch((error) => {
-  // Error on register
+  // Error loading login form
+});
+
+document.getElementById("submitRegister").addEventListener("click", () => {
+  HC.register()
+  .then((response) => {
+    // User successfully registered
+  })
+  .catch((error) => {
+    // Error during registration
+  });
 });
 ```
 
@@ -142,8 +154,8 @@ You can edit user data from the currently logged in user.
 
 #### Document
 All operations on Documents are based on the hcDocument.
-For creating a Document you can either create it by using hcDocument in models it or create an object in the format on your own. 
-The constructor takes the following 
+For creating a Document you can either create it by using hcDocument in models it or create an object in the format on your own.
+The constructor takes the following
 - files: array of native Files, you usually get the File objects as a FileList from an HTML input element
 - type: string, 'Document' by default
 - title: string
@@ -228,7 +240,7 @@ In the case of any error in uploading and downloading documents, the format is:
 ```
 
 #### Update a Document
-For changing a Document you simply change the hcDocument Object. 
+For changing a Document you simply change the hcDocument Object.
 It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to sync the object with the GesundheitsCloud.
 There are multiple attributes that should not be changed:
  * the ID of the Document or its Attachments

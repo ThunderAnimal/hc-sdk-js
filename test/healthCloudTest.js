@@ -33,6 +33,8 @@ describe('HealthCloud', () => {
 		expect(typeof healthCloud.updateUser).to.equal('function');
 		expect(typeof healthCloud.grantPermission).to.equal('function');
 		expect(typeof healthCloud.getGrantedPermissions).to.equal('function');
+		expect(typeof healthCloud.register).to.equal('function');
+		expect(typeof healthCloud.getUserIdByAlias).to.equal('function');
 		done();
 	});
 });
