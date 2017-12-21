@@ -37,6 +37,7 @@ It inserts a healthcloud_sdk object into the global namespace.
 		- updateDocument
 		- deleteDocument
 		- getDocuments
+		- getCurrentUser
 		- getUser
 		- updateUser
 		- grantPermission
@@ -64,7 +65,7 @@ HC.getRegistrationForm(document.getElementById("gesundheitsregister"))
 In the case of a successful registration, ``error`` is contains a message, and ``response`` contains the user id as below.
 ```json
     {
-        "user_alias": "hcUserAlias"
+        "alias": "hcUserAlias"
     }
 ```
 
@@ -91,13 +92,13 @@ The SDK automatically performs the required authentication steps during the logi
 You can get the currently active user synchronously by calling getUserIdAndAlias.
 
 ```javascript
- HC.getUserIdAndAlias();
+ HC.getCurrentUser();
 ```
 In case of a logged in user getUserIdAndAlias returns a basic user object.
 ```json
 {   
-    "user_alias": "user_alias",
-    "user_id": "user_id"
+    "alias": "user_alias",
+    "id": "user_id"
 }
 ```
 ### Get the Current User
@@ -116,8 +117,8 @@ where response is:
 ```json
           {
 				id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
-				email: 'user_email',
-				user_data: {
+				alias: 'user_email',
+				userData: {
 					name: 'user_name',
 					...
 				}

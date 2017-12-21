@@ -2,7 +2,6 @@ import documentRoutes from '../routes/documentRoutes';
 import fileRoutes from '../routes/fileRoutes';
 import FhirService from './FhirService';
 import taggingUtils from '../lib/taggingUtils';
-import HCDocument from '../lib/models/HCDocument';
 import hcDocumentUtils from '../lib/models/utils/hcDocumentUtils';
 import ValidationError from '../lib/errors/ValidationError';
 
@@ -12,14 +11,14 @@ class DocumentService {
 		this.fhirService = new FhirService({ zeroKitAdapter: this.zeroKitAdapter });
 	}
 
-	downloadDocument(userId, documentId) {
+	downloadDocument(ownerId, documentId) {
 		let hcDocument;
-		return this.fhirService.downloadFhirRecord(documentId)
+		return this.fhirService.downloadFhirRecord(ownerId, documentId)
 			.then((record) => {
 				hcDocument = hcDocumentUtils.fromFhirObject(record.body);
 				return Promise.all(
 					hcDocument.attachments.map(attachment =>
-						documentRoutes.getFileDownloadUrl(userId, documentId, attachment.id)),
+						documentRoutes.getFileDownloadUrl(ownerId, documentId, attachment.id)),
 				);
 			})
 			.then(sasUrls => Promise.all(
@@ -45,19 +44,19 @@ class DocumentService {
 			});
 	}
 
-	uploadDocument(userId, hcDocument) {
+	uploadDocument(ownerId, hcDocument) {
 		if (!hcDocumentUtils.isValid(hcDocument)) {
 			return Promise.reject(new ValidationError('Not a valid hcDocument'));
 		}
 
-		return this.fhirService.createFhirRecord(hcDocumentUtils.toFhirObject(hcDocument))
+		return this.fhirService.createFhirRecord(ownerId, hcDocumentUtils.toFhirObject(hcDocument))
 			.then((record) => {
 				hcDocument.id = record.record_id;
-				return this.updateDocument(userId, hcDocument);
+				return this.updateDocument(ownerId, hcDocument);
 			});
 	}
 
-	updateDocument(userId, hcDocument) {
+	updateDocument(ownerId, hcDocument) {
 		if (!hcDocumentUtils.isValid(hcDocument)) {
 			return Promise.reject(new ValidationError('Not a valid hcDocument'));
 		}
@@ -73,13 +72,13 @@ class DocumentService {
 		});
 
 		newAttachments = newAttachments.map(attachment =>
-			this.zeroKitAdapter.encryptBlob(attachment.file)
+			this.zeroKitAdapter.encryptBlob(ownerId, attachment.file)
 				.then(encryptedBlob => ({ attachment, encryptedData: encryptedBlob })));
 
 		return Promise.all([
 			Promise.all(newAttachments),
 			newAttachments.length ?
-				documentRoutes.getFileUploadUrls(userId, hcDocument.id, newAttachments.length) :
+				documentRoutes.getFileUploadUrls(ownerId, hcDocument.id, newAttachments.length) :
 				Promise.resolve([]),
 		])
 			.then((result) => {
@@ -99,14 +98,15 @@ class DocumentService {
 				newAttachments = newAttachments.map(attachment => attachment.attachment);
 				hcDocument.attachments = [...oldAttachments, ...newAttachments];
 				return this.fhirService.updateFhirRecord(
+					ownerId,
 					hcDocument.id,
 					hcDocumentUtils.toFhirObject(hcDocument));
 			})
 			.then(record => hcDocument);
 	}
 
-	deleteDocument(userId, hcDocument) {
-		return this.fhirService.deleteRecord(userId, hcDocument.id);
+	deleteDocument(ownerId, hcDocument) {
+		return this.fhirService.deleteRecord(ownerId, hcDocument.id);
 	}
 
 	getDocuments(params = {}) {

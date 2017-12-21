@@ -5,11 +5,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import User from '../../src/services/UserService';
+import UserService from '../../src/services/UserService';
 import sessionHandler from '../../src/lib/sessionHandler';
 import userRoutes from '../../src/routes/userRoutes';
 import { NOT_LOGGED_IN } from '../../src/lib/errors/LoginError';
 import { MISSING_PARAMETERS, INVALID_PARAMETERS } from '../../src/lib/errors/ValidationError';
+import testVariables from '../testUtils/testVariables';
+import userResources from '../testUtils/userResources';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -17,291 +19,219 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('services/UserService', () => {
+	let decryptStub;
+	let encryptStub;
+	let getGrantedPermissionsStub;
+	let getUserDetailsStub;
+	let resolveUserIdStub;
 	let sessionHandlerGetStub;
-	let sessionHandlerSetStub;
-	let zkitAdapterEncryptStub;
-	let zkitAdapterDecryptStub;
+	let updateUserStub;
 
 	beforeEach(() => {
-		sessionHandlerGetStub =
-			sinon.stub(sessionHandler, 'get').returns('fakeUserId,fakeUserAlias');
-		sessionHandlerSetStub =
-			sinon.stub(sessionHandler, 'set').returns('fakeUserId,fakeUserAlias');
-		zkitAdapterEncryptStub =
-			sinon.stub().returnsPromise().resolves('encryptedData');
-		zkitAdapterDecryptStub =
-			sinon.stub().returnsPromise().resolves('decryptedData');
+		decryptStub = sinon.stub();
+		decryptStub.withArgs(testVariables.encryptedUserData)
+			.returns(Promise.resolve(JSON.stringify(testVariables.userData)));
+		decryptStub.withArgs(testVariables.encryptedTek)
+			.returns(Promise.resolve(testVariables.tek));
+		encryptStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.encryptedUserData);
+		getGrantedPermissionsStub = sinon.stub(userRoutes, 'getGrantedPermissions')
+			.returnsPromise().resolves([{ owner_id: 'a', grantee_id: 'b' }]);
+		getUserDetailsStub = sinon.stub(userRoutes, 'getUserDetails')
+			.returnsPromise().resolves(userResources.userDetails);
+		resolveUserIdStub = sinon.stub(userRoutes, 'resolveUserId')
+			.returnsPromise().resolves({
+				uid: testVariables.userId, zerokit_id: testVariables.zeroKitId,
+			});
+		sessionHandlerGetStub = sinon.stub(sessionHandler, 'get')
+			.returns(`${testVariables.userId},${testVariables.userAlias}`);
+		updateUserStub = sinon.stub(userRoutes, 'updateUser')
+			.returnsPromise().resolves();
 
-		User.zeroKitAdapter = {
-			decrypt: zkitAdapterDecryptStub,
-			encrypt: zkitAdapterEncryptStub,
+
+		UserService.zeroKitAdapter = {
+			decrypt: decryptStub,
+			encrypt: encryptStub,
 		};
 	});
 
-	it('getUserId succeeds', (done) => {
-		const userId = User.getUserId();
-		expect(userId).to.equal('fakeUserId');
-		expect(sessionHandlerGetStub).to.be.calledOnce;
-		expect(sessionHandlerSetStub).to.not.be.called;
-		done();
-	});
-
-	it('getUserAlias succeeds', (done) => {
-		const userAlias = User.getUserAlias();
-		expect(userAlias).to.equal('fakeUserAlias');
-		expect(sessionHandlerGetStub).to.be.calledOnce;
-		expect(sessionHandlerSetStub).to.not.be.called;
-		done();
-	});
-
-	it('getUserIdAndAlias succeeds', (done) => {
-		const user = User.getUserIdAndAlias();
-		expect(user.user_alias).to.equal('fakeUserAlias');
-		expect(user.user_id).to.equal('fakeUserId');
+	it('getCurrentUser - Happy Path', (done) => {
+		const userId = UserService.getCurrentUser();
+		expect(userId).to.deep.equal({ id: testVariables.userId, alias: testVariables.userAlias });
 		expect(sessionHandlerGetStub).to.be.calledTwice;
-		expect(sessionHandlerSetStub).to.not.be.called;
 		done();
 	});
 
-	it('getUserIdAndAlias fails if user not logged in', (done) => {
+	it('getCurrentUser - fails when user is not logged in', (done) => {
 		sessionHandlerGetStub.returns(null);
-		const user = User.getUserIdAndAlias();
+		const user = UserService.getCurrentUser();
 		expect(user).to.equal(undefined);
 		expect(sessionHandlerGetStub).to.be.calledOnce;
 		done();
 	});
 
-	it('getUser succeeds when capella succeeds', (done) => {
-		User.user = undefined;
-		const user = {
-			user: {
-				id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
-				zerokit_id: '20171009091448.uln45hn4@g6y0wg1tf6.tresorit.io',
-				email: 'katappa',
-				tresor_id: '0000yd5mfs53mvftfh16a5va',
-				user_data: {},
-				state: 2,
-				reg_data: {
-					session_id: '',
-					SessionVerifier: '',
-					ValidationVerifier: '',
-					ValidationCode: '',
-				},
-				tag_encryption_key: '/7LjA2xCi3ySsUQR8ovuiVGtF3I5kMgd0ar/9+==',
-			},
-		};
-		const userServiceUserStub =
-			sinon.stub(userRoutes, 'getUserDetails')
-				.returnsPromise().resolves(user);
+	it('isCurrentUser - Happy Path', () => {
+		let isCurrentUser = UserService.isCurrentUser(testVariables.userId);
+		expect(isCurrentUser).to.equal(true);
+		expect(sessionHandlerGetStub).to.be.calledTwice;
+	});
 
-		User.getUser().then((res) => {
-			expect(res.tag_encryption_key).to.equal(undefined);
-			expect(res.zerokit_id).to.equal(undefined);
-			expect(res.tresor_id).to.equal(undefined);
-			expect(res.state).to.equal(2);
-			expect(res.user_date).to.deep.equal(user.user_data);
-			expect(userServiceUserStub).to.be.calledOnce;
-			expect(zkitAdapterDecryptStub).to.be.calledOnce;
-			userRoutes.getUserDetails.restore();
+	it('getInternalUser - Happy Path', (done) => {
+		UserService.user = undefined;
+		UserService.getInternalUser()
+			.then((res) => {
+				expect(res.tek).to.equal(testVariables.tek);
+				expect(res.zeroKitId).to.equal(testVariables.zeroKitId);
+				expect(res.tresorId).to.equal(testVariables.tresorId);
+				expect(res.state).to.equal(testVariables.state);
+				expect(res.userData).to.deep.equal(testVariables.userData);
+				expect(getUserDetailsStub).to.be.calledOnce;
+				expect(decryptStub).to.be.calledTwice;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('getInternalUser - fails when getUserDetails fails', (done) => {
+		UserService.user = undefined;
+		getUserDetailsStub.rejects();
+		UserService.getInternalUser().catch((res) => {
+			expect(getUserDetailsStub).to.be.calledOnce;
 			done();
 		});
 	});
 
-	it('getUser fails when capella returns error', (done) => {
-		User.user = undefined;
-		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'getUserDetails')
-				.returnsPromise().rejects({ error: 'error completing request' });
-		User.getUser().catch((res) => {
-			expect(res.error).to.equal('error completing request');
-			expect(userServiceResolveUserStub).to.be.calledOnce;
-			userRoutes.getUserDetails.restore();
+	it('getUser - Happy Path', (done) => {
+		UserService.user = undefined;
+		UserService.getUser()
+			.then((res) => {
+				expect(res.tek).to.equal(undefined);
+				expect(res.zeroKitId).to.equal(undefined);
+				expect(res.tresorId).to.equal(undefined);
+				expect(res.state).to.equal(testVariables.state);
+				expect(res.userData).to.deep.equal(testVariables.userData);
+				expect(getUserDetailsStub).to.be.calledOnce;
+				expect(decryptStub).to.be.calledTwice;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('resolveUser succeeds', (done) => {
+		UserService.resolveUser(testVariables.userAlias)
+			.then((res) => {
+				expect(res).to.deep.equal({
+					id: testVariables.userId,
+					zeroKitId: testVariables.zeroKitId,
+				});
+				expect(resolveUserIdStub).to.be.calledOnce;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('getUserIdForAlias - Happy Path', (done) => {
+		UserService.getUserIdForAlias(testVariables.userAlias)
+			.then((res) => {
+				expect(res).to.equal(testVariables.userId);
+				expect(resolveUserIdStub).to.be.calledOnce;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('resolveUser - fails when resolveUserId fails', (done) => {
+		resolveUserIdStub.rejects();
+		UserService.resolveUser().catch((res) => {
+			expect(resolveUserIdStub).to.be.calledOnce;
 			done();
 		});
 	});
 
-	it('getGrantedPermissions succeeds when altair succeeds', (done) => {
-		const userServiceGrantedPermissionsStub =
-			sinon.stub(userRoutes, 'getGrantedPermissions')
-				.returnsPromise().resolves([{ owner_id: 'a', grantee_id: 'b' }]);
-		User.getGrantedPermissions().then((res) => {
-			userRoutes.getGrantedPermissions.restore();
-			expect(res).to.deep.equal([{ grantee_id: 'b' }]);
-			expect(userServiceGrantedPermissionsStub).to.be.calledOnce;
+	it('updateUser - Happy Path', (done) => {
+		UserService.user = undefined;
+		UserService.updateUser({ name: 'Glumli' }).then(() => {
+			expect(getUserDetailsStub).to.be.calledOnce;
+			expect(encryptStub).to.be.calledOnce;
 			done();
 		});
 	});
 
-	it('getGrantedPermissions fails when user not logged in', (done) => {
-		const userServiceGrantedPermissionsStub =
-			sinon.stub(userRoutes, 'getGrantedPermissions')
-				.returnsPromise().resolves({});
-		User.user = undefined;
-		sessionHandlerGetStub.returns(null);
-		User.getGrantedPermissions().catch((res) => {
-			userRoutes.getGrantedPermissions.restore();
-			expect(res.message).to.equal(NOT_LOGGED_IN);
-			expect(userServiceGrantedPermissionsStub).to.not.be.called;
-			done();
-		});
-	});
-
-	it('getGrantedPermissions fails when altair returns error', (done) => {
-		const userServiceGrantedPermissionStub =
-			sinon.stub(userRoutes, 'getGrantedPermissions')
-				.returnsPromise().rejects({ error: 'error completing request' });
-		User.user = undefined;
-		User.getGrantedPermissions().catch((res) => {
-			userRoutes.getGrantedPermissions.restore();
-			expect(res.error).to.equal('error completing request');
-			expect(userServiceGrantedPermissionStub).to.be.calledOnce;
-			done();
-		});
-	});
-
-	it('resolveUser succeeds when capella succeeds', (done) => {
-		const userServiceUserStub =
-			sinon.stub(userRoutes, 'getUserDetails')
-				.returnsPromise().resolves({ user: 'user' });
-		User.resolveUser().then((res) => {
-			expect(res).to.equal('user');
-			expect(userServiceUserStub).to.be.calledOnce;
-			userRoutes.getUserDetails.restore();
-			done();
-		});
-	});
-
-	it('resolveUser fails when user not logged in', (done) => {
-		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'getUserDetails')
-				.returnsPromise().resolves({ user: 'user' });
-		User.user = undefined;
-		sessionHandlerGetStub.returns(null);
-		User.resolveUser().catch((res) => {
-			expect(res.message).to.equal(NOT_LOGGED_IN);
-			expect(userServiceResolveUserStub).to.not.be.called;
-			userRoutes.getUserDetails.restore();
-			done();
-		});
-	});
-
-	it('resolveUser fails when capella returns error', (done) => {
-		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'getUserDetails')
-				.returnsPromise().rejects({ error: 'error completing request' });
-		User.user = undefined;
-		User.resolveUser().catch((res) => {
-			expect(res.error).to.equal('error completing request');
-			expect(userServiceResolveUserStub).to.be.calledOnce;
-			userRoutes.getUserDetails.restore();
-			done();
-		});
-	});
-
-	it('resolveUserByAlias succeeds', (done) => {
-		const userServiceUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().resolves({ uid: 'id', zerokit_id: 'zerokit_id' });
-		User.resolveUserByAlias('alias').then((res) => {
-			expect(res).to.deep.equal({ id: 'id', zeroKitId: 'zerokit_id' });
-			expect(userServiceUserStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
-			done();
-		});
-	});
-
-	it('resolveUserByAlias failes', (done) => {
-		const userServiceResolveUserStub =
-			sinon.stub(userRoutes, 'resolveUserId')
-				.returnsPromise().rejects({ error: 'error completing request' });
-		User.user = undefined;
-		User.resolveUserByAlias('alias').catch((res) => {
-			expect(res.error).to.equal('error completing request');
-			expect(userServiceResolveUserStub).to.be.calledOnce;
-			userRoutes.resolveUserId.restore();
-			done();
-		});
-	});
-
-	it('updateUser succeeds when capella succeeds', (done) => {
-		const user = {
-			id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
-			user_data: {},
-		};
-		const getUserStub =
-			sinon.stub(User, 'getUser')
-				.returnsPromise().resolves(user);
-		const userServiceUserStub =
-			sinon.stub(userRoutes, 'updateUser')
-				.returnsPromise().resolves({});
-		User.updateUser({ name: 'fakeName' }).then(() => {
-			expect(userServiceUserStub).to.be.calledOnce;
-			expect(getUserStub).to.be.calledOnce;
-			expect(zkitAdapterEncryptStub).to.be.calledOnce;
-			userRoutes.updateUser.restore();
-			User.getUser.restore();
-			done();
-		});
-	});
-
-	it('updateUser fails when no user is logged in', (done) => {
-		sessionHandler.get.restore();
-		sessionHandlerGetStub =
-			sinon.stub(sessionHandler, 'get').returns(null);
-		User.updateUser({ name: 'fakeName' }).catch((res) => {
+	it('updateUser - fails when no user is logged in', (done) => {
+		sessionHandlerGetStub.withArgs('HC_Auth').returns(null);
+		UserService.updateUser({ name: 'Glumli' }).catch((res) => {
 			expect(res.message).to.equal(NOT_LOGGED_IN);
 			done();
 		});
 	});
 
-	it('updateUser fails when capella returns error', (done) => {
-		const user = {
-			id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
-			user_data: {},
-		};
-		const getUserStub =
-			sinon.stub(User, 'getUser')
-				.returnsPromise().resolves(user);
-		const userServiceUserStub =
-			sinon.stub(userRoutes, 'updateUser')
-				.returnsPromise().rejects({ error: 'error completing request' });
-		User.updateUser({ name: 'fakeName' }).catch((res) => {
-			expect(res.error).to.equal('error completing request');
-			expect(userServiceUserStub).to.be.calledOnce;
-			expect(getUserStub).to.be.calledOnce;
-			userRoutes.updateUser.restore();
-			User.getUser.restore();
+	it('updateUser - fails updateUserCall fails', (done) => {
+		updateUserStub.rejects();
+		UserService.updateUser({ name: 'fakeName' }).catch((res) => {
+			expect(getUserDetailsStub).to.be.calledOnce;
+			expect(updateUserStub).to.be.calledOnce;
 			done();
 		});
 	});
 
-	it('updateUser fails when no parameters are passed', (done) => {
-		User.updateUser().catch((res) => {
+	it('updateUser - fails when no parameters are passed', (done) => {
+		UserService.updateUser().catch((res) => {
 			expect(res.message).to.equal(MISSING_PARAMETERS);
 			done();
 		});
 	});
 
-	it('updateUser fails when parameters is not an object', (done) => {
-		User.updateUser('string').catch((res) => {
+	it('updateUser - fails when parameters is not an object', (done) => {
+		UserService.updateUser('string').catch((res) => {
 			expect(res.message).to.equal(`${INVALID_PARAMETERS}: parameter is not an object`);
 			done();
 		});
 	});
 
-	it('updateUser fails when parameters is an empty object', (done) => {
-		User.updateUser({}).catch((res) => {
+	it('updateUser - fails when parameters is an empty object', (done) => {
+		UserService.updateUser({}).catch((res) => {
 			expect(res.message).to.equal(`${INVALID_PARAMETERS}: object is empty`);
 			done();
 		});
 	});
 
+	it('getGrantedPermissions - Happy Path', (done) => {
+		UserService.getGrantedPermissions()
+			.then((res) => {
+				expect(res).to.deep.equal([{ granteeId: 'b' }]);
+				expect(getGrantedPermissionsStub).to.be.calledOnce;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('getGrantedPermissions - fails when no user logged in', (done) => {
+		UserService.user = undefined;
+		sessionHandlerGetStub.returns(null);
+		UserService.getGrantedPermissions()
+			.catch((res) => {
+				userRoutes.getGrantedPermissions.restore();
+				expect(res.message).to.equal(NOT_LOGGED_IN);
+				expect(getGrantedPermissionsStub).to.not.be.called;
+				done();
+			})
+			.catch(console.log);
+	});
+
+	it('getGrantedPermissions - fails when getGrantedPermissions fails', (done) => {
+		UserService.user = undefined;
+		getGrantedPermissionsStub.rejects();
+		UserService.getGrantedPermissions().catch((res) => {
+			expect(getGrantedPermissionsStub).to.be.calledOnce;
+			done();
+		});
+	});
+
 	afterEach(() => {
-		sessionHandler.get.restore();
-		sessionHandler.set.restore();
-		sessionHandlerGetStub.reset();
-		sessionHandlerSetStub.reset();
-		zkitAdapterEncryptStub.reset();
-		zkitAdapterDecryptStub.reset();
+		getGrantedPermissionsStub.restore();
+		getUserDetailsStub.restore();
+		resolveUserIdStub.restore();
+		sessionHandlerGetStub.restore();
+		updateUserStub.restore();
 	});
 });

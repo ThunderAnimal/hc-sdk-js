@@ -12,6 +12,7 @@ import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 import loginForm from '../../src/templates/loginForm';
 import registrationForm from '../../src/templates/registrationForm';
 import sessionHandler from '../../src/lib/sessionHandler';
+import testVariables from '../testUtils/testVariables';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -29,10 +30,14 @@ describe('zerokitAdapter', () => {
 	let zKitRegisterObjectPromise;
 	let zkit_sdk;
 	let userRouteVerifyShareAndGrantPermissionStub;
+	let getUserStub;
+	let getCurrentUserStub;
 	let resolveUserStub;
 	let resolveUserByAliasStub;
 
 	beforeEach(() => {
+		getCurrentUserStub = sinon.stub(UserService, 'getCurrentUser')
+			.returns({ id: testVariables.userId, alias: testVariables.userAlias });
 		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
 		zKitLoginObjectPromise = Promise.resolve(zKitLoginObject);
 		zKitRegisterObject = {
@@ -80,12 +85,12 @@ describe('zerokitAdapter', () => {
 				id: 'kjhgf',
 				zeroKitId: 'fakeZkitId',
 			});
-		resolveUserStub = sinon.stub().returnsPromise().resolves({
+		getUserStub = sinon.stub().returnsPromise().resolves({
 			tresor_id: 'fakeTresorId',
 		});
 
-		UserService.resolveUserByAlias = resolveUserByAliasStub;
-		UserService.resolveUser = resolveUserStub;
+		UserService.resolveUser = resolveUserByAliasStub;
+		UserService.getInternalUser = getUserStub;
 	});
 
 	it('login fails when email is invalid', (done) => {
@@ -97,15 +102,16 @@ describe('zerokitAdapter', () => {
 	});
 
 	it('login succeeds', (done) => {
-		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
+		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
 			.then((res) => {
-				expect(res.user_alias).to.equal('dummyUser@domain.com');
+				expect(res.alias).to.equal(testVariables.userAlias);
 				expect(addTagEncryptionKeyStub).to.be.calledOnce;
 				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
 
 				done();
-			});
+			})
+			.catch(console.log);
 	});
 
 
@@ -134,11 +140,11 @@ describe('zerokitAdapter', () => {
 	});
 
 	it('tresor is created after login if user doesn\'t have one already', (done) => {
-		resolveUserStub.resolves({ tag_encryption_key: '' });
+		getUserStub.resolves({ tag_encryption_key: '' });
 
-		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser@domain.com')
+		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
 			.then((res) => {
-				expect(res.user_alias).to.equal('dummyUser@domain.com');
+				expect(res.alias).to.equal(testVariables.userAlias);
 				expect(resolveUserByAliasStub).to.be.calledOnce;
 				expect(userRouteAddTresorStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
@@ -158,9 +164,9 @@ describe('zerokitAdapter', () => {
 			sinon.stub(userRoutes, 'validateRegistration')
 				.returnsPromise().resolves();
 
-		zerokitAdapter.register(zKitRegisterObjectPromise, 'dummyUser@domain.com')
+		zerokitAdapter.register(zKitRegisterObjectPromise, testVariables.userAlias)
 			.then((res) => {
-				expect(res.user_alias).to.equal('dummyUser@domain.com');
+				expect(res.alias).to.equal(testVariables.userAlias);
 				expect(userRoutesInitRegisterStub).to.be.calledOnce;
 				expect(userRoutesvalidateRegistrationStub).to.be.calledOnce;
 				expect(zKitRegisterObject.register).to.be.calledOnce;
@@ -171,7 +177,7 @@ describe('zerokitAdapter', () => {
 	});
 
 	it('register fails if userAlias is not in correct format', (done) => {
-		zerokitAdapter.register(zKitRegisterObjectPromise, 'dummyUser')
+		zerokitAdapter.register(zKitRegisterObjectPromise, testVariables.userAlias.split('@')[0])
 			.catch((err) => {
 				expect(err.name).to.equal('ValidationError');
 				done();
@@ -202,12 +208,9 @@ describe('zerokitAdapter', () => {
 			zerokit_id: 'fakeZkitId',
 		};
 
-		resolveUserStub.resolves({ tag_encryption_key: '' });
-
-		zerokitAdapter.encrypt('doc').then((res) => {
+		zerokitAdapter.encrypt(testVariables.userId, 'doc').then((res) => {
+			expect(zkit_sdk.encrypt).to.be.calledOnce;
 			expect(res).to.equal('encryptedDoc');
-			expect(userRouteAddTresorStub).to.be.calledOnce;
-			UserService.user = undefined;
 			done();
 		});
 	});
@@ -364,6 +367,7 @@ describe('zerokitAdapter', () => {
 	});
 
 	afterEach(() => {
+		getCurrentUserStub.restore();
 		userRoutes.addTresor.restore();
 		userRoutes.verifyShareAndGrantPermission.restore();
 		userRoutes.addTagEncryptionKey.restore();

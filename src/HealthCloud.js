@@ -21,7 +21,7 @@ class HealthCloud {
 		this.getDocuments = documentService.getDocuments.bind(documentService);
 		this.uploadDocument = documentService.uploadDocument.bind(documentService);
 		this.updateDocument = documentService.updateDocument.bind(documentService);
-		this.getUserIdAndAlias = UserService.getUserIdAndAlias.bind(UserService);
+		this.getCurrentUser = UserService.getCurrentUser.bind(UserService);
 		this.getUser = UserService.getUser.bind(UserService);
 		this.updateUser = UserService.updateUser.bind(UserService);
 		this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);

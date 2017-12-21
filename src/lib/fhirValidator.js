@@ -5,7 +5,7 @@ import fhirRoutes from '../routes/fhirRoutes';
 
 const ajv = new Ajv({ extendRefs: true });
 
-class Fhir {
+class FhirValidator {
 	getConformance() {
 		return new Promise((resolve, reject) => {
 			if (this.conformance) {
@@ -69,4 +69,4 @@ class Fhir {
 	}
 }
 
-export default new Fhir();
+export default new FhirValidator();

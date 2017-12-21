@@ -70,19 +70,18 @@ class ZeroKitAdapter {
 		let tresorId;
 		let userId;
 		let tek;
-		return UserService.resolveUserByAlias(hcUserAlias)
+		return UserService.resolveUser(hcUserAlias)
 			.then((user) => {
-				const zeroKitId = user.zeroKitId;
+				const { zeroKitId } = user;
 				userId = user.id;
 				sessionHandler.set('HC_User', `${userId},${hcUserAlias}`);
 
 				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
 			})
 			.then(() => this.auth.idpLogin())
-			.then(() => UserService.resolveUser())
+			.then(() => UserService.getInternalUser())
 			.then((user) => {
-				tresorId = user.tresor_id;
-				tek = user.tag_encryption_key;
+				({ tresorId, tek } = user);
 				if (!tresorId) {
 					return this.createTresor();
 				}
@@ -92,14 +91,14 @@ class ZeroKitAdapter {
 				if (!tek) {
 					this.createTek(res);
 				}
-				return { user_id: userId, user_alias: hcUserAlias };
+				return { id: userId, alias: hcUserAlias };
 			});
 	}
 
 	createTek(tresorId) {
 		const tek = encryptionUtils.generateKey();
 		return this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, tek)
-			.then(res => userRoutes.addTagEncryptionKey(UserService.getUserId(), res)
+			.then(res => userRoutes.addTagEncryptionKey(UserService.getCurrentUser().id, res)
 				.then(() => res)));
 	}
 
@@ -138,66 +137,60 @@ class ZeroKitAdapter {
 						registrationObject.register(zKitId, res.session_id));
 			})
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
-			.then(() => ({ user_alias: hcUserAlias }));
+			.then(() => ({ alias: hcUserAlias }));
 	}
 
-	encrypt(plainText) {
-		return this.getTresor()
-			.then(tresorId => this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, plainText)));
+	encrypt(ownerId, plainText) {
+		return UserService.getInternalUser(ownerId)
+			.then(owner => this.zeroKit.then(zeroKit =>
+				zeroKit.encrypt(owner.tresorId, plainText)));
 	}
 
 	decrypt(cipherText) {
 		return this.zeroKit.then(zeroKit => zeroKit.decrypt(cipherText));
 	}
 
-	encryptBlob(plainBlob) {
-		return this.getTresor()
-			.then(tresorId => this.zeroKit.then(zeroKit =>
-				zeroKit.encryptBlob(tresorId, plainBlob)));
+	encryptBlob(ownerId, plainBlob) {
+		return UserService.getInternalUser(ownerId)
+			.then(owner => this.zeroKit.then(zeroKit =>
+				zeroKit.encryptBlob(owner.tresorId, plainBlob)));
 	}
 
 	decryptBlob(cipherBlob) {
 		return this.zeroKit.then(zeroKit => zeroKit.decryptBlob(cipherBlob));
 	}
 
-	getTresor() {
-		return UserService.resolveUser()
-			.then((user) => {
-				let tresorId = user.tresor_id;
-				if (!tresorId) {
-					tresorId = this.createTresor();
-				}
-				return tresorId;
-			});
-	}
-
 	createTresor() {
 		return this.zeroKit.then(zeroKit => zeroKit.createTresor()
-			.then(tresorId => userRoutes.addTresor(UserService.getUserId(), tresorId)
+			.then(tresorId => userRoutes.addTresor(UserService.getCurrentUser().id, tresorId)
 				.then(() => tresorId)));
 	}
 
-	grantPermission(alias) {
+	grantPermission(granteeAlias) {
 		let grantee;
-		let tresorId;
+		let owner;
 		let operationId;
 
 		return Promise.all(
 			[
-				UserService.resolveUserByAlias(alias),
-				this.getTresor(),
+				UserService.resolveUser(granteeAlias),
+				UserService.getInternalUser(),
 			],
 		)
 			.then((result) => {
 				grantee = result[0];
-				tresorId = result[1];
-				return this.zeroKit;
+				owner = result[1];
+				return UserService.getInternalUser(grantee.id, true);
 			})
-			.then(zeroKit => zeroKit.shareTresor(tresorId, grantee.zeroKitId))
+			.then((fullGrantee) => {
+				grantee = fullGrantee;
+				return this.zeroKit.then(zeroKit =>
+					zeroKit.shareTresor(owner.tresorId, grantee.zeroKitId));
+			})
 			.then((response) => {
 				operationId = response;
-				return userRoutes.verifyShareAndGrantPermission(UserService.getUserId(),
-					grantee.id, operationId);
+				return userRoutes
+					.verifyShareAndGrantPermission(owner.id, grantee.id, operationId);
 			})
 			.then(() => operationId);
 	}

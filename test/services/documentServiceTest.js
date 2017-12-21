@@ -154,13 +154,13 @@ describe('DocumentService', () => {
 			.then(() => {
 				expect(documentService.fhirService.createFhirRecord).to.be.calledOnce;
 				expect(zeroKitAdapter.encryptBlob).to.be.calledOnce;
-				expect(zeroKitAdapter.encryptBlob).to.be.calledWith(file);
+				expect(zeroKitAdapter.encryptBlob).to.be.calledWith(userId, file);
 				expect(getFileUploadUrlsStub).to.be.calledOnce;
 				expect(uploadFileStub).to.be.calledOnce;
 				expect(uploadFileStub).to.be.calledWith(sasToken, encryptedFile);
 				expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
 				expect(documentService.fhirService.updateFhirRecord)
-					.to.be.calledWith(recordId, fhirObject);
+					.to.be.calledWith(userId, recordId, fhirObject);
 				done();
 			});
 	});
@@ -210,7 +210,7 @@ describe('DocumentService', () => {
 			expect(uploadFileStub).to.be.not.called;
 			expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
 			expect(documentService.fhirService.updateFhirRecord)
-				.to.be.calledWith(recordId, fhirObject);
+				.to.be.calledWith(userId, recordId, fhirObject);
 
 			attachmentWithoutFile.id = undefined;
 			done();
