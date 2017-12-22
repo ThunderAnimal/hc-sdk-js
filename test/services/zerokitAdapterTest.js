@@ -92,15 +92,9 @@ describe('zerokitAdapter', () => {
 
 		UserService.resolveUser = resolveUserByAliasStub;
 		UserService.getInternalUser = getUserStub;
+		UserService.user = {};
 	});
 
-	it('login fails when email is invalid', (done) => {
-		zerokitAdapter.login(zKitLoginObjectPromise, 'dummyUser')
-			.catch((err) => {
-				expect(err.name).to.equal('ValidationError');
-				done();
-			});
-	});
 
 	it('login succeeds', (done) => {
 		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
@@ -151,8 +145,10 @@ describe('zerokitAdapter', () => {
 				expect(zKitLoginObject.login).to.be.calledOnce;
 				expect(zkit_sdk.createTresor).to.be.calledOnce;
 				expect(addTagEncryptionKeyStub).to.be.calledOnce;
+				expect(UserService.user.tresorId).to.equal('fakeTresorId');
 				done();
-			});
+			})
+			.catch(console.log);
 	});
 
 	it('register succeeds', (done) => {

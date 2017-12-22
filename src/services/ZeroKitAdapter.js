@@ -64,11 +64,6 @@ class ZeroKitAdapter {
 	}
 
 	login(zKitLoginObject, hcUserAlias) {
-		if (!validationUtils.validateEmail(hcUserAlias)) {
-			return Promise.reject(new ValidationError('Not a valid email'));
-		}
-
-		let tresorId;
 		let userId;
 		let tek;
 		return UserService.resolveUser(hcUserAlias)
@@ -82,15 +77,23 @@ class ZeroKitAdapter {
 			.then(() => this.authService.idpLogin())
 			.then(() => UserService.getInternalUser())
 			.then((user) => {
+				let tresorId;
 				({ tresorId, tek } = user);
 				if (!tresorId) {
-					return this.createTresor();
+					return this.createTresor()
+						.then((createdTresorId) => {
+							UserService.user.tresorId = createdTresorId;
+							return createdTresorId;
+						});
 				}
 				return tresorId;
 			})
-			.then((res) => {
+			.then((tresorId) => {
 				if (!tek) {
-					this.createTek(res);
+					this.createTek(tresorId)
+						.then((createdTek) => {
+							UserService.user.tek = createdTek;
+						});
 				}
 				return { id: userId, alias: hcUserAlias };
 			});
@@ -100,7 +103,7 @@ class ZeroKitAdapter {
 		const tek = encryptionUtils.generateKey();
 		return this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, tek)
 			.then(res => userRoutes.addTagEncryptionKey(UserService.getCurrentUser().id, res)
-				.then(() => res)));
+				.then(() => tek)));
 	}
 
 	getRegistrationForm(parentElement) {
