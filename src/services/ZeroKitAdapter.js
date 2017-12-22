@@ -195,11 +195,8 @@ class ZeroKitAdapter {
 	}
 
 	logout() {
-		return this.zeroKit.then(zerokit => zerokit.logout())
-			.then((res) => {
-				sessionHandler.logout();
-				return res;
-			});
+		sessionHandler.logout();
+		return this.zeroKit.then(zerokit => zerokit.logout());
 	}
 }
 
