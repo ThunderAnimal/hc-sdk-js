@@ -6,6 +6,9 @@ const testVariables = {
 	fileId: 'file_id',
 	zeroKitId: 'zerokit_id',
 	tresorId: 'tresor_id',
+	sessionId: 'session_id',
+	regValidationVerifier: 'reg_validation_verifier',
+	operationId: 'operation_id',
 	userAlias: 'user@alias.de',
 	dateString: '2017-12-15',
 	dateTimeString: '2017-12-15T10:35:52.492',
@@ -15,6 +18,8 @@ const testVariables = {
 	tek: 'tag_encryption_key',
 	encryptedTek: 'encrypted_tag_encryption_key',
 	encryptedUserData: 'encrypted_user_data',
+	string: 'string',
+	encryptedString: 'encrypted_string',
 	state: 'state',
 	userData: {},
 };

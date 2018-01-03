@@ -124,7 +124,7 @@ class ZeroKitAdapter {
 		});
 	}
 
-	register() {
+	register(autoLogin = false) {
 		const hcUserAlias = document.getElementById(registrationFormIds.hcUserRegister).value;
 		if (!validationUtils.validateEmail(hcUserAlias)) {
 			return Promise.reject(new ValidationError('Not a valid email'));
@@ -139,7 +139,9 @@ class ZeroKitAdapter {
 			})
 			.then(registrationObject => registrationObject.register(zKitId, sessionId))
 			.then(res => userRoutes.validateRegistration(res.RegValidationVerifier, zKitId))
-			.then(() => ({ alias: hcUserAlias }));
+			.then(() => (autoLogin ?
+				this.login(this.zKitRegistrationObject, hcUserAlias) :
+				{ alias: hcUserAlias }));
 	}
 
 	encrypt(ownerId, plainText) {

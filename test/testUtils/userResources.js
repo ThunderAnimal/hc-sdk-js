@@ -1,6 +1,14 @@
 import testVariables from './testVariables';
 
 const userResources = {
+	resolvedUser: {
+		id: testVariables.userId,
+		zeroKitId: testVariables.zeroKitId,
+	},
+	currentUser: {
+		id: testVariables.userId,
+		alias: testVariables.userAlias,
+	},
 	internalUser: {
 		id: testVariables.userId,
 		alias: testVariables.userAlias,

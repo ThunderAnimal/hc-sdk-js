@@ -10,9 +10,9 @@ import UserService from '../../src/services/UserService';
 import userRoutes from '../../src/routes/userRoutes';
 import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 import loginForm from '../../src/templates/loginForm';
-import registrationForm from '../../src/templates/registrationForm';
 import sessionHandler from '../../src/lib/sessionHandler';
 import testVariables from '../testUtils/testVariables';
+import userResources from '../testUtils/userResources';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -20,361 +20,335 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('zerokitAdapter', () => {
-	let zerokitAdapter;
-	let userRouteAddTresorStub;
-	let userRoutesResolveUserIdStub;
 	let addTagEncryptionKeyStub;
+	let addTresorStub;
+	let createTresorStub;
+	let decryptStub;
+	let encryptStub;
+	let getCurrentUserStub;
+	let getElementByIdStub;
+	let getInternalUserStub;
+	let getLoginIframeStub;
+	let idpLoginStub;
+	let initRegistrationStub;
+	let loginStub;
+	let logoutStub;
+	let registerStub;
+	let resolveUserStub;
+	let sessionHandlerLogoutStub;
+	let sessionHandlerSetStub;
+	let shareTresorStub;
+	let validateRegistrationStub;
+	let verifyShareAndGrantPermissionStub;
+
+	let authService;
+	let zerokitAdapter;
 	let zKitLoginObject;
 	let zKitLoginObjectPromise;
 	let zKitRegisterObject;
 	let zKitRegisterObjectPromise;
-	let zkit_sdk;
-	let userRouteVerifyShareAndGrantPermissionStub;
-	let getUserStub;
-	let getCurrentUserStub;
-	let resolveUserStub;
-	let resolveUserByAliasStub;
+	let zeroKit;
+	let zeroKitPromise;
 
 	beforeEach(() => {
-		getCurrentUserStub = sinon.stub(UserService, 'getCurrentUser')
-			.returns({ id: testVariables.userId, alias: testVariables.userAlias });
-		zKitLoginObject = { login: sinon.stub().returnsPromise().resolves('fakeZkitId') };
-		zKitLoginObjectPromise = Promise.resolve(zKitLoginObject);
-		zKitRegisterObject = {
-			register: sinon.stub().returnsPromise().resolves({
-				RegValidationVerifier: '4003a02ffcd1111248df4136d32d533b',
-				MasterFragmentVersion: 1,
-			}),
+		addTagEncryptionKeyStub = sinon.stub(userRoutes, 'addTagEncryptionKey')
+			.returnsPromise().resolves();
+		addTresorStub = sinon.stub(userRoutes, 'addTresor')
+			.returnsPromise().resolves();
+		createTresorStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.tresorId);
+		decryptStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.string);
+		encryptStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.encryptedString);
+		getCurrentUserStub = sinon.stub()
+			.returns(userResources.currentUser);
+		getElementByIdStub = sinon.stub(window.document, 'getElementById')
+			.returns({ value: testVariables.userAlias });
+		getInternalUserStub = sinon.stub()
+			.returnsPromise().resolves(userResources.internalUser);
+		idpLoginStub = sinon.stub()
+			.returnsPromise().resolves();
+		initRegistrationStub = sinon.stub(userRoutes, 'initRegistration')
+			.returnsPromise().resolves(
+				{ session_id: testVariables.sessionId, zerokit_id: testVariables.zeroKitId });
+		loginStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.zeroKitId);
+		logoutStub = sinon.stub()
+			.returnsPromise().resolves();
+		registerStub = sinon.stub()
+			.returnsPromise().resolves(
+				{ RegValidationVerifier: testVariables.regValidationVerifier });
+		resolveUserStub = sinon.stub()
+			.returnsPromise().resolves(userResources.resolvedUser);
+		sessionHandlerSetStub = sinon.stub(sessionHandler, 'set')
+			.returns();
+		sessionHandlerLogoutStub = sinon.stub(sessionHandler, 'logout')
+			.returns();
+		shareTresorStub = sinon.stub()
+			.returnsPromise().resolves(testVariables.operationId);
+		validateRegistrationStub = sinon.stub(userRoutes, 'validateRegistration')
+			.returnsPromise().resolves();
+		verifyShareAndGrantPermissionStub = sinon.stub(userRoutes, 'verifyShareAndGrantPermission')
+			.returnsPromise().resolves();
+
+
+		authService = {
+			idpLogin: idpLoginStub,
 		};
-		addTagEncryptionKeyStub =
-			sinon.stub(userRoutes, 'addTagEncryptionKey')
-				.returnsPromise().resolves({});
+
+		zKitLoginObject = { login: loginStub };
+		zKitLoginObjectPromise = Promise.resolve(zKitLoginObject);
+
+		zKitRegisterObject = { login: loginStub, register: registerStub };
 		zKitRegisterObjectPromise = Promise.resolve(zKitRegisterObject);
 
-		zkit_sdk = {
-			getLoginIframe: sinon.stub().returns(zKitLoginObject),
-			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
-			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
-			setup: sinon.stub(),
-			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
-			logout: sinon.stub().returnsPromise().resolves('success'),
-			shareTresor: sinon.stub().returnsPromise().resolves('fakeOperationId'),
+		getLoginIframeStub = sinon.stub().returnsPromise().resolves(zKitLoginObject);
+		zeroKit = {
+			createTresor: createTresorStub,
+			decrypt: decryptStub,
+			encrypt: encryptStub,
+			getLoginIframe: getLoginIframeStub,
+			logout: logoutStub,
+			shareTresor: shareTresorStub,
 		};
+		zeroKitPromise = Promise.resolve(zeroKit);
 
-		window.document.getElementsByTagName = sinon.stub().returns([{ appendChild: sinon.spy() }]);
-		window.document.getElementById = sinon.stub().returns({});
+		zerokitAdapter = new ZerokitAdapter({ authService });
+		zerokitAdapter.zeroKit = zeroKitPromise;
+		zerokitAdapter.zKitRegistrationObject = zKitRegisterObjectPromise;
 
-		zerokitAdapter = new ZerokitAdapter('dummyZerokitadapter');
-
-		zerokitAdapter.authService = { idpLogin: sinon.stub().returnsPromise().resolves('') };
-		zerokitAdapter.zeroKitAdapter = {
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDocument'),
-			encrypt: sinon.stub().returnsPromise().resolves('encrypteddocument'),
-		};
-		zerokitAdapter.zKitRegistrationObject = zKitRegisterObject;
-		zerokitAdapter.zeroKit = Promise.resolve(zkit_sdk);
-		userRouteAddTresorStub =
-			sinon.stub(userRoutes, 'addTresor')
-				.returnsPromise().resolves();
-		userRouteVerifyShareAndGrantPermissionStub =
-			sinon.stub(userRoutes, 'verifyShareAndGrantPermission')
-				.returnsPromise().resolves();
-
-		resolveUserByAliasStub =
-			sinon.stub().returnsPromise().resolves({
-				id: 'kjhgf',
-				zeroKitId: 'fakeZkitId',
-			});
-		getUserStub = sinon.stub().returnsPromise().resolves({
-			tresor_id: 'fakeTresorId',
-		});
-
-		UserService.resolveUser = resolveUserByAliasStub;
-		UserService.getInternalUser = getUserStub;
+		UserService.getCurrentUser = getCurrentUserStub;
+		UserService.getInternalUser = getInternalUserStub;
+		UserService.resolveUser = resolveUserStub;
 		UserService.user = {};
 	});
 
 
-	it('login succeeds', (done) => {
+	it('login - createsTresor and tek on first login', (done) => {
+		let internalUser = Object.assign({}, userResources.internalUser);
+		internalUser.tek = undefined;
+		internalUser.tresorId = undefined;
+		getInternalUserStub.resolves(internalUser);
 		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
 			.then((res) => {
 				expect(res.alias).to.equal(testVariables.userAlias);
 				expect(addTagEncryptionKeyStub).to.be.calledOnce;
-				expect(resolveUserByAliasStub).to.be.calledOnce;
+				expect(addTresorStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
+				expect(UserService.user.tresorId).to.equal(testVariables.tresorId);
 
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
 
-	it('callback returns error if idpLogin fails', (done) => {
-		zerokitAdapter.authService = { idpLogin: sinon.stub().returnsPromise().rejects('error') };
+	it('login - rejects when idpLogin fails', (done) => {
+		idpLoginStub.rejects();
 
 		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
-			.catch((err) => {
-				expect(err).to.equal('error');
-				expect(resolveUserByAliasStub).to.be.calledOnce;
+			.catch(() => {
+				expect(resolveUserStub).to.be.calledOnce;
 				expect(zKitLoginObject.login).to.be.calledOnce;
+				expect(getInternalUserStub).not.to.be.called;
+
+				done();
+			})
+			.catch(done);
+	});
+
+	it('login - callback rejects when resolveUser call fails ', (done) => {
+		resolveUserStub.rejects();
+
+		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
+			.then(() => done(Error('resolveUserStub rejection didn\'t work properly in zerokitAdapter.login')))
+			.catch(() => {
+				expect(resolveUserStub).to.be.calledOnce;
+				expect(idpLoginStub).not.to.be.called;
 
 				done();
 			});
 	});
 
-	it('callback returns error if user route fails to resolve user ', (done) => {
-		resolveUserByAliasStub.rejects();
-		zerokitAdapter.authService = { idpLogin: sinon.stub().yields('error') };
-
-		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
-			.catch((err) => {
-				expect(resolveUserByAliasStub).to.be.calledOnce;
-				done();
-			});
-	});
-
-	it('tresor is created after login if user doesn\'t have one already', (done) => {
-		getUserStub.resolves({ tag_encryption_key: '' });
-
+	it('login - tresor and tek are not created on login when user has them already', (done) => {
 		zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
 			.then((res) => {
 				expect(res.alias).to.equal(testVariables.userAlias);
-				expect(resolveUserByAliasStub).to.be.calledOnce;
-				expect(userRouteAddTresorStub).to.be.calledOnce;
-				expect(zKitLoginObject.login).to.be.calledOnce;
-				expect(zkit_sdk.createTresor).to.be.calledOnce;
-				expect(addTagEncryptionKeyStub).to.be.calledOnce;
-				expect(UserService.user.tresorId).to.equal('fakeTresorId');
+				expect(resolveUserStub).to.be.calledOnce;
+				expect(createTresorStub).not.to.be.called;
+				expect(addTresorStub).not.to.be.called;
+				expect(loginStub).to.be.calledOnce;
+				expect(addTagEncryptionKeyStub).not.to.be.called;
+
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
-	it('register succeeds', (done) => {
-		window.document.getElementById = () => ({ value: testVariables.userAlias });
-		const userRoutesInitRegisterStub =
-			sinon.stub(userRoutes, 'initRegistration')
-				.returnsPromise().resolves({
-					session_id: 'fakeSessionId', zerokit_id: 'fakeZerokitId',
-				});
-		const userRoutesvalidateRegistrationStub =
-			sinon.stub(userRoutes, 'validateRegistration')
-				.returnsPromise().resolves();
-
+	it('register - Happy Path', (done) => {
 		zerokitAdapter.register()
 			.then((res) => {
 				expect(res.alias).to.equal(testVariables.userAlias);
-				expect(userRoutesInitRegisterStub).to.be.calledOnce;
-				expect(userRoutesvalidateRegistrationStub).to.be.calledOnce;
+				expect(initRegistrationStub).to.be.calledOnce;
+				expect(validateRegistrationStub).to.be.calledOnce;
 				expect(zKitRegisterObject.register).to.be.calledOnce;
-				userRoutes.initRegistration.restore();
-				userRoutes.validateRegistration.restore();
 				done();
-			});
+			})
+			.catch(done);
 	});
 
-	it('register fails if userAlias is not in correct format', (done) => {
-		window.document.getElementById = () => ({ value: 'dummyUser' });
+	it('register - rejects when userAlias is not an email', (done) => {
+		getElementByIdStub.returns({ value: testVariables.userAlias.split('@')[0] });
 		zerokitAdapter.register()
+			.then(() => done(Error('email validation didn\'t work properly in zerokitAdapter.register')))
 			.catch((err) => {
 				expect(err.name).to.equal('ValidationError');
 				done();
 			});
 	});
 
-	it('register callback returns error if user fails to initiate registration', (done) => {
-		window.document.getElementById = () => ({ value: testVariables.userAlias });
-		const userRoutesInitRegisterStub =
-			sinon.stub(userRoutes, 'initRegistration')
-				.returnsPromise().rejects('error');
-		const userRoutesvalidateRegistrationStub =
-			sinon.stub(userRoutes, 'validateRegistration')
-				.returnsPromise().resolves();
-
+	it('register - rejects when initRegistration fails', (done) => {
+		initRegistrationStub.rejects();
 		zerokitAdapter.register()
+			.then(() => done(Error('initRegistrationStub rejection didn\'t work properly in zerokitAdapter.register')))
 			.catch((err) => {
-				expect(err).to.equal('error');
-				expect(userRoutesInitRegisterStub).to.be.calledOnce;
-				expect(userRoutesvalidateRegistrationStub).to.not.be.called;
-				expect(zKitRegisterObject.register).to.not.be.called;
+				expect(initRegistrationStub).to.be.calledOnce;
+				expect(validateRegistrationStub).to.not.be.called;
+				expect(registerStub).to.not.be.called;
+
 				done();
 			});
 	});
 
-	it('encrypt succeeds', (done) => {
-		UserService.user = {
-			id: 'kjhgf',
-			zerokit_id: 'fakeZkitId',
-		};
+	it('register - logs in after registration when autoLogin flag is set', (done) => {
+		zerokitAdapter.register(true)
+			.then((res) => {
+				expect(res.alias).to.equal(testVariables.userAlias);
+				expect(initRegistrationStub).to.be.calledOnce;
+				expect(validateRegistrationStub).to.be.calledOnce;
+				expect(zKitRegisterObject.register).to.be.calledOnce;
 
-		zerokitAdapter.encrypt(testVariables.userId, 'doc').then((res) => {
-			expect(zkit_sdk.encrypt).to.be.calledOnce;
-			expect(res).to.equal('encryptedDoc');
-			done();
-		});
+				expect(resolveUserStub).to.be.calledOnce;
+				expect(createTresorStub).not.to.be.called;
+				expect(addTresorStub).not.to.be.called;
+				expect(loginStub).to.be.calledOnce;
+				expect(addTagEncryptionKeyStub).not.to.be.called;
+				done();
+			})
+			.catch(done);
 	});
 
-	it('createTresor is not called if user already has tresor', (done) => {
-		UserService.user = {
-			id: 'kjhgf',
-			zerokit_id: 'fakeZkitId',
-			tresor_id: 'fakeTresorId',
-		};
-
-		zerokitAdapter.encrypt('doc').then((res) => {
-			expect(res).to.equal('encryptedDoc');
-			expect(userRouteAddTresorStub).to.not.be.called;
-			UserService.user = undefined;
-			done();
-		});
+	it('encrypt - Happy Path', (done) => {
+		zerokitAdapter.encrypt(testVariables.userId, testVariables.string)
+			.then((res) => {
+				expect(encryptStub).to.be.calledOnce;
+				expect(encryptStub).to.be.calledWith(testVariables.tresorId, testVariables.string);
+				expect(res).to.equal(testVariables.encryptedString);
+				done();
+			})
+			.catch(done);
 	});
 
-	it('decrypt succeeds', (done) => {
-		zerokitAdapter.decrypt('doc').then((res) => {
-			expect(res).to.equal('decryptedDoc');
-			expect(zkit_sdk.decrypt).to.be.calledOnce;
-			done();
-		});
+	it('decrypt - Happy Path', (done) => {
+		zerokitAdapter.decrypt(testVariables.encryptedString)
+			.then((res) => {
+				expect(decryptStub).to.be.calledOnce;
+				expect(decryptStub).to.be.calledWith(testVariables.encryptedString);
+				expect(res).to.equal(testVariables.string);
+				done();
+			})
+			.catch(done);
 	});
 
-	it('getLoginForm succeeds', (done) => {
-		const loginStub = sinon.stub(zerokitAdapter, 'login')
-			.returnsPromise().resolves({ user: 'userName' });
+	it('getLoginForm - Happy Path', (done) => {
 		const parentElement = { appendChild: sinon.stub() };
 
 		zerokitAdapter.getLoginForm(parentElement)
 			.then(() => {
 				expect(loginStub).to.be.calledOnce;
 				done();
-			});
-		loginForm.onsubmit({ preventDefault: sinon.spy() });
-	});
-
-	it('getLoginForm succeeds when zkit_sdk is undefined', (done) => {
-		window.zkit_sdk = undefined;
-		const loginStub =
-			sinon.stub(zerokitAdapter, 'login')
-				.returnsPromise().resolves({ user: testVariables.userAlias });
-		const parentElement = { appendChild: sinon.stub() };
-
-		zerokitAdapter.getLoginForm(parentElement)
-			.then(() => {
-				expect(loginStub).to.be.calledOnce;
-				done();
-			});
-		window.zkit_sdk = {
-			getLoginIframe: sinon.stub().returns(zKitLoginObject),
-			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
-			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
-			setup: sinon.stub(),
-			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
-
-		};
+			})
+			.catch(done);
 		loginForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
 	it('getRegisterForm succeeds', (done) => {
 		const parentElement = { appendChild: sinon.stub() };
+
 		zerokitAdapter.getRegistrationForm(parentElement)
 			.then(() => {
+				expect(getElementByIdStub).to.be.calledOnce;
 				done();
-			});
+			})
+			.catch(done);
 	});
 
-	it('getRegisterForm succeeds when zkit_sdk is undefined', (done) => {
-		window.zkit_sdk = undefined;
-		const parentElement = { appendChild: sinon.stub() };
-		zerokitAdapter.getRegistrationForm(parentElement)
+	it('logout - Happy Path', (done) => {
+		zerokitAdapter.logout()
 			.then(() => {
+				expect(logoutStub).to.be.calledOnce;
+				expect(sessionHandlerLogoutStub).to.be.calledOnce;
 				done();
-			});
-
-		window.zkit_sdk = {
-			getLoginIframe: sinon.stub().returns(zKitLoginObject),
-			getRegistrationIframe: sinon.stub().returns(zKitLoginObject),
-			createTresor: sinon.stub().returnsPromise().resolves('fakeTresorId'),
-			setup: sinon.stub(),
-			encrypt: sinon.stub().returnsPromise().resolves('encryptedDoc'),
-			decrypt: sinon.stub().returnsPromise().resolves('decryptedDoc'),
-
-		};
+			})
+			.catch(done);
 	});
 
-	it('logout succeeds', (done) => {
+	it('logout - rejects when zerokit logout fails', (done) => {
+		logoutStub.rejects();
 		zerokitAdapter.logout()
+			.then(() => done(
+				Error('logoutStub rejection didn\'t work properly in zerokitAdapter.logout')))
+			.catch(() => {
+				expect(logoutStub).to.be.calledOnce;
+				done();
+			});
+	});
+
+	it('grantPermission - Happy Path', (done) => {
+		zerokitAdapter.grantPermission(testVariables.userAlias)
 			.then((res) => {
-				expect(res).to.equal('success');
-				expect(zkit_sdk.logout).to.be.calledOnce;
-				expect(sessionHandler.get('HC_Auth')).to.be.undefined;
-				expect(sessionHandler.get('HC_Id')).to.be.undefined;
-				expect(sessionHandler.get('HC_User')).to.be.undefined;
-				expect(sessionHandler.get('HC_Refresh')).to.be.undefined;
+				expect(resolveUserStub).to.be.calledOnce;
+				expect(shareTresorStub).to.be.calledOnce;
+				expect(verifyShareAndGrantPermissionStub).to.be.calledOnce;
 				done();
-			});
+			})
+			.catch(done);
 	});
 
-	it('logout fails if zerokit logout fails', (done) => {
-		zkit_sdk.logout = sinon.stub().returnsPromise().rejects('error');
-		zerokitAdapter.logout()
-			.catch((err) => {
-				expect(err).to.equal('error');
-				expect(zkit_sdk.logout).to.be.calledOnce;
-				done();
-			});
-	});
-
-	it('grantPermission succeeds', (done) => {
-		UserService.user = {
-			id: 'kjhgf',
-			zerokit_id: 'fakeZkitId',
-			tresor_id: 'fakeTresorId',
-		};
+	it('grantPermission - swallows error when zerokit returns AlreadyMember error', (done) => {
+		shareTresorStub.rejects({ message: 'AlreadyMember' });
 
 		zerokitAdapter.grantPermission('fakeGranteeEmail')
 			.then((res) => {
-				expect(resolveUserByAliasStub).to.be.calledOnce;
-				expect(zkit_sdk.shareTresor).to.be.calledOnce;
-				expect(userRouteVerifyShareAndGrantPermissionStub).to.be.calledOnce;
-				UserService.user = undefined;
+				expect(resolveUserStub).to.be.calledOnce;
+				expect(shareTresorStub).to.be.calledOnce;
+				expect(verifyShareAndGrantPermissionStub).to.not.be.calledOnce;
 				done();
-			});
+			})
+			.catch(done);
 	});
 
-	it('grantPermission swallows error when zerokit returns AlreadyMember error', (done) => {
-		zkit_sdk.shareTresor = sinon.stub().returnsPromise().rejects({ message: 'AlreadyMember' });
-
-		UserService.user = {
-			id: 'kjhgf',
-			zerokit_id: 'fakeZkitId',
-			tresor_id: 'fakeTresorId',
-		};
-
-		zerokitAdapter.grantPermission('fakeGranteeEmail')
-			.then((res) => {
-				expect(resolveUserByAliasStub).to.be.calledOnce;
-				expect(zkit_sdk.shareTresor).to.be.calledOnce;
-				expect(userRouteVerifyShareAndGrantPermissionStub).to.not.be.calledOnce;
-				UserService.user = undefined;
-				done();
-			});
-	});
-
-	it('grantPermission fails if zerokit shareTresor fails', (done) => {
-		zkit_sdk.shareTresor = sinon.stub().returnsPromise().rejects('error');
-		zerokitAdapter.grantPermission('fakeGranteeEmail')
-			.catch((err) => {
-				expect(err).to.equal('error');
-				expect(zkit_sdk.shareTresor).to.be.calledOnce;
+	it('grantPermission - rejects when zeroKits shareTresor fails', (done) => {
+		shareTresorStub.rejects();
+		zerokitAdapter.grantPermission(testVariables.userAlias)
+			.then(() => done(
+				Error('shareTresorStub rejection didn\'t work properly in zerokitAdapter.grantPermission')))
+			.catch(() => {
+				expect(shareTresorStub).to.be.calledOnce;
+				expect(verifyShareAndGrantPermissionStub).not.to.be.called;
 				done();
 			});
 	});
 
 	afterEach(() => {
-		getCurrentUserStub.restore();
-		userRoutes.addTresor.restore();
-		userRoutes.verifyShareAndGrantPermission.restore();
-		userRoutes.addTagEncryptionKey.restore();
+		addTagEncryptionKeyStub.restore();
+		addTresorStub.restore();
+		getElementByIdStub.restore();
+		initRegistrationStub.restore();
+		sessionHandlerSetStub.restore();
+		sessionHandlerLogoutStub.restore();
+		validateRegistrationStub.restore();
+		verifyShareAndGrantPermissionStub.restore();
 	});
 });

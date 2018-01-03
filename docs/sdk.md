@@ -49,6 +49,8 @@ This registration form contains name and password field, a submit button needs t
 Therefore you need to call  ``HC.getRegistrationForm(parent_node)``. Hence the form is then appended to ``parent_node`` element.
 You will also need a ``<button/>`` tag that has a click event listener. This listener should call ``HC.register`` to perform registration.
 Both ``HC.getRegistrationForm`` and ``HC.register`` returns promises.
+For having the user logged in after registration automatically you can set the autoLogin flag to ``true``(as in the example).
+By default the autoLogin flag ``false``
 
 ```html
 <div id="gesundheitsregister"></div>
@@ -64,7 +66,8 @@ HC.getRegistrationForm(document.getElementById("gesundheitsregister"))
 });
 
 document.getElementById("submitRegister").addEventListener("click", () => {
-  HC.register()
+  let autoLogin = true;
+  HC.register(autoLogin)
   .then((response) => {
     // User successfully registered
   })
@@ -74,18 +77,25 @@ document.getElementById("submitRegister").addEventListener("click", () => {
 });
 ```
 
-In the case of a successful registration, ``error`` is contains a message, and ``response`` contains the user id as below.
+In the case of a successful registration, ``error`` is contains a message, and ``response`` contains the user alias as below.
 ```json
     {
         "alias": "hcUserAlias"
     }
 ```
+In the case of a successful login after the registration you will get back a ``response`` containing the users alias and id.
 
 The user will need to login after registration.
+```json
+    {
+        "alias": "hcUserAlias",
+        "id": "hcUserId"
+    }
+```
 
 ### Login
 The login step is similar to registering.
-Call ``HC.getLoginForm(parent_node, callback)`` to get the login form appended to ``parent_node``.
+Call ``HC.getLoginForm(parentNode, callback)`` to get the login form appended to ``parentNode``.
 After user tries to login the request result will be processed as a promise.
 
 ```javascript
@@ -99,6 +109,15 @@ HC.getLoginForm(document.getElementById("gesundheitslogin"))
 ```
 
 The SDK automatically performs the required authentication steps during the login.
+In the case of a successful login you will get back a ``response`` containing the users alias and id.
+
+The user will need to login after registration.
+```json
+    {
+        "alias": "hcUserAlias",
+        "id": "hcUserId"
+    }
+```
 
 ### Get the Current UserId and Alias
 You can get the currently active user synchronously by calling getUserIdAndAlias.

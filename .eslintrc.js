@@ -15,7 +15,7 @@ module.exports = {
 		"prefer-const": 1,
 		"no-unused-vars": 1,
 		"newline-per-chained-call": ["error", { "ignoreChainWithDepth": 3 }],
-		"max-len": ["error",  { "code": 100, "ignoreTemplateLiterals": true }]
+		"max-len": ["error",  { "code": 100, "ignoreTemplateLiterals": true, "ignoreStrings": true }]
 	},
 	"settings": {
 		'import/resolver': {
