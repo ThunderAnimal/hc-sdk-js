@@ -52,12 +52,15 @@ describe('hcRequest', () => {
 			{ ok: true, body: { status: '201' } },
 		);
 
-		hcRequest('POST', 'path').then((res) => {
-			expect(res.status).to.equal('201');
-			expect(requestStub).to.be.calledWith('POST');
-			expect(requestStub).to.be.calledOnce;
-			done();
-		});
+		hcRequest('POST', 'path')
+			.then((res) => {
+				expect(res.status).to.equal('201');
+				expect(requestStub).to.be.calledWith('POST');
+				expect(requestSendStub.firstCall.args[0]).to.be.undefined;
+				expect(requestStub).to.be.calledOnce;
+				done();
+			})
+			.catch(done);
 	});
 
 	it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {

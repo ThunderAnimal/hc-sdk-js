@@ -25,7 +25,7 @@ const isExpired = error =>
 	error.status === 401 && error.res && error.res.header['www-authenticate'].includes('expired');
 
 const hcRequest = (type, path, {
-	body = {},
+	body,
 	query = {},
 	headers = {},
 	responseType = '',
