@@ -87,13 +87,23 @@ class FHIRService {
 		return UserService.getInternalUser()
 			.then((userObject) => {
 				user = userObject;
+				if (params.client_id) {
+					const clientTag = taggingUtils.buildTag('client', params.client_id);
+					params.tags = params.tags ?
+						[...params.tags, clientTag] :
+						[clientTag];
+					delete params.client_id;
+				}
+
 				if (params.tags) {
 					params.tags = params.tags
 						.map(tag => encryptionUtils.encrypt(tag, user.tek)).join(',');
 				}
+
 				if (params.user_ids) {
 					params.user_ids = params.user_ids.join(',');
 				}
+
 				return params;
 			})
 			.then(queryParams => documentRoutes.searchRecords(queryParams))

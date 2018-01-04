@@ -319,6 +319,7 @@ By calling ``getDocuments`` all documents of the user logged in can be received.
 ```
 For filtering those Documents you can add an object of parameters to the call. Possible parameters are:
 ```
+ client_id (optional, string) ... clientId from which the records where uploaded.
  limit (optional, number) ... Maximum number of records to retrieve. Defaults to some sensible value (20?) if no value is provided. Has a sensible max (100?).
  offset (optional, number) ... Number of records to skip when retrieving. Defaults to 0 if no value is provided.
  start_date (optional, date) ... Earliest date for which to return records

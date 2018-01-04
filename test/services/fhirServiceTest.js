@@ -62,7 +62,8 @@ describe('services/fhirService', () => {
 		getInternalUserStub = sinon.stub(UserService, 'getInternalUser')
 			.returnsPromise().resolves(userResources.internalUser);
 		searchRecordsStub = sinon.stub(documentRoutes, 'searchRecords')
-			.returnsPromise().resolves([recordResources.documentReferenceEncrypted]);
+			.returnsPromise().resolves([
+				Object.assign({}, recordResources.documentReferenceEncrypted)]);
 		tagDecryptStub = sinon.stub(encryptionUtils, 'decrypt')
 			.returns(testVariables.tag);
 		tagEncryptStub = sinon.stub(encryptionUtils, 'encrypt')
@@ -93,7 +94,7 @@ describe('services/fhirService', () => {
 				expect(getInternalUserStub).to.be.calledWith(testVariables.userId);
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
 	it('createFhirRecord - fails when fhirValidation fails', (done) => {
@@ -119,7 +120,7 @@ describe('services/fhirService', () => {
 				expect(getInternalUserStub).to.be.calledWith(testVariables.userId);
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
 	it('downloadFhirRecord - Happy Path', (done) => {
@@ -131,12 +132,13 @@ describe('services/fhirService', () => {
 				expect(getInternalUserStub).to.be.calledOnce;
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
-	it('searchRecords succeeds', (done) => {
+	it('searchRecords - works as expected with all parameters', (done) => {
 		const params = {
 			user_ids: [testVariables.userId, testVariables.secondUserId],
+			client_id: testVariables.clientId,
 			limit: 20,
 			offset: 20,
 			start_date: '2017-06-06',
@@ -150,7 +152,7 @@ describe('services/fhirService', () => {
 			offset: 20,
 			start_date: '2017-06-06',
 			end_date: '2017-08-08',
-			tags: `${testVariables.encryptedTag},${testVariables.encryptedTag}`,
+			tags: `${testVariables.encryptedTag},${testVariables.encryptedTag},${testVariables.encryptedTag}`,
 		};
 
 		fhirService.searchRecords(params)
@@ -162,7 +164,28 @@ describe('services/fhirService', () => {
 				expect(getInternalUserStub).to.be.calledOnce;
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
+	});
+
+	it('searchRecords - parses the clientId as a tag', (done) => {
+		const params = {
+			client_id: testVariables.clientId,
+		};
+
+		const expectedParamsForRoute = {
+			tags: `${testVariables.encryptedTag}`,
+		};
+
+		fhirService.searchRecords(params)
+			.then((res) => {
+				expect(res.length).to.equal(1);
+				expect(res[0].record_id).to.equal(testVariables.recordId);
+				expect(searchRecordsStub).to.be.calledOnce;
+				expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
+				expect(getInternalUserStub).to.be.calledOnce;
+				done();
+			})
+			.catch(done);
 	});
 
 	it('deleteRecord - Happy Path', (done) => {
@@ -173,7 +196,7 @@ describe('services/fhirService', () => {
 					.calledWith(testVariables.userId, testVariables.recordId);
 				done();
 			})
-			.catch(console.log);
+			.catch(done);
 	});
 
 	afterEach(() => {
