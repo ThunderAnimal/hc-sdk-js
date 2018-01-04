@@ -35,6 +35,7 @@ describe('documentRoutes', () => {
 			'fakeDocumentId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('GET');
 			done();
 		});
@@ -49,6 +50,7 @@ describe('documentRoutes', () => {
 		documentRoutes.getFileUploadUrls('fakeUserAlias', 'fakeRecordId', '42').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('POST');
 			done();
 		});
@@ -77,6 +79,7 @@ describe('documentRoutes', () => {
 		documentRoutes.createRecord('fakeUserId', params).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('POST');
 			done();
 		});
@@ -91,6 +94,7 @@ describe('documentRoutes', () => {
 		documentRoutes.downloadRecord('fakeUserId', 'fakeRecordId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('GET');
 			done();
 		});
@@ -105,6 +109,7 @@ describe('documentRoutes', () => {
 		documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('PUT',
 				`${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
 			done();

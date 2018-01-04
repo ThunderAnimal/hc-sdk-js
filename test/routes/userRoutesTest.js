@@ -72,6 +72,7 @@ describe('userRoutes', () => {
 		userRoutes.getUserDetails('test').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('GET');
 			done();
 		});
@@ -82,6 +83,7 @@ describe('userRoutes', () => {
 		userRoutes.getGrantedPermissions('userId', 'granteeId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('GET');
 			done();
 		});
@@ -97,14 +99,17 @@ describe('userRoutes', () => {
 		});
 	});
 
-	it('add tresor passes', (done) => {
+	it('addTresor passes', (done) => {
 		requestStub.resolves('pass');
-		userRoutes.addTresor('userId', 'test').then((res) => {
-			expect(res).to.equal('pass');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('POST');
-			done();
-		});
+		userRoutes.addTresor('userId', 'test')
+			.then((res) => {
+				expect(res).to.equal('pass');
+				expect(requestStub).to.be.calledOnce;
+				expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+				expect(requestStub).to.be.calledWith('POST');
+				done();
+			})
+			.catch(done);
 	});
 
 	it('verifyShareAndGrantPermission passes', (done) => {
@@ -113,6 +118,7 @@ describe('userRoutes', () => {
 			'granteeId', 'operationId').then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('POST');
 			done();
 		});
@@ -134,6 +140,7 @@ describe('userRoutes', () => {
 		userRoutes.updateUser({ name: 'fakeName' }).then((res) => {
 			expect(res).to.equal('pass');
 			expect(requestStub).to.be.calledOnce;
+			expect(requestStub.firstCall.args[2].authorize).to.equal(true);
 			expect(requestStub).to.be.calledWith('PUT');
 			done();
 		});
