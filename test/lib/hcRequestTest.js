@@ -66,7 +66,7 @@ describe('hcRequest', () => {
 	it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
 		requestSendStub.onCall(0).rejects({
 			status: 401,
-			res: { header: { 'www-authenticate': 'Your Authorization Token has expired' } },
+			body: { error: 'Your Authorization Token has expired' },
 		});
 		requestSendStub.onCall(1).resolves({ ok: true, body: { status: '201' } });
 

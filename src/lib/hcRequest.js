@@ -22,7 +22,7 @@ const sendRefreshToken = () => {
 };
 
 const isExpired = error =>
-	error.status === 401 && error.res && error.res.header['www-authenticate'].includes('expired');
+	error.status === 401 && error.body && error.body.error && error.body.error.includes('expired');
 
 const hcRequest = (type, path, {
 	body,
