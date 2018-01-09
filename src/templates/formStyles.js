@@ -71,14 +71,14 @@ export default `
 #gesundheitslogin input:not(.browser-default):focus:not([readonly]),
 #gesundheitsregister input:not([type]):focus:not([readonly]),
 #gesundheitsregister input:not(.browser-default):focus:not([readonly]) {
-  border-bottom: 2px solid #3E8FF5;
+  border-bottom: 2px solid #ff7f00;
 }
 
 #gesundheitslogin input:not([type]):focus:not([readonly]) + label,
 #gesundheitslogin input:not(.browser-default):focus:not([readonly]) + label,
 #gesundheitsregister input:not([type]):focus:not([readonly]) + label,
 #gesundheitsregister input:not(.browser-default):focus:not([readonly]) + label {
-  color: #26a69a;
+  color: #ff7f00;
 }
 
 #gesundheitslogin input:not(.browser-default) + label:after,
@@ -98,7 +98,7 @@ export default `
   width: 98%;
   height: 3rem;
   background: inherit;
-  background-color: #3E8FF5;
+  background-color: #ff7f00;
   color: #FFFFFF;
   border: none;
   border-radius: 2px;
