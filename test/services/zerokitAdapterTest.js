@@ -310,6 +310,7 @@ describe('zerokitAdapter', () => {
 			.then((res) => {
 				expect(resolveUserStub).to.be.calledOnce;
 				expect(shareTresorStub).to.be.calledOnce;
+				expect(getInternalUserStub).to.be.calledOnce;
 				expect(verifyShareAndGrantPermissionStub).to.be.calledOnce;
 				done();
 			})
@@ -323,6 +324,7 @@ describe('zerokitAdapter', () => {
 			.then((res) => {
 				expect(resolveUserStub).to.be.calledOnce;
 				expect(shareTresorStub).to.be.calledOnce;
+				expect(getInternalUserStub).to.be.calledOnce;
 				expect(verifyShareAndGrantPermissionStub).to.not.be.calledOnce;
 				done();
 			})

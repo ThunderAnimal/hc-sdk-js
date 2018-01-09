@@ -183,10 +183,6 @@ class ZeroKitAdapter {
 			.then((result) => {
 				grantee = result[0];
 				owner = result[1];
-				return UserService.getInternalUser(grantee.id, true);
-			})
-			.then((fullGrantee) => {
-				grantee = fullGrantee;
 				return this.zeroKit.then(zeroKit =>
 					zeroKit.shareTresor(owner.tresorId, grantee.zeroKitId));
 			})
