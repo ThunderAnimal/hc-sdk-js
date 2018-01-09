@@ -58,8 +58,8 @@ class UserService {
 					if (partial) return resolve(user);
 
 					const userDataPromise =
-						userDetails.user.user_data && userDetails.user.user_data.encryptedData ?
-							this.zeroKitAdapter.decrypt(userDetails.user.user_data.encryptedData) :
+						userDetails.user.user_data && userDetails.user.user_data.encrypted_data ?
+							this.zeroKitAdapter.decrypt(userDetails.user.user_data.encrypted_data) :
 							Promise.resolve('{}');
 					const tekPromise = userDetails.user.tag_encryption_key ?
 						this.zeroKitAdapter.decrypt(userDetails.user.tag_encryption_key) :

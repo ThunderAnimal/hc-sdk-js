@@ -26,7 +26,7 @@ const userResources = {
 			tresor_id: testVariables.tresorId,
 			state: testVariables.state,
 			tag_encryption_key: testVariables.encryptedTek,
-			user_data: { encryptedData: testVariables.encryptedUserData },
+			user_data: { encrypted_data: testVariables.encryptedUserData },
 		},
 	},
 };
