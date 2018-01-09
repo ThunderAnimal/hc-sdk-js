@@ -27,7 +27,7 @@ const hcDocumentUtils = {
 		const hcDocument = new HCDocument({
 			type: fhirObject.type.text,
 			creationDate: new Date(fhirObject.indexed),
-			author: fhirObject.author[0].display,
+			author: (fhirObject.author && fhirObject.author.length > 0) ? fhirObject.author[0].display : '',
 			title: fhirObject.subject.reference,
 		});
 		hcDocument.attachments = fhirObject.content.map(content =>
