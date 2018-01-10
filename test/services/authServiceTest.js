@@ -7,22 +7,26 @@ import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import config from 'config';
 
-import siriusRoutes from '../../src/routes/authRoutes';
-import Auth from '../../src/services/AuthService';
+import authRoutes from '../../src/routes/authRoutes';
+import sessionHandler from '../../src/lib/sessionHandler';
+import AuthService from '../../src/services/AuthService';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('Auth', () => {
-	let auth;
-	let getAccessTokenFromCodeStub;
+describe('AuthService', () => {
+	let authService;
 	let accessTokenObject;
+
+	let getAccessTokenFromCodeStub;
+	let logoutStub;
+	let revokeRefreshTokenStub;
 
 	beforeEach(() => {
 		config.api = 'http://fakeUrl';
-		auth = new Auth({ clientId: '1', userId: '3213' });
+		authService = new AuthService({ clientId: '1', userId: '3213' });
 		accessTokenObject = {
 			access_token: 'fake_access_token',
 			expires_in: 3600,
@@ -34,18 +38,21 @@ describe('Auth', () => {
 		document.body.removeChild = sinon.spy();
 		sinon.spy(document.body, 'appendChild');
 
-		getAccessTokenFromCodeStub =
-			sinon.stub(siriusRoutes, 'getAccessTokenFromCode')
-				.returnsPromise().resolves(accessTokenObject);
+		getAccessTokenFromCodeStub = sinon.stub(authRoutes, 'getAccessTokenFromCode')
+			.returnsPromise().resolves(accessTokenObject);
+		logoutStub = sinon.stub(sessionHandler, 'logout')
+			.returns();
+		revokeRefreshTokenStub = sinon.stub(authRoutes, 'revokeRefreshToken')
+			.returnsPromise().resolves();
 	});
 
 	it('authorize() succeeds', (done) => {
 		const handleIframeStub =
-			sinon.stub(auth, 'handleIframe')
+			sinon.stub(authService, 'handleIframe')
 				.yields(null, `code=kjhdshcsjkhcfs&state=${config.signinState}`);
 
 		document.cookie = 'HC_User=123;';
-		auth.authorize()
+		authService.authorize()
 			.then((res) => {
 				expect(handleIframeStub).to.be.calledOnce;
 				expect(res.access_token).to.equal('fake_access_token');
@@ -56,14 +63,14 @@ describe('Auth', () => {
 	});
 
 	it('idpLogin succeeds', (done) => {
-		const handleIframeStub = sinon.stub(auth, 'handleIframe');
+		const handleIframeStub = sinon.stub(authService, 'handleIframe');
 		handleIframeStub
 			.onCall(0)
 			.yields(null, 'auth_token=kjhdshcsjkhcfs');
 		handleIframeStub
 			.onCall(1)
 			.yields(null, `code=kjhdshcsjkhcfs&state=${config.signinState}`);
-		auth.idpLogin().then((res) => {
+		authService.idpLogin().then((res) => {
 			expect(res.access_token).to.equal('fake_access_token');
 			expect(res.refresh_token).to.equal('fake_refresh_token');
 			expect(handleIframeStub).to.be.calledTwice;
@@ -73,10 +80,10 @@ describe('Auth', () => {
 	});
 
 	it('idpLogin returns error when token api returns error', (done) => {
-		const handleIframeStub = sinon.stub(auth, 'handleIframe');
+		const handleIframeStub = sinon.stub(authService, 'handleIframe');
 		handleIframeStub.onCall(0).yields(null, 'auth_token=kjhdshcsjkhcfs');
 		handleIframeStub.onCall(1).yields('failed');
-		auth.idpLogin().catch((err) => {
+		authService.idpLogin().catch((err) => {
 			expect(err).to.equal('failed');
 			expect(handleIframeStub).to.be.calledTwice;
 			expect(getAccessTokenFromCodeStub).to.not.be.called;
@@ -85,10 +92,10 @@ describe('Auth', () => {
 	});
 
 	it('idpLogin returns error when failing', (done) => {
-		const handleIframeStub = sinon.stub(auth, 'handleIframe');
+		const handleIframeStub = sinon.stub(authService, 'handleIframe');
 		handleIframeStub.onCall(0).yields('failed');
 		handleIframeStub.onCall(1).yields('failed');
-		auth.idpLogin().catch((err) => {
+		authService.idpLogin().catch((err) => {
 			expect(err).to.equal('failed');
 			expect(handleIframeStub).to.be.calledOnce;
 			expect(getAccessTokenFromCodeStub).to.not.be.called;
@@ -107,7 +114,7 @@ describe('Auth', () => {
 			},
 		};
 
-		auth.handleIframe(iframe, (err, result) => {
+		authService.handleIframe(iframe, (err, result) => {
 			expect(result).to.equal('code=fakeCode&state=fakeState');
 			done();
 		});
@@ -124,14 +131,25 @@ describe('Auth', () => {
 			},
 		};
 
-		auth.handleIframe(iframe, (err) => {
+		authService.handleIframe(iframe, (err) => {
 			expect(err).to.equal('Failed');
 			done();
 		});
 	});
 
+	it('logout - Happy Path', (done) => {
+		authService.logout()
+			.then(() => {
+				expect(logoutStub).to.be.calledOnce;
+				expect(revokeRefreshTokenStub).to.be.calledOnce;
+				done();
+			});
+	});
+
 	afterEach(() => {
-		siriusRoutes.getAccessTokenFromCode.restore();
+		getAccessTokenFromCodeStub.restore();
+		logoutStub.restore();
+		revokeRefreshTokenStub.restore();
 		document.body.appendChild.restore();
 	});
 });

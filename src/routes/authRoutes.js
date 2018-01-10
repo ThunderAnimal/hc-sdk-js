@@ -23,6 +23,17 @@ const authRoutes = {
 
 		return hcRequest('POST', `${apiUrl}/auth/token`, { body, headers });
 	},
+
+	revokeRefreshToken(token) {
+		const headers = {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			Authorization: `Bearer ${SessionHandler.get('HC_Id')}`,
+		};
+
+		const body = { token };
+
+		return hcRequest('POST', `${apiUrl}/auth/token/revoke`, { headers, body });
+	},
 };
 
 export default authRoutes;

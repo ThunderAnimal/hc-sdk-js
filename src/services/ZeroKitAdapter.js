@@ -196,8 +196,10 @@ class ZeroKitAdapter {
 	}
 
 	logout() {
-		sessionHandler.logout();
-		return this.zeroKit.then(zerokit => zerokit.logout());
+		return Promise.all([
+			this.zeroKit.then(zerokit => zerokit.logout()),
+			this.authService.logout(),
+		]).then(() => {});
 	}
 }
 

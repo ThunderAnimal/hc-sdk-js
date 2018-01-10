@@ -6,13 +6,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import UserService from '../../src/services/UserService';
-import userRoutes from '../../src/routes/userRoutes';
-import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
-import loginForm from '../../src/templates/loginForm';
-import sessionHandler from '../../src/lib/sessionHandler';
 import testVariables from '../testUtils/testVariables';
 import userResources from '../testUtils/userResources';
+import loginForm from '../../src/templates/loginForm';
+import userRoutes from '../../src/routes/userRoutes';
+import sessionHandler from '../../src/lib/sessionHandler';
+import UserService from '../../src/services/UserService';
+import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -22,6 +22,7 @@ const expect = chai.expect;
 describe('zerokitAdapter', () => {
 	let addTagEncryptionKeyStub;
 	let addTresorStub;
+	let authServiceLogoutStub;
 	let createTresorStub;
 	let decryptStub;
 	let encryptStub;
@@ -54,6 +55,8 @@ describe('zerokitAdapter', () => {
 		addTagEncryptionKeyStub = sinon.stub(userRoutes, 'addTagEncryptionKey')
 			.returnsPromise().resolves();
 		addTresorStub = sinon.stub(userRoutes, 'addTresor')
+			.returnsPromise().resolves();
+		authServiceLogoutStub = sinon.stub()
 			.returnsPromise().resolves();
 		createTresorStub = sinon.stub()
 			.returnsPromise().resolves(testVariables.tresorId);
@@ -95,6 +98,7 @@ describe('zerokitAdapter', () => {
 
 		authService = {
 			idpLogin: idpLoginStub,
+			logout: authServiceLogoutStub,
 		};
 
 		zKitLoginObject = { login: loginStub };
@@ -142,7 +146,6 @@ describe('zerokitAdapter', () => {
 			})
 			.catch(done);
 	});
-
 
 	it('login - rejects when idpLogin fails', (done) => {
 		idpLoginStub.rejects();
@@ -288,7 +291,7 @@ describe('zerokitAdapter', () => {
 		zerokitAdapter.logout()
 			.then(() => {
 				expect(logoutStub).to.be.calledOnce;
-				expect(sessionHandlerLogoutStub).to.be.calledOnce;
+				expect(authServiceLogoutStub).to.be.calledOnce;
 				done();
 			})
 			.catch(done);

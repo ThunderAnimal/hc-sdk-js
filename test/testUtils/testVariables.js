@@ -22,6 +22,7 @@ const testVariables = {
 	encryptedString: 'encrypted_string',
 	state: 'state',
 	userData: {},
+	refreshToken: 'refresh_token',
 };
 
 export default testVariables;

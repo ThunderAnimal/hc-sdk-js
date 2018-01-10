@@ -108,6 +108,11 @@ class Auth {
 			}
 		});
 	}
+
+	logout() {
+		return authRoutes.revokeRefreshToken(sessionHandler.get('HC_Refresh'))
+			.then(sessionHandler.logout.bind(sessionHandler));
+	}
 }
 
 
