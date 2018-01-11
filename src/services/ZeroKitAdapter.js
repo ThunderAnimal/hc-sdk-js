@@ -199,7 +199,8 @@ class ZeroKitAdapter {
 		return Promise.all([
 			this.zeroKit.then(zerokit => zerokit.logout()),
 			this.authService.logout(),
-		]).then(() => {});
+		])
+			.then(() => {});
 	}
 }
 

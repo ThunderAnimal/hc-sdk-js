@@ -31,7 +31,7 @@ const userRoutes = {
 	},
 
 	getGrantedPermissions(userId, granteeId) {
-		return hcRequest('GET', `${apiUrl}/users/${userId}/permissions?grantee_id=${granteeId}`, { authorize: true });
+		return hcRequest('GET', `${apiUrl}/users/${userId}/permissions`, { authorize: true, query: { grantee_id: granteeId } });
 	},
 
 	addTresor(userId, tresorId) {
