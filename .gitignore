@@ -1,8 +1,8 @@
 .idea/
 .DS_Store
-dest/
 *.iml
 .yarnclean
+**/healthcloud_sdk*
 
 #template
 # Logs

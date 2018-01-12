@@ -1,0 +1,27 @@
+<div>
+    <form enctype="multipart/form-data">
+        <input id="title" type="text" placeholder="Document title"/>
+        <input id="author" type="text" placeholder="Documents author"/>
+        <input id="files" type="file" name="files" size=30 multiple/>
+        <button type="button"
+                onclick="uploadDocument(
+                	[...document.getElementById('files').files],
+                    document.getElementById('title').value,
+                    document.getElementById('author').value)">
+            Press me to upload your document.
+        </button>
+    </form>
+    <button onclick="getDocuments()">
+        Press me to display basic information about all your documents.
+    </button>
+    <br><br>
+    <form enctype="multipart/form-data">
+        <input type="text" id="docId" placeholder="Document id"/>
+        <button onclick="getDocument(document.getElementById('docId').value)">
+            Press me to display the requested document.
+        </button>
+    </form>
+    <div id="result"></div>
+</div>
+
+<script type="text/javascript" src="/tabs/documents.js"></script>

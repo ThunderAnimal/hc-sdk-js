@@ -1,0 +1,15 @@
+<div id="logoutResult"></div>
+
+<script>
+    if(typeof logoutElement === 'undefined')
+	    var logoutElement = document.getElementById("logoutResult");
+
+    HC.logout()
+        .then(() => {
+            logoutElement.innerHTML = "You have been logged out successfully."
+        })
+        .catch(() => {
+    	    logoutElement.innerHTML = "This feature is only available when logged in."
+        })
+</script>
+

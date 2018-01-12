@@ -1,0 +1,14 @@
+<div>
+    Enable another user to interact with your documents.
+</div>
+<div clss="ui form">
+    <form enctype="multipart/form-data">
+        <input id="ownerAlias" type="text">
+        <button type="button" onclick="grantPermissions(document.getElementById('ownerAlias').value)">Grant Permissions</button>
+    </form>
+
+    <div id="permissionsResult" class="ui message hidden"></div>
+</div>
+
+<script type="text/javascript" src="/tabs/handlePermissions.js"></script>
+

@@ -1,0 +1,13 @@
+<div>
+    <form enctype="multipart/form-data">
+        <input id="alias" type="text" placeholder="Grantee alias"/>
+        <button type="button"
+                onclick="grantPermissions(document.getElementById('alias').value)">
+            Press me to grant permissions.
+        </button>
+        <div id="grantResult" ></div>
+        <ol id="grantedPermissions"></ol>
+    </form>
+</div>
+
+<script type="text/javascript" src="/tabs/permissions.js"></script>
