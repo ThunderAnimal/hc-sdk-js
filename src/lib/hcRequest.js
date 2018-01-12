@@ -1,5 +1,5 @@
 import request from 'superagent-bluebird-promise';
-import sessionHandler from './sessionHandler';
+import sessionHandler from 'session-handler';
 import authRoutes from '../routes/authRoutes';
 
 const buildCustomError = error => ({

@@ -20,14 +20,18 @@ module.exports = {
 	"settings": {
 		'import/resolver': {
 			'configurable': {
-				'config': './src/config/develop'
+				'config': './src/config/develop',
+				'session-handler': './src/lib/sessionHandler/web'
 			}
 		}
 	},
 	"env": {
-		"browser": true
+		"browser": true,
+		"node": true
 	},
 	"globals": {
-		"zkit_sdk": true
+		"zkit_sdk": true,
+		"NODE": true,
+		"__karma__": true,
 	}
 };

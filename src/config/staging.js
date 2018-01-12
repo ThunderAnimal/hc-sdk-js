@@ -11,6 +11,7 @@ const config = {
 	zkit: {
 		service_url: 'https://raf1unp2me.api.tresorit.io',
 		clientId: 'raf1unp2me_qQ1dMytsop',
+		version: 4,
 	},
 };
 

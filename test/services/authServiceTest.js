@@ -6,10 +6,12 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import config from 'config';
+import sessionHandler from 'session-handler';
+
 
 import authRoutes from '../../src/routes/authRoutes';
-import sessionHandler from '../../src/lib/sessionHandler';
 import AuthService from '../../src/services/AuthService';
+import testVariables from '../testUtils/testVariables';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -19,6 +21,8 @@ const expect = chai.expect;
 describe('AuthService', () => {
 	let authService;
 	let accessTokenObject;
+	let getAccessTokenFromCredentialsStub;
+	let expectedParamsForClientCredentials;
 
 	let getAccessTokenFromCodeStub;
 	let logoutStub;
@@ -26,7 +30,11 @@ describe('AuthService', () => {
 
 	beforeEach(() => {
 		config.api = 'http://fakeUrl';
-		authService = new AuthService({ clientId: '1', userId: '3213' });
+		authService = new AuthService({
+			clientId: testVariables.clientId,
+			userId: testVariables.userId,
+			clientSecret: testVariables.clientSecret,
+		});
 		accessTokenObject = {
 			access_token: 'fake_access_token',
 			expires_in: 3600,
@@ -38,8 +46,22 @@ describe('AuthService', () => {
 		document.body.removeChild = sinon.spy();
 		sinon.spy(document.body, 'appendChild');
 
-		getAccessTokenFromCodeStub = sinon.stub(authRoutes, 'getAccessTokenFromCode')
-			.returnsPromise().resolves(accessTokenObject);
+		getAccessTokenFromCodeStub =
+			sinon.stub(authRoutes, 'getAccessTokenFromCode')
+				.returnsPromise().resolves(accessTokenObject);
+
+		expectedParamsForClientCredentials = {
+			client_id: testVariables.clientId,
+			scope: `user:${testVariables.userId}`,
+			grant_type: 'client_credentials',
+			client_secret: testVariables.clientSecret,
+		};
+
+		getAccessTokenFromCredentialsStub =
+			sinon.stub(authRoutes, 'getAccessTokenFromCredentials')
+				.returnsPromise().withArgs(expectedParamsForClientCredentials)
+				.resolves(accessTokenObject);
+
 		logoutStub = sinon.stub(sessionHandler, 'logout')
 			.returns();
 		revokeRefreshTokenStub = sinon.stub(authRoutes, 'revokeRefreshToken')
@@ -146,10 +168,20 @@ describe('AuthService', () => {
 			});
 	});
 
+	it('clientCredentialsLogin succeeds', (done) => {
+		authService.clientCredentialsLogin(testVariables.userId)
+			.then(() => {
+				expect(getAccessTokenFromCredentialsStub).to.be.calledOnce;
+				done();
+			})
+			.catch(done);
+	});
+
 	afterEach(() => {
 		getAccessTokenFromCodeStub.restore();
 		logoutStub.restore();
 		revokeRefreshTokenStub.restore();
+		authRoutes.getAccessTokenFromCredentials.restore();
 		document.body.appendChild.restore();
 	});
 });

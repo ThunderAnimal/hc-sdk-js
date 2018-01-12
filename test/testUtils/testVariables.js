@@ -1,6 +1,8 @@
 const testVariables = {
 	userId: 'user_id',
 	clientId: 'client_id',
+	clientSecret: 'client_secret',
+	wrongClientSecret: 'wrong_client_secret',
 	secondUserId: 'second_user_id',
 	recordId: 'record_id',
 	fileId: 'file_id',
@@ -10,6 +12,8 @@ const testVariables = {
 	regValidationVerifier: 'reg_validation_verifier',
 	operationId: 'operation_id',
 	userAlias: 'user@alias.de',
+	password: 'password',
+	wrongPassword: 'wrong_password',
 	dateString: '2017-12-15',
 	dateTimeString: '2017-12-15T10:35:52.492',
 	tag: 'tag',

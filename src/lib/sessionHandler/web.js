@@ -1,5 +1,4 @@
-// noinspection JSAnnotator
-const SessionHandler = {
+const sessionHandler = {
 
 	get(key) {
 		return this.getCookie(key);
@@ -33,4 +32,4 @@ const SessionHandler = {
 	},
 };
 
-export default SessionHandler;
+export default sessionHandler;

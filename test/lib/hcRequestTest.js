@@ -76,7 +76,7 @@ describe('hcRequest', () => {
 		const getAccessTokkenStub = sinon.stub().returns('token');
 
 		hcRequest = proxyquire('../../src/lib/hcRequest', {
-			'./sessionHandler': {
+			'./sessionHandler/web': {
 				default: {
 					get: getAccessTokkenStub,
 					set: sinon.stub().returns(true),
@@ -92,9 +92,10 @@ describe('hcRequest', () => {
 			.then((res) => {
 				expect(res.status).to.equal('201');
 				expect(getRefreshTokenStub).to.be.calledOnce;
-				expect(getAccessTokkenStub.callCount).to.equal(3);
+				expect(getAccessTokkenStub).to.be.calledThrice;
 				done();
-			});
+			})
+			.catch(done);
 	});
 
 

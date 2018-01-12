@@ -1,39 +1,101 @@
+/* eslint-disable global-require */
 import config from 'config';
+import sessionHandler from 'session-handler';
 import userRoutes from '../routes/userRoutes';
-import sessionHandler from '../lib/sessionHandler';
 import UserService from './UserService';
-import loginForm, { tagIds as loginFormIds } from '../templates/loginForm';
+import { createLoginFormTemplate, tagIds as loginFormIds } from '../templates/loginForm';
 import formStyles from '../templates/formStyles';
-import registrationForm, { tagIds as registrationFormIds } from '../templates/registrationForm';
+import { createRegistrationFormTemplate, tagIds as registrationFormIds } from '../templates/registrationForm';
 import encryptionUtils from '../lib/EncryptionUtils';
 import validationUtils from '../lib/validationUtils';
 import ValidationError from '../lib/errors/ValidationError';
 import stylesUtils from '../lib/stylesUtils';
 
+let zkitNodeSDK;
+if (NODE) {
+	zkitNodeSDK = require('zerokit-node-client');
+}
 
 class ZeroKitAdapter {
 	constructor(options) {
 		this.authService = options.authService;
 		this.zKitRegistrationObject = null;
-		this.zeroKit = new Promise((resolve, reject) => {
-			const script = document.createElement('script');
-			script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
-			script.querySelector('#zkit');
-			script.addEventListener('load', () => {
-				if (zkit_sdk) {
-					zkit_sdk.setup(config.zkit.service_url, '');
-					resolve(zkit_sdk);
-				} else {
-					reject(new Error('Setting up ZeroKit failed.'));
+
+		if (NODE) {
+			this.zeroKit = zkitNodeSDK(config.zkit.service_url, config.zkit.version);
+		} else {
+			this.zeroKit = new Promise((resolve, reject) => {
+				const script = document.createElement('script');
+				script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
+				script.querySelector('#zkit');
+				script.addEventListener('load', () => {
+					if (zkit_sdk) {
+						zkit_sdk.setup(config.zkit.service_url, '');
+						resolve(zkit_sdk);
+					} else {
+						reject(new Error('Setting up ZeroKit failed.'));
+					}
+				});
+				document.getElementsByTagName('head')[0].appendChild(script);
+			});
+		}
+	}
+
+	loginNode(hcUserAlias, password) {
+		return UserService.resolveUser(hcUserAlias)
+			.then(user => this.zeroKit.then(zeroKit => zeroKit.login(user.zeroKitId, password))
+				.then(() => this.authService.clientCredentialsLogin(user.id))
+				.then(() => {
+					sessionHandler.set('HC_User', `${user.id},${hcUserAlias}`);
+					return this.setupUser();
+				})
+				.then(() => ({ id: user.id, alias: hcUserAlias })));
+	}
+
+	login(zKitLoginObject, hcUserAlias) {
+		let userId;
+		return UserService.resolveUser(hcUserAlias)
+			.then((user) => {
+				const { zeroKitId } = user;
+				userId = user.id;
+				sessionHandler.set('HC_User', `${userId},${hcUserAlias}`);
+
+				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
+			})
+			.then(() => this.authService.idpLogin())
+			.then(() => this.setupUser())
+			.then(() => ({ id: userId, alias: hcUserAlias }));
+	}
+
+	setupUser() {
+		let tek;
+		return UserService.getInternalUser()
+			.then((user) => {
+				let tresorId;
+				({ tresorId, tek } = user);
+				if (!tresorId) {
+					return this.createTresor()
+						.then((createdTresorId) => {
+							UserService.user.tresorId = createdTresorId;
+							return createdTresorId;
+						});
+				}
+				return tresorId;
+			})
+			.then((tresorId) => {
+				if (!tek) {
+					this.createTek(tresorId)
+						.then((createdTek) => {
+							UserService.user.tek = createdTek;
+						});
 				}
 			});
-			document.getElementsByTagName('head')[0].appendChild(script);
-		});
 	}
 
 	getLoginForm(parentElement) {
 		return new Promise((resolve, reject) => {
-			parentElement.appendChild(loginForm);
+			const loginFormTemplate = createLoginFormTemplate();
+			parentElement.appendChild(loginFormTemplate);
 			const zkitLoginNode = document.getElementById(loginFormIds.zkitLogin);
 			while (zkitLoginNode.firstChild) {
 				zkitLoginNode.removeChild(zkitLoginNode.firstChild);
@@ -59,44 +121,8 @@ class ZeroKitAdapter {
 					});
 			};
 
-			loginForm.onsubmit = submit.bind(this, zKitLoginObject);
+			loginFormTemplate.onsubmit = submit.bind(this, zKitLoginObject);
 		});
-	}
-
-	login(zKitLoginObject, hcUserAlias) {
-		let userId;
-		let tek;
-		return UserService.resolveUser(hcUserAlias)
-			.then((user) => {
-				const { zeroKitId } = user;
-				userId = user.id;
-				sessionHandler.set('HC_User', `${userId},${hcUserAlias}`);
-
-				return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
-			})
-			.then(() => this.authService.idpLogin())
-			.then(() => UserService.getInternalUser())
-			.then((user) => {
-				let tresorId;
-				({ tresorId, tek } = user);
-				if (!tresorId) {
-					return this.createTresor()
-						.then((createdTresorId) => {
-							UserService.user.tresorId = createdTresorId;
-							return createdTresorId;
-						});
-				}
-				return tresorId;
-			})
-			.then((tresorId) => {
-				if (!tek) {
-					this.createTek(tresorId)
-						.then((createdTek) => {
-							UserService.user.tek = createdTek;
-						});
-				}
-				return { id: userId, alias: hcUserAlias };
-			});
 	}
 
 	createTek(tresorId) {
@@ -108,7 +134,8 @@ class ZeroKitAdapter {
 
 	getRegistrationForm(parentElement) {
 		return new Promise((resolve, reject) => {
-			parentElement.appendChild(registrationForm);
+			const registrationFormTemplate = createRegistrationFormTemplate();
+			parentElement.appendChild(registrationFormTemplate);
 			const zkitRegisterNode = document.getElementById(registrationFormIds.zkitRegistration);
 			while (zkitRegisterNode.firstChild) {
 				zkitRegisterNode.removeChild(zkitRegisterNode.firstChild);

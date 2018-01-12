@@ -5,14 +5,18 @@
   "module": "src/index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "webpack --env.NODE_ENV=develop",
-    "build:staging": "webpack --env.NODE_ENV=staging",
-    "build:sandbox": "webpack --env.NODE_ENV=sandbox",
-    "watch": "webpack --env.NODE_ENV=develop --watch",
+    "build": "webpack --env.NODE_ENV=develop --env.TARGET=web",
+    "build:staging": "webpack --env.NODE_ENV=staging --env.TARGET=web",
+    "build:sandbox": "webpack --env.NODE_ENV=sandbox --env.TARGET=web",
+    "build:node": "webpack --env.NODE_ENV=develop --env.TARGET=node",
+    "watch": "webpack --env.NODE_ENV=develop  --env.TARGET=web --watch",
+    "watch:node": "webpack --env.NODE_ENV=develop --env.TARGET=node --watch",
     "lint": "eslint src test",
-    "karma": "karma start karma.conf.js",
-    "karma:prod": "karma start karma.conf.js --single-run",
-    "test": "yarn lint && yarn build && yarn karma:prod && codecov"
+    "karma:web": "karma start karma.conf.js --node false",
+    "karma:node": "karma start karma.conf.js --node true",
+    "karma:prod:web": "karma start karma.conf.js --single-run --node false",
+    "karma:prod:node": "karma start karma.conf.js --single-run --node true",
+    "test": "yarn lint && yarn build && yarn karma:prod:web && yarn karma:prod:node && codecov"
   },
   "dependencies": {
     "ajv": "^5.2.3",
@@ -21,7 +25,8 @@
     "es6-promise": "^4.1.0",
     "json-server": "^0.10.3",
     "superagent": "^3.5.2",
-    "superagent-bluebird-promise": "^4.2.0"
+    "superagent-bluebird-promise": "^4.2.0",
+    "zerokit-node-client": "^4.0.0"
   },
   "devDependencies": {
     "aliasify": "^2.1.0",

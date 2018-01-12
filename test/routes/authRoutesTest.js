@@ -6,6 +6,7 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import proxy from 'proxyquireify';
+import config from 'config';
 import '../../src/routes/authRoutes';
 import testVariables from '../testUtils/testVariables';
 
@@ -16,15 +17,35 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('user Routes', () => {
+describe('auth Routes', () => {
 	let	requestStub;
 	let authRoutes;
+	let expectedParamsForClientCredsGrantType;
+	let expectedHeadersForClientCredsGrantType;
+	let credentialsStub;
 
 
 	beforeEach(() => {
 		requestStub = sinon.stub().returnsPromise();
 		document.cookie = 'SQLiteManager_currentLangue=2; HC_User=c7212d03-34e9-40ab-9029-ed66' +
 			'2ecb7f0b,1';
+
+		expectedHeadersForClientCredsGrantType = {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		};
+		expectedParamsForClientCredsGrantType = {
+			client_id: testVariables.clientId,
+			scope: `user:${testVariables.userId}`,
+			grant_type: 'client_credentials',
+			client_secret: testVariables.clientSecret,
+		};
+
+
+		credentialsStub = sinon.stub().returnsPromise();
+		credentialsStub.rejects('fail');
+		credentialsStub.withArgs('POST', `${config.api}/auth/token`, { body: expectedParamsForClientCredsGrantType, headers: expectedHeadersForClientCredsGrantType })
+			.resolves('pass');
+
 		authRoutes = proxyquire('../../src/routes/authRoutes', {
 			'../lib/hcRequest': { default: requestStub.resolves('pass') },
 		}).default;
@@ -43,6 +64,51 @@ describe('user Routes', () => {
 			expect(requestStub).to.be.calledWith('POST');
 			done();
 		});
+	});
+
+	it('getAccessTokenFromCredentials passes', (done) => {
+		const params = {
+			client_id: testVariables.clientId,
+			scope: `user:${testVariables.userId}`,
+			grant_type: 'client_credentials',
+			client_secret: testVariables.clientSecret,
+		};
+
+		authRoutes = proxyquire('../../src/routes/authRoutes', {
+			'../lib/hcRequest': { default: credentialsStub },
+		}).default;
+
+		authRoutes.getAccessTokenFromCredentials(params).then((res) => {
+			expect(res).to.equal('pass');
+			expect(credentialsStub).to.be.calledOnce;
+			expect(credentialsStub).to.be.calledWith('POST');
+			done();
+		}).catch(done);
+	});
+
+	it('getAccessTokenFromCredentials fails when wrong client_secret is passed', (done) => {
+		const actualParams = {
+			client_id: testVariables.clientId,
+			scope: `user:${testVariables.userId}`,
+			grant_type: 'client_credentials',
+			client_secret: testVariables.wrongClientSecret,
+		};
+		authRoutes = proxyquire('../../src/routes/authRoutes', {
+			'../lib/hcRequest': { default: credentialsStub },
+		}).default;
+
+		authRoutes = proxyquire('../../src/routes/authRoutes', {
+			'../lib/hcRequest': { default: credentialsStub },
+		}).default;
+
+		authRoutes.getAccessTokenFromCredentials(actualParams)
+			.then(() => done(Error('getAccessTokenFromCredentials rejection didn\'t work properly in authRoutes.getAccessTokenFromCredentials')))
+			.catch((err) => {
+				expect(err).to.equal('fail');
+				expect(credentialsStub).to.be.calledOnce;
+				expect(credentialsStub).to.be.calledWith('POST');
+				done();
+			});
 	});
 
 	it('getRefreshTokenFromCode passes', (done) => {
@@ -74,5 +140,6 @@ describe('user Routes', () => {
 
 	afterEach(() => {
 		requestStub.reset();
+		credentialsStub.reset();
 	});
 });

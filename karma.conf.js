@@ -6,6 +6,7 @@ module.exports = function (config) {
 
 		// list of files / patterns to load in the browser
 		files: [
+			'test/testUtils/globalResources.js',
 			'src/**/*.js',
 			'test/**/*.js',
 		],
@@ -14,7 +15,9 @@ module.exports = function (config) {
 			'src/**/*.js': ['browserify'],
 			'test/**/*.js': ['browserify'],
 		},
-
+		client: {
+			node: config.node,
+		},
 		browserify: {
 			debug: true,
 			plugin: ['proxyquire-universal'],
@@ -23,6 +26,7 @@ module.exports = function (config) {
 				['aliasify', {
 					aliases: {
 						config: './src/config/develop',
+						'session-handler': './src/lib/sessionHandler/web',
 					},
 				}],
 			],

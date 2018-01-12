@@ -6,13 +6,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
+import sessionHandler from 'session-handler';
+import UserService from '../../src/services/UserService';
+import userRoutes from '../../src/routes/userRoutes';
+import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
+import * as loginForm from '../../src/templates/loginForm';
 import testVariables from '../testUtils/testVariables';
 import userResources from '../testUtils/userResources';
-import loginForm from '../../src/templates/loginForm';
-import userRoutes from '../../src/routes/userRoutes';
-import sessionHandler from '../../src/lib/sessionHandler';
-import UserService from '../../src/services/UserService';
-import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -34,6 +34,7 @@ describe('zerokitAdapter', () => {
 	let initRegistrationStub;
 	let loginStub;
 	let logoutStub;
+	let loginNodeStub;
 	let registerStub;
 	let resolveUserStub;
 	let sessionHandlerLogoutStub;
@@ -44,11 +45,13 @@ describe('zerokitAdapter', () => {
 
 	let authService;
 	let zerokitAdapter;
+	let zerokitAdapterNode;
 	let zKitLoginObject;
 	let zKitLoginObjectPromise;
 	let zKitRegisterObject;
 	let zKitRegisterObjectPromise;
 	let zeroKit;
+	let zeroKitNode;
 	let zeroKitPromise;
 
 	beforeEach(() => {
@@ -77,6 +80,9 @@ describe('zerokitAdapter', () => {
 				{ session_id: testVariables.sessionId, zerokit_id: testVariables.zeroKitId });
 		loginStub = sinon.stub()
 			.returnsPromise().resolves(testVariables.zeroKitId);
+		loginNodeStub = sinon.stub().returnsPromise()
+			.withArgs(testVariables.zeroKitId, testVariables.password)
+			.resolves('success');
 		logoutStub = sinon.stub()
 			.returnsPromise().resolves();
 		registerStub = sinon.stub()
@@ -99,6 +105,8 @@ describe('zerokitAdapter', () => {
 		authService = {
 			idpLogin: idpLoginStub,
 			logout: authServiceLogoutStub,
+			clientCredentialsLogin: sinon.stub().returnsPromise().withArgs(testVariables.userId)
+				.resolves(),
 		};
 
 		zKitLoginObject = { login: loginStub };
@@ -116,11 +124,20 @@ describe('zerokitAdapter', () => {
 			logout: logoutStub,
 			shareTresor: shareTresorStub,
 		};
+
+		zeroKitNode = {
+			login: loginNodeStub,
+			createTresor: createTresorStub,
+		};
+
 		zeroKitPromise = Promise.resolve(zeroKit);
 
 		zerokitAdapter = new ZerokitAdapter({ authService });
 		zerokitAdapter.zeroKit = zeroKitPromise;
 		zerokitAdapter.zKitRegistrationObject = zKitRegisterObjectPromise;
+
+		zerokitAdapterNode = new ZerokitAdapter({ authService });
+		zerokitAdapterNode.zeroKit = Promise.resolve(zeroKitNode);
 
 		UserService.getCurrentUser = getCurrentUserStub;
 		UserService.getInternalUser = getInternalUserStub;
@@ -130,7 +147,7 @@ describe('zerokitAdapter', () => {
 
 
 	it('login - createsTresor and tek on first login', (done) => {
-		let internalUser = Object.assign({}, userResources.internalUser);
+		const internalUser = Object.assign({}, userResources.internalUser);
 		internalUser.tek = undefined;
 		internalUser.tresorId = undefined;
 		getInternalUserStub.resolves(internalUser);
@@ -188,6 +205,41 @@ describe('zerokitAdapter', () => {
 			})
 			.catch(done);
 	});
+
+	it('loginNode - createsTresor and tek on first login', (done) => {
+		UserService.getInternalUser = resolveUserStub;
+
+		zerokitAdapterNode.loginNode(testVariables.userAlias, testVariables.password)
+			.then(() => {
+				expect(zeroKitNode.login).to.be.calledOnce;
+				expect(zeroKitNode.createTresor).to.be.calledOnce;
+				done();
+			})
+			.catch(done);
+	});
+
+	it('loginNode - createsTresor and tek not called if already present', (done) => {
+		zerokitAdapterNode.loginNode(testVariables.userAlias, testVariables.password)
+			.then(() => {
+				expect(zeroKitNode.login).to.be.calledOnce;
+				expect(zeroKitNode.createTresor).to.not.be.called;
+				done();
+			})
+			.catch(done);
+	});
+
+	it('loginNode - rejects when wrong zerokit password is entered', (done) => {
+		loginNodeStub.rejects('error');
+
+		zerokitAdapterNode.loginNode(testVariables.userAlias, testVariables.wrongPassword)
+			.catch(() => {
+				expect(zeroKitNode.login).to.be.calledOnce;
+				expect(zeroKitNode.createTresor).to.not.be.called;
+				done();
+			})
+			.then(() => done(Error('loginNode rejection didn\'t work properly in zerokitAdapter.loginNode')));
+	});
+
 
 	it('register - Happy Path', (done) => {
 		zerokitAdapter.register()
@@ -267,13 +319,18 @@ describe('zerokitAdapter', () => {
 	it('getLoginForm - Happy Path', (done) => {
 		const parentElement = { appendChild: sinon.stub() };
 
+		const createdLoginForm = loginForm.createLoginFormTemplate();
+		const createLoginFormStub = sinon.stub(loginForm, 'createLoginFormTemplate').returns(createdLoginForm);
+
 		zerokitAdapter.getLoginForm(parentElement)
 			.then(() => {
 				expect(loginStub).to.be.calledOnce;
+				expect(createLoginFormStub).to.be.calledOnce;
 				done();
 			})
 			.catch(done);
-		loginForm.onsubmit({ preventDefault: sinon.spy() });
+
+		createdLoginForm.onsubmit({ preventDefault: sinon.spy() });
 	});
 
 	it('getRegisterForm succeeds', (done) => {

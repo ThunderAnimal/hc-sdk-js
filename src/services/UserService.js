@@ -1,5 +1,5 @@
+import sessionHandler from 'session-handler';
 import userRoutes from '../routes/userRoutes';
-import sessionHandler from '../lib/sessionHandler';
 import LoginError, { NOT_LOGGED_IN } from '../lib/errors/LoginError';
 import ValidationError, {
 	MISSING_PARAMETERS,

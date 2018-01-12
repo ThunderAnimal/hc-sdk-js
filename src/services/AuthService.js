@@ -1,12 +1,13 @@
 /* eslint-disable consistent-return */
 import config from 'config';
-import sessionHandler from '../lib/sessionHandler';
+import sessionHandler from 'session-handler';
 import authRoutes from '../routes/authRoutes';
 
 class Auth {
 	constructor(options = {}) {
 		this.signInState = config.signinState;
 		this.clientId = options.clientId;
+		this.secret = options.clientSecret;
 	}
 
 	idpLogin() {
@@ -72,6 +73,19 @@ class Auth {
 			}
 			callback(null, queryString);
 		}
+	}
+
+	clientCredentialsLogin(userId) {
+		const body = {
+			client_id: this.clientId,
+			grant_type: 'client_credentials',
+			client_secret: this.secret,
+			scope: `user:${userId}`,
+		};
+		return authRoutes.getAccessTokenFromCredentials(body)
+			.then((res) => {
+				sessionHandler.set('HC_Auth', res.access_token);
+			});
 	}
 
 	getCodeAndStateFromHash(string) {

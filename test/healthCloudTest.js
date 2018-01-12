@@ -23,18 +23,40 @@ describe('HealthCloud', () => {
 
 	it('the healthcloud object is initiated correctly', (done) => {
 		const healthCloud = new HealthCloud({ clientId: '1' });
-
 		expect(typeof healthCloud).to.equal('object');
-		expect(typeof healthCloud.getLoginForm).to.equal('function');
-		expect(typeof healthCloud.getRegistrationForm).to.equal('function');
 		expect(typeof healthCloud.downloadDocument).to.equal('function');
 		expect(typeof healthCloud.uploadDocument).to.equal('function');
 		expect(typeof healthCloud.getUser).to.equal('function');
 		expect(typeof healthCloud.updateUser).to.equal('function');
 		expect(typeof healthCloud.grantPermission).to.equal('function');
 		expect(typeof healthCloud.getGrantedPermissions).to.equal('function');
-		expect(typeof healthCloud.register).to.equal('function');
 		expect(typeof healthCloud.getUserIdByAlias).to.equal('function');
+
+		if (NODE) {
+			expect(typeof healthCloud.login).to.equal('function');
+			expect(typeof healthCloud.getLoginForm).to.equal('undefined');
+			expect(typeof healthCloud.getRegistrationForm).to.equal('undefined');
+			expect(typeof healthCloud.register).to.equal('undefined');
+		} else {
+			expect(typeof healthCloud.getLoginForm).to.equal('function');
+			expect(typeof healthCloud.getRegistrationForm).to.equal('function');
+			expect(typeof healthCloud.register).to.equal('function');
+			expect(typeof healthCloud.login).to.equal('undefined');
+		}
+
+		done();
+	});
+
+	it('the healthcloud object is initiated in node env', (done) => {
+		const healthCloud = new HealthCloud({ clientId: '1' });
+		global.NODE = true;
+		if (NODE) {
+			expect(typeof healthCloud.login).to.equal('function');
+		} else {
+			expect(typeof healthCloud.login).to.equal('undefined');
+		}
+		global.NODE = false;
+
 		done();
 	});
 });

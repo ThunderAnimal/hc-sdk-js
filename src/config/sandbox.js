@@ -11,6 +11,7 @@ const config = {
 	zkit: {
 		service_url: 'https://g6y0wg1tf6.api.tresorit.io',
 		clientId: 'g6y0wg1tf6_RGxRknA5dI',
+		version: 4,
 	},
 };
 
