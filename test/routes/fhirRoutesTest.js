@@ -17,27 +17,27 @@ const expect = chai.expect;
 
 
 describe('fhirRoutes', () => {
-	let	requestStub;
-	let fhirRoutes;
+    let requestStub;
+    let fhirRoutes;
 
-	beforeEach(() => {
-		requestStub = sinon.stub().returnsPromise();
-		fhirRoutes = proxyquire('../../src/routes/fhirRoutes', {
-			'../lib/hcRequest': { default: requestStub },
-		}).default;
-	});
+    beforeEach(() => {
+        requestStub = sinon.stub().returnsPromise();
+        fhirRoutes = proxyquire('../../src/routes/fhirRoutes', {
+            '../lib/hcRequest': { default: requestStub },
+        }).default;
+    });
 
-	it('getSchema passes', (done) => {
-		requestStub.resolves('pass');
-		fhirRoutes.getFhirSchema().then((res) => {
-			expect(res).to.equal('pass');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('GET');
-			done();
-		});
-	});
+    it('getSchema passes', (done) => {
+        requestStub.resolves('pass');
+        fhirRoutes.getFhirSchema().then((res) => {
+            expect(res).to.equal('pass');
+            expect(requestStub).to.be.calledOnce;
+            expect(requestStub).to.be.calledWith('GET');
+            done();
+        });
+    });
 
-	afterEach(() => {
-		requestStub.reset();
-	});
+    afterEach(() => {
+        requestStub.reset();
+    });
 });

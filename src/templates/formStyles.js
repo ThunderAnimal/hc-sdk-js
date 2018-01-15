@@ -1,6 +1,6 @@
 export default `
 .hidden {
-	display: none;
+    display: none;
 }
 #gesundheitslogin iframe,
 #gesundheitsregister iframe,
@@ -10,9 +10,9 @@ export default `
 #gesundheitsregister input,
 #gesundheitslogin button,
 #gesundheitsregister button {
-	margin: 0;
-	padding: 0;
-	border: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 }
 
@@ -56,7 +56,7 @@ export default `
 #gesundheitsregister input:not(.browser-default) {
   color: #999999;
   border: none;
-	background-color: transparent;
+    background-color: transparent;
   border-bottom: 1px solid rgba(0,0,0,0.87);
   border-radius: 0;
   outline: none;

@@ -16,94 +16,94 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('hcRequest', () => {
-	let requestSetStub;
-	let requestSendStub;
-	let requestResponseTypeStub;
-	let requestQueryStub;
-	let requestStub;
-	let hcRequest;
+    let requestSetStub;
+    let requestSendStub;
+    let requestResponseTypeStub;
+    let requestQueryStub;
+    let requestStub;
+    let hcRequest;
 
-	beforeEach(() => {
-		requestSendStub = sinon.stub().returnsPromise();
+    beforeEach(() => {
+        requestSendStub = sinon.stub().returnsPromise();
 
-		requestResponseTypeStub = sinon.stub().returns({
-			send: requestSendStub,
-		});
+        requestResponseTypeStub = sinon.stub().returns({
+            send: requestSendStub,
+        });
 
-		requestQueryStub = sinon.stub().returns({
-			responseType: requestResponseTypeStub,
-		});
+        requestQueryStub = sinon.stub().returns({
+            responseType: requestResponseTypeStub,
+        });
 
-		requestSetStub = sinon.stub().returns({
-			query: requestQueryStub,
-		});
+        requestSetStub = sinon.stub().returns({
+            query: requestQueryStub,
+        });
 
-		requestStub = sinon.stub().returns({
-			set: requestSetStub,
-		});
+        requestStub = sinon.stub().returns({
+            set: requestSetStub,
+        });
 
-		hcRequest = proxyquire('../../src/lib/hcRequest', {
-			'superagent-bluebird-promise': requestStub,
-		}).default;
-	});
+        hcRequest = proxyquire('../../src/lib/hcRequest', {
+            'superagent-bluebird-promise': requestStub,
+        }).default;
+    });
 
-	it('hcRequest passes when api sends successful response', (done) => {
-		requestSendStub.resolves(
-			{ ok: true, body: { status: '201' } },
-		);
+    it('hcRequest passes when api sends successful response', (done) => {
+        requestSendStub.resolves(
+            { ok: true, body: { status: '201' } },
+        );
 
-		hcRequest('POST', 'path')
-			.then((res) => {
-				expect(res.status).to.equal('201');
-				expect(requestStub).to.be.calledWith('POST');
-				expect(requestSendStub.firstCall.args[0]).to.be.undefined;
-				expect(requestStub).to.be.calledOnce;
-				done();
-			})
-			.catch(done);
-	});
+        hcRequest('POST', 'path')
+            .then((res) => {
+                expect(res.status).to.equal('201');
+                expect(requestStub).to.be.calledWith('POST');
+                expect(requestSendStub.firstCall.args[0]).to.be.undefined;
+                expect(requestStub).to.be.calledOnce;
+                done();
+            })
+            .catch(done);
+    });
 
-	it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
-		requestSendStub.onCall(0).rejects({
-			status: 401,
-			body: { error: 'Your Authorization Token has expired' },
-		});
-		requestSendStub.onCall(1).resolves({ ok: true, body: { status: '201' } });
+    it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
+        requestSendStub.onCall(0).rejects({
+            status: 401,
+            body: { error: 'Your Authorization Token has expired' },
+        });
+        requestSendStub.onCall(1).resolves({ ok: true, body: { status: '201' } });
 
-		const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({
-			access_token: 'fakeAccessToken', refresh_token: 'fakeRefreshToken',
-		});
-		const getAccessTokkenStub = sinon.stub().returns('token');
+        const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({
+            access_token: 'fakeAccessToken', refresh_token: 'fakeRefreshToken',
+        });
+        const getAccessTokkenStub = sinon.stub().returns('token');
 
-		hcRequest = proxyquire('../../src/lib/hcRequest', {
-			'./sessionHandler/web': {
-				default: {
-					get: getAccessTokkenStub,
-					set: sinon.stub().returns(true),
-				},
-			},
-			'../routes/authRoutes': {
-				default: { getRefreshTokenFromCode: getRefreshTokenStub },
-			},
-			'superagent-bluebird-promise': requestStub,
-		}).default;
+        hcRequest = proxyquire('../../src/lib/hcRequest', {
+            './sessionHandler/web': {
+                default: {
+                    get: getAccessTokkenStub,
+                    set: sinon.stub().returns(true),
+                },
+            },
+            '../routes/authRoutes': {
+                default: { getRefreshTokenFromCode: getRefreshTokenStub },
+            },
+            'superagent-bluebird-promise': requestStub,
+        }).default;
 
-		hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
-			.then((res) => {
-				expect(res.status).to.equal('201');
-				expect(getRefreshTokenStub).to.be.calledOnce;
-				expect(getAccessTokkenStub).to.be.calledThrice;
-				done();
-			})
-			.catch(done);
-	});
+        hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
+            .then((res) => {
+                expect(res.status).to.equal('201');
+                expect(getRefreshTokenStub).to.be.calledOnce;
+                expect(getAccessTokkenStub).to.be.calledThrice;
+                done();
+            })
+            .catch(done);
+    });
 
 
-	afterEach(() => {
-		requestSetStub.reset();
-		requestSendStub.reset();
-		requestQueryStub.reset();
-		requestResponseTypeStub.reset();
-		requestStub.reset();
-	});
+    afterEach(() => {
+        requestSetStub.reset();
+        requestSendStub.reset();
+        requestQueryStub.reset();
+        requestResponseTypeStub.reset();
+        requestStub.reset();
+    });
 });

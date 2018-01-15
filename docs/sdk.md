@@ -31,17 +31,17 @@ It inserts a healthcloud_sdk object into the global namespace.
 
 3. Use the functions exposed by the SDK. Currently the functions exposed are:
     - getLoginForm
-		- getRegistrationForm
-		- downloadDocument
-		- uploadDocument
-		- updateDocument
-		- deleteDocument
-		- getDocuments
-		- getCurrentUser
-		- getUser
-		- updateUser
-		- grantPermission
-		- logout
+        - getRegistrationForm
+        - downloadDocument
+        - uploadDocument
+        - updateDocument
+        - deleteDocument
+        - getDocuments
+        - getCurrentUser
+        - getUser
+        - updateUser
+        - grantPermission
+        - logout
 
 ### Register
 To register a user, append the registration form to a node and call ``HC.register``.
@@ -147,13 +147,13 @@ To get the user
 where response is:
 ```json
           {
-				id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
-				alias: 'user_email',
-				userData: {
-					name: 'user_name',
-					...
-				}
-		  }
+                id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
+                alias: 'user_email',
+                userData: {
+                    name: 'user_name',
+                    ...
+                }
+          }
 ```
 
 
@@ -188,8 +188,8 @@ The constructor takes the following
   </form>
   <script>
     createDocument = (fileList) => {
-    	let files = [...fileList];
-    	return new HC.models.HCDocument({ files })
+        let files = [...fileList];
+        return new HC.models.HCDocument({ files })
     }
   </script>
 ```

@@ -15,30 +15,30 @@ const expect = chai.expect;
 
 
 describe('sessionHandler web', () => {
-	beforeEach(() => {
-		document.cookie = 'SQLiteManager_currentLangue=2';
-		document.cookie = ' HC_User=fakeUserId1,fakeUserAlias1';
-	});
+    beforeEach(() => {
+        document.cookie = 'SQLiteManager_currentLangue=2';
+        document.cookie = ' HC_User=fakeUserId1,fakeUserAlias1';
+    });
 
-	it('get sessionHandler succeeds', () => {
-		const userCookie = sessionHandler.get('HC_User');
-		expect(userCookie).to.equal('fakeUserId1,fakeUserAlias1');
-	});
+    it('get sessionHandler succeeds', () => {
+        const userCookie = sessionHandler.get('HC_User');
+        expect(userCookie).to.equal('fakeUserId1,fakeUserAlias1');
+    });
 
-	it('set sessionHandler succeeds', () => {
-		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
-		expect(document.cookie).to.include('HC_User=fakeUserId,fakeUserAlias');
-	});
+    it('set sessionHandler succeeds', () => {
+        sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
+        expect(document.cookie).to.include('HC_User=fakeUserId,fakeUserAlias');
+    });
 
-	it('deleteCookie sessionHandler succeeds', () => {
-		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
-		sessionHandler.deleteCookie('HC_User');
-		expect(sessionHandler.get('HC_User')).to.be.undefined;
-	});
+    it('deleteCookie sessionHandler succeeds', () => {
+        sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
+        sessionHandler.deleteCookie('HC_User');
+        expect(sessionHandler.get('HC_User')).to.be.undefined;
+    });
 
-	it('logout sessionHandler succeeds', () => {
-		sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
-		sessionHandler.logout();
-		expect(sessionHandler.get('HC_User')).to.be.undefined;
-	});
+    it('logout sessionHandler succeeds', () => {
+        sessionHandler.set('HC_User', 'fakeUserId,fakeUserAlias');
+        sessionHandler.logout();
+        expect(sessionHandler.get('HC_User')).to.be.undefined;
+    });
 });

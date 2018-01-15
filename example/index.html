@@ -1,56 +1,55 @@
 <html>
 <head>
-  <title>GesundheitsCloud Web Sample</title>
-  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"/>
+    <title>GesundheitsCloud Web Sample</title>
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"/>
 
-  <!-- Load some common tools & styles -->
-  <link rel="stylesheet" type="text/css" href="assets/semantic.min.css">
-  <link rel="stylesheet" type="text/css" href="assets/common.css">
-  <script src="config.js"></script>
-  <script src="https://code.jquery.com/jquery-3.1.1.min.js"
-          integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-          crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.address/1.6/jquery.address.min.js"
-          integrity="sha256-mLCPYHfNREhSETFQGuowilY3zBAZGnDO2cxCnCEm8/I="
-          crossorigin="anonymous"></script>
-  <script src="assets/semantic.min.js"></script>
-  <script src="assets/healthcloud_sdk.js"></script>
+    <!-- Load some common tools & styles -->
+    <link rel="stylesheet" type="text/css" href="assets/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/common.css">
+    <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.address/1.6/jquery.address.min.js"
+        integrity="sha256-mLCPYHfNREhSETFQGuowilY3zBAZGnDO2cxCnCEm8/I="
+        crossorigin="anonymous"></script>
+    <script src="assets/semantic.min.js"></script>
+    <script src="assets/healthcloud_sdk.js"></script>
 </head>
 <body>
-
-  <div class="ui pointing menu top fixed">
-    <div class="ui container header">
-      <img src="images/GesundheitsCloud_Logo.png" >
-      <a data-tab="register.html" class="item right">Register</a>
-      <a data-tab="login.html" class="item">Log in</a>
-      <a data-tab="documents.html" class="item">Documents</a>
-      <a data-tab="permissions.html" class="item">Permissions</a>
-      <a data-tab="logout.html" class="item">Logout</a>
+    <div class="ui pointing menu top fixed">
+        <div class="ui container header">
+            <img src="images/GesundheitsCloud_Logo.png" >
+            <a data-tab="register.html" class="item right">Register</a>
+            <a data-tab="login.html" class="item">Log in</a>
+            <a data-tab="documents.html" class="item">Documents</a>
+            <a data-tab="permissions.html" class="item">Permissions</a>
+            <a data-tab="logout.html" class="item">Logout</a>
+        </div>
     </div>
-  </div>
 
-  <div class="ui main center aligned text container">
-    <div class="ui bottom attached tab" data-tab="register.html"></div>
-    <div class="ui bottom attached tab" data-tab="login.html"></div>
-    <div class="ui bottom attached tab" data-tab="documents.html"></div>
-    <div class="ui bottom attached tab" data-tab="permissions.html"></div>
-    <div class="ui bottom attached tab" data-tab="logout.html"></div>
-  </div>
+    <div class="ui main center aligned text container">
+        <div class="ui bottom attached tab" data-tab="register.html"></div>
+        <div class="ui bottom attached tab" data-tab="login.html"></div>
+        <div class="ui bottom attached tab" data-tab="documents.html"></div>
+        <div class="ui bottom attached tab" data-tab="permissions.html"></div>
+        <div class="ui bottom attached tab" data-tab="logout.html"></div>
+    </div>
 
-  <script type="application/javascript">
-      var HC = new healthcloud_sdk({
-          "clientId":clientId
-      });
+    <script type="application/javascript">
+        var HC = new healthcloud_sdk({
+            "clientId":clientId
+        });
 
-    $('.menu.top .item').tab({
-      auto: 'true',
-      path: '/tabs/',
-      cache: false,
-      evaluateScripts: true,
-      alwaysRefresh: true,
-      debug: true,
-      history: true
-    })
-  </script>
+        $('.menu.top .item').tab({
+            auto: 'true',
+            path: '/tabs/',
+            cache: false,
+            evaluateScripts: true,
+            alwaysRefresh: true,
+            debug: true,
+            history: true
+        })
+    </script>
 </body>
 </html>

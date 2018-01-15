@@ -6,9 +6,9 @@ const emailRegex = /^((([a-zA-Z]|\d|[!#$%&'*+\-\/=?^_`{|}~]|[\u{00A0}-\u{D7FF}\u
 
 const validationUtils = {
 
-	validateEmail(email) {
-		return emailRegex.test(email);
-	},
+    validateEmail(email) {
+        return emailRegex.test(email);
+    },
 
 };
 

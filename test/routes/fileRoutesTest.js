@@ -17,54 +17,54 @@ const expect = chai.expect;
 
 
 describe('fileRoutes', () => {
-	let	requestStub;
-	let fileRoutes;
+    let requestStub;
+    let fileRoutes;
 
 
-	beforeEach(() => {
-		requestStub = sinon.stub().returnsPromise();
-	});
+    beforeEach(() => {
+        requestStub = sinon.stub().returnsPromise();
+    });
 
-	it('downloadFile passes', (done) => {
-		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
-			'../lib/hcRequest': { default: requestStub.resolves('pass') },
-		}).default;
+    it('downloadFile passes', (done) => {
+        fileRoutes = proxyquire('../../src/routes/fileRoutes', {
+            '../lib/hcRequest': { default: requestStub.resolves('pass') },
+        }).default;
 
-		fileRoutes.downloadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
-			expect(res).to.equal('pass');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('GET');
-			done();
-		});
-		requestStub.reset();
-	});
+        fileRoutes.downloadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+            expect(res).to.equal('pass');
+            expect(requestStub).to.be.calledOnce;
+            expect(requestStub).to.be.calledWith('GET');
+            done();
+        });
+        requestStub.reset();
+    });
 
 
-	it('uploadFile passes', (done) => {
-		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
-			'../lib/hcRequest': { default: requestStub.resolves('pass') },
-		}).default;
+    it('uploadFile passes', (done) => {
+        fileRoutes = proxyquire('../../src/routes/fileRoutes', {
+            '../lib/hcRequest': { default: requestStub.resolves('pass') },
+        }).default;
 
-		fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
-			expect(res).to.equal('pass');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('PUT');
-			done();
-		});
-		requestStub.reset();
-	});
+        fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').then((res) => {
+            expect(res).to.equal('pass');
+            expect(requestStub).to.be.calledOnce;
+            expect(requestStub).to.be.calledWith('PUT');
+            done();
+        });
+        requestStub.reset();
+    });
 
-	it('uploadFile returns error if hcRequest returns error', (done) => {
-		fileRoutes = proxyquire('../../src/routes/fileRoutes', {
-			'../lib/hcRequest': { default: requestStub.rejects('error') },
-		}).default;
+    it('uploadFile returns error if hcRequest returns error', (done) => {
+        fileRoutes = proxyquire('../../src/routes/fileRoutes', {
+            '../lib/hcRequest': { default: requestStub.rejects('error') },
+        }).default;
 
-		fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
-			expect(res).to.equal('error');
-			expect(requestStub).to.be.calledOnce;
-			expect(requestStub).to.be.calledWith('PUT');
-			done();
-		});
-		requestStub.reset();
-	});
+        fileRoutes.uploadFile('fakeSasUrl', 'fakeDocumentBlob').catch((res) => {
+            expect(res).to.equal('error');
+            expect(requestStub).to.be.calledOnce;
+            expect(requestStub).to.be.calledWith('PUT');
+            done();
+        });
+        requestStub.reset();
+    });
 });

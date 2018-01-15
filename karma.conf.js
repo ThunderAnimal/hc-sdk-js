@@ -2,72 +2,72 @@
 // Generated on Thu Aug 03 2017 11:17:07 GMT+0200 (CEST)
 
 module.exports = function (config) {
-	const configuration = {
+    const configuration = {
 
-		// list of files / patterns to load in the browser
-		files: [
-			'test/testUtils/globalResources.js',
-			'src/**/*.js',
-			'test/**/*.js',
-		],
+        // list of files / patterns to load in the browser
+        files: [
+            'test/testUtils/globalResources.js',
+            'src/**/*.js',
+            'test/**/*.js',
+        ],
 
-		preprocessors: {
-			'src/**/*.js': ['browserify'],
-			'test/**/*.js': ['browserify'],
-		},
-		client: {
-			node: config.node,
-		},
-		browserify: {
-			debug: true,
-			plugin: ['proxyquire-universal'],
-			transform: [
-				['babelify', { presets: ['es2015'] }],
-				['aliasify', {
-					aliases: {
-						config: './src/config/develop',
-						'session-handler': './src/lib/sessionHandler/web',
-					},
-				}],
-			],
-		},
+        preprocessors: {
+            'src/**/*.js': ['browserify'],
+            'test/**/*.js': ['browserify'],
+        },
+        client: {
+            node: config.node,
+        },
+        browserify: {
+            debug: true,
+            plugin: ['proxyquire-universal'],
+            transform: [
+                ['babelify', { presets: ['es2015'] }],
+                ['aliasify', {
+                    aliases: {
+                        config: './src/config/develop',
+                        'session-handler': './src/lib/sessionHandler/web',
+                    },
+                }],
+            ],
+        },
 
-		// frameworks to use
-		// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-		frameworks: [
-			'mocha',
-			'chai',
-			'sinon',
-			'sinon-stub-promise',
-			'browserify',
-		],
+        // frameworks to use
+        // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+        frameworks: [
+            'mocha',
+            'chai',
+            'sinon',
+            'sinon-stub-promise',
+            'browserify',
+        ],
 
-		// test results reporter to use
-		// possible values: 'dots', 'progress'
-		// available reporters: https://npmjs.org/browse/keyword/karma-reporter
-		reporters: ['mocha', 'coverage'],
+        // test results reporter to use
+        // possible values: 'dots', 'progress'
+        // available reporters: https://npmjs.org/browse/keyword/karma-reporter
+        reporters: ['mocha', 'coverage'],
 
-		coverageReporter: {
-			reporters: [{ type: 'lcov' }],
-		},
+        coverageReporter: {
+            reporters: [{ type: 'lcov' }],
+        },
 
-		customLaunchers: {
-			Chrome_travis_ci: {
-				base: 'ChromeHeadless',
-				flags: ['--no-sandbox', '--disable-translate', '--disable-extensions'],
-			},
-		},
+        customLaunchers: {
+            Chrome_travis_ci: {
+                base: 'ChromeHeadless',
+                flags: ['--no-sandbox', '--disable-translate', '--disable-extensions'],
+            },
+        },
 
-		// start these browsers
-		// available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-		browsers: ['ChromeHeadless'],
-	};
+        // start these browsers
+        // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+        browsers: ['ChromeHeadless'],
+    };
 
-	if (process.env.TRAVIS) {
-		configuration.browsers = ['Chrome_travis_ci'];
-		configuration.browserify.transform.push(
-			['browserify-babel-istanbul', { ignore: ['**/node_modules/**', '**/tests/**'] }]);
-	}
+    if (process.env.TRAVIS) {
+        configuration.browsers = ['Chrome_travis_ci'];
+        configuration.browserify.transform.push(
+            ['browserify-babel-istanbul', { ignore: ['**/node_modules/**', '**/tests/**'] }]);
+    }
 
-	config.set(configuration);
+    config.set(configuration);
 };
