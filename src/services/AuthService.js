@@ -23,9 +23,9 @@ class Auth {
                     .catch(err => reject(err));
             });
 
-            iframe.src = `${config.api}/login?
-                client_id=${encodeURIComponent(config.zkit.clientId)}&
-                reto=${encodeURIComponent(location.href)}`;
+            iframe.src = `${config.api}/login?` +
+                `client_id=${encodeURIComponent(config.zkit.clientId)}&` +
+                `reto=${encodeURIComponent(location.href)}`;
 
             document.body.appendChild(iframe);
         });
@@ -43,13 +43,13 @@ class Auth {
                     .catch(err => reject(err));
             });
 
-            iframe.src = String.raw`${config.api}/auth/auth?                
-                client_id=${encodeURIComponent(this.clientId)}&
-                redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&
-                response_type=code&
-                scope=everything&
-                state=${this.signInState}#
-                ${sessionHandler.get('HC_Id')}`;
+            iframe.src = `${config.api}/auth/auth?` +
+                `client_id=${encodeURIComponent(this.clientId)}&` +
+                `redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&` +
+                'response_type=code&' +
+                'scope=everything&' +
+                `state=${this.signInState}#` +
+                `${sessionHandler.get('HC_Id')}`;
 
             document.body.appendChild(iframe);
         });

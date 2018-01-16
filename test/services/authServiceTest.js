@@ -30,6 +30,7 @@ describe('AuthService', () => {
 
     beforeEach(() => {
         config.api = 'http://fakeUrl';
+        config.zkit.clientId = testVariables.zeroKitId;
         authService = new AuthService({
             clientId: testVariables.clientId,
             userId: testVariables.userId,
@@ -92,13 +93,16 @@ describe('AuthService', () => {
         handleIframeStub
             .onCall(1)
             .yields(null, `code=kjhdshcsjkhcfs&state=${config.signinState}`);
-        authService.idpLogin().then((res) => {
-            expect(res.access_token).to.equal('fake_access_token');
-            expect(res.refresh_token).to.equal('fake_refresh_token');
-            expect(handleIframeStub).to.be.calledTwice;
-            expect(getAccessTokenFromCodeStub).to.be.calledOnce;
-            done();
-        });
+        authService.idpLogin()
+            .then((res) => {
+                expect(handleIframeStub.getCall(0).args[0].src.toLowerCase()).to.equal(`${config.api}/login?client_id=${testVariables.zeroKitId}&reto=${encodeURIComponent(location.href)}`.toLowerCase());
+                expect(res.access_token).to.equal('fake_access_token');
+                expect(res.refresh_token).to.equal('fake_refresh_token');
+                expect(handleIframeStub).to.be.calledTwice;
+                expect(getAccessTokenFromCodeStub).to.be.calledOnce;
+                done();
+            })
+            .catch(done);
     });
 
     it('idpLogin returns error when token api returns error', (done) => {
