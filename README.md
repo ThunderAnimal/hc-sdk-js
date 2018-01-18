@@ -73,3 +73,13 @@ For running only eslint execute:
 ```bash
 npm run lint
 ```
+
+## Local server
+To start a local test server, execute:
+
+```
+$ cd example
+$ npm run start
+```
+This will start a sample app pointing to the staging environment with a predetermined client id for demo purposes.
+On successful startup, open the browser pointing to http://localhost:8080/.
