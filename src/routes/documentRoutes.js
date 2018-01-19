@@ -22,8 +22,14 @@ const documentRoutes = {
         return hcRequest('PUT', `${apiUrl}/users/${userId}/records/${recordId}`, { body: data, authorize: true });
     },
 
-    searchRecords(queryParams) {
-        return hcRequest('GET', `${apiUrl}/records`, { query: queryParams, authorize: true });
+    searchRecords(userId, queryParams) {
+        return hcRequest('GET', `${apiUrl}/users/${userId}/records`, { query: queryParams, authorize: true, includeResponseHeaders: true })
+            .then(({ body, headers }) => ({ records: body, totalCount: headers['x-total-count'] }));
+    },
+
+    getRecordsCount(userId, queryParams) {
+        return hcRequest('HEAD', `${apiUrl}/users/${userId}/records`, { query: queryParams, authorize: true, includeResponseHeaders: true })
+            .then(({ body, headers }) => ({ totalCount: headers['x-total-count'] }));
     },
 
     downloadRecord(userId, recordId) {

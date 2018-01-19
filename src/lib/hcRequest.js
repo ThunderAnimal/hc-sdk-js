@@ -30,6 +30,7 @@ const hcRequest = (type, path, {
     headers = {},
     responseType = '',
     authorize = false,
+    includeResponseHeaders = false,
 } = {}) => {
     let retries = 0;
 
@@ -43,7 +44,12 @@ const hcRequest = (type, path, {
             .query(query)
             .responseType(responseType)
             .send(body)
-            .then(res => res.body || res.text)
+            .then((res) => {
+                if (includeResponseHeaders) {
+                    return ({ body: res.body, headers: res.headers });
+                }
+                return res.body || res.text;
+            })
             .catch((err) => {
                 if (isExpired(err) && retries < 2) {
                     retries += 1;

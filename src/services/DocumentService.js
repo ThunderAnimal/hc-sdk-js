@@ -109,15 +109,22 @@ class DocumentService {
         return this.fhirService.deleteRecord(ownerId, hcDocument.id);
     }
 
-    getDocuments(params = {}) {
+    getDocuments(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
-        return this.fhirService.searchRecords(params)
-            .then(records =>
-                records.map((record) => {
+        return this.fhirService.searchRecords(ownerId, params)
+            .then((result) => {
+                result.records = result.records.map((record) => {
                     const hcDocument = hcDocumentUtils.fromFhirObject(record.body);
                     hcDocument.id = record.record_id;
                     return hcDocument;
-                }));
+                });
+                return result;
+            });
+    }
+
+    getDocumentsCount(ownerId, params = {}) {
+        params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
+        return this.fhirService.searchRecords(ownerId, params, true);
     }
 }
 

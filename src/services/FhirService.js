@@ -63,26 +63,15 @@ class FHIRService {
             });
     }
 
-
     downloadFhirRecord(ownerId, recordId) {
         return documentRoutes.downloadRecord(ownerId, recordId)
-            .then(result => Promise.all([
-                this.zeroKitAdapter.decrypt(result.encrypted_body),
-                UserService.getInternalUser()
-                    .then(user => result.encrypted_tags
-                        .map(tag => encryptionUtils.decrypt(tag, user.tek))),
-            ])
-                .then((results) => {
-                    delete result.encrypted_body;
-                    delete result.encrypted_tags;
-                    result.body = JSON.parse(results[0]);
-                    result.tags = results[1];
-                    return result;
-                }));
+            .then(result => UserService.getInternalUser()
+                .then(user => this.decryptRecordAndTags(result, user.tek)));
     }
 
-    searchRecords(params) {
+    searchRecords(ownerId, params, countOnly = false) {
         let user;
+        let totalCount;
 
         return UserService.getInternalUser()
             .then((userObject) => {
@@ -100,35 +89,42 @@ class FHIRService {
                         .map(tag => encryptionUtils.encrypt(tag, user.tek)).join(',');
                 }
 
-                if (params.user_ids) {
-                    params.user_ids = params.user_ids.join(',');
-                }
-
                 return params;
             })
-            .then(queryParams => documentRoutes.searchRecords(queryParams))
-            .then((searchResults) => {
-                const promises = searchResults.map(result => Promise.all(
-                    [
-                        this.zeroKitAdapter.decrypt(result.encrypted_body),
-                        result.encrypted_tags.map(item => encryptionUtils.decrypt(item, user.tek)),
-                    ])
-                    .then((results) => {
-                        delete result.encrypted_body;
-                        delete result.encrypted_tags;
-                        result.body = JSON.parse(results[0]);
-                        result.tags = results[1];
-                        return result;
-                    }),
-                );
-                return Promise.all(promises);
-            });
+            .then((queryParams) => {
+                if (countOnly) {
+                    return documentRoutes.getRecordsCount(ownerId, queryParams);
+                }
+                return documentRoutes.searchRecords(ownerId, queryParams);
+            })
+            .then((searchResult) => {
+                totalCount = searchResult.totalCount;
+                return searchResult.records
+                    ? Promise.all(searchResult.records.map(result =>
+                        this.decryptRecordAndTags(result, user.tek)))
+                    : undefined;
+            })
+            .then(results => (results
+                ? { totalCount, records: results }
+                : { totalCount }));
     }
 
     deleteRecord(ownerId, recordId) {
         if (!ownerId) ownerId = UserService.getCurrentUser().id;
 
         return documentRoutes.deleteRecord(ownerId, recordId);
+    }
+
+    decryptRecordAndTags(record, tek) {
+        return Promise.all([
+            this.zeroKitAdapter.decrypt(record.encrypted_body),
+            record.encrypted_tags.map(tag => encryptionUtils.decrypt(tag, tek)),
+        ])
+            .then(results => ({
+                body: JSON.parse(results[0]),
+                tags: results[1],
+                record_id: record.record_id,
+            }));
     }
 }
 

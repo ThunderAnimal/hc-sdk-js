@@ -8,6 +8,8 @@ import sinonChai from 'sinon-chai';
 import proxy from 'proxyquireify';
 import config from 'config';
 import '../../src/routes/documentRoutes';
+import testVariables from '../../test/testUtils/testVariables';
+import recordResources from '../../test/testUtils/recordResources';
 
 const proxyquire = proxy(require);
 
@@ -24,13 +26,13 @@ describe('documentRoutes', () => {
 
     beforeEach(() => {
         requestStub = sinon.stub().returnsPromise();
+        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
+            '../lib/hcRequest': { default: requestStub },
+        }).default;
     });
 
     it('getFileDownloadUrl passes', (done) => {
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub.resolves('pass') },
-        }).default;
-
+        requestStub.resolves('pass');
         documentRoutes.getFileDownloadUrl('fakeUserAlias',
             'fakeDocumentId').then((res) => {
             expect(res).to.equal('pass');
@@ -39,13 +41,10 @@ describe('documentRoutes', () => {
             expect(requestStub).to.be.calledWith('GET');
             done();
         });
-        requestStub.reset();
     });
 
     it('getFileUploadUrls passes', (done) => {
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub.resolves('pass') },
-        }).default;
+        requestStub.resolves('pass');
 
         documentRoutes.getFileUploadUrls('fakeUserAlias', 'fakeRecordId', '42').then((res) => {
             expect(res).to.equal('pass');
@@ -58,9 +57,7 @@ describe('documentRoutes', () => {
     });
 
     it('createRecord passes', (done) => {
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub.resolves('pass') },
-        }).default;
+        requestStub.resolves('pass');
 
         const params = {
             record_id: 'fakeRecordId',
@@ -83,13 +80,10 @@ describe('documentRoutes', () => {
             expect(requestStub).to.be.calledWith('POST');
             done();
         });
-        requestStub.reset();
     });
 
     it('downloadRecord passes', (done) => {
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub.resolves('pass') },
-        }).default;
+        requestStub.resolves('pass');
 
         documentRoutes.downloadRecord('fakeUserId', 'fakeRecordId').then((res) => {
             expect(res).to.equal('pass');
@@ -98,13 +92,10 @@ describe('documentRoutes', () => {
             expect(requestStub).to.be.calledWith('GET');
             done();
         });
-        requestStub.reset();
     });
 
     it('updateRecordStatus passes', (done) => {
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub.resolves('pass') },
-        }).default;
+        requestStub.resolves('pass');
 
         documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
             expect(res).to.equal('pass');
@@ -114,6 +105,33 @@ describe('documentRoutes', () => {
                 `${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
             done();
         });
+    });
+
+    it('searchRecord passes', (done) => {
+        const searchParmas = { tags: [testVariables.tag] };
+        requestStub.withArgs('GET', `${config.api}/users/${testVariables.userId}/records`, { query: searchParmas, authorize: true, includeResponseHeaders: true })
+            .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
+
+        documentRoutes.searchRecords(testVariables.userId, searchParmas).then((res) => {
+            expect(requestStub).to.be.calledOnce;
+            expect(res.totalCount).to.equal(recordResources.count);
+            done();
+        }).catch(done);
+    });
+
+    it('getRecordCount passes', (done) => {
+        const searchParmas = { tags: [testVariables.tag] };
+        requestStub.withArgs('HEAD', `${config.api}/users/${testVariables.userId}/records`, { query: searchParmas, authorize: true, includeResponseHeaders: true })
+            .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
+
+        documentRoutes.getRecordsCount(testVariables.userId, searchParmas).then((res) => {
+            expect(requestStub).to.be.calledOnce;
+            expect(res.totalCount).to.equal(recordResources.count);
+            done();
+        }).catch(done);
+    });
+
+    afterEach(() => {
         requestStub.reset();
     });
 });

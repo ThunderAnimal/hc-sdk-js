@@ -31,17 +31,18 @@ It inserts a healthcloud_sdk object into the global namespace.
 
 3. Use the functions exposed by the SDK. Currently the functions exposed are:
     - getLoginForm
-        - getRegistrationForm
-        - downloadDocument
-        - uploadDocument
-        - updateDocument
-        - deleteDocument
-        - getDocuments
-        - getCurrentUser
-        - getUser
-        - updateUser
-        - grantPermission
-        - logout
+    - getRegistrationForm
+    - downloadDocument
+    - uploadDocument
+    - updateDocument
+    - deleteDocument
+    - getDocuments
+    - getDocumentsCount
+    - getCurrentUser
+    - getUser
+    - updateUser
+    - grantPermission
+    - logout
 
 ### Register
 To register a user, append the registration form to a node and call ``HC.register``.
@@ -314,8 +315,8 @@ Thereby ``hcDocument`` is a HealthCloud-Document
 By calling ``getDocuments`` all documents of the user logged in can be received. ``downloadDocument`` can then be called to get an individual document blob.
 
 ```javascript
-    HC.getDocuments()
-        .then(documents => {});
+    HC.getDocuments(userId)
+        .then(response => {});
 ```
 For filtering those Documents you can add an object of parameters to the call. Possible parameters are:
 ```
@@ -325,6 +326,32 @@ For filtering those Documents you can add an object of parameters to the call. P
  start_date (optional, date) ... Earliest date for which to return records
  end_date (optional, date) ... Latest date for which to return records
 ```
+The response is an object with total count and the list of documents (can be paginated list depending of the parameters passed.)
+
+```javascript
+   {
+        totalCount: 10,
+        records: []
+   }
+```
+
+#### Total number of documents of a user (without files)
+
+By calling ``getDocumentsCount``, the total count of documents owned by user can be recieved.
+
+```javascript
+    HC.getDocumentsCount(userId)
+        .then(response => {});
+```
+You can also get the total count based on filters as discussed above.
+The response will be an object with the totalCount parameter.
+
+```javascript
+   {
+        totalCount: 10
+   }
+```
+
 
 ### Share data with another user
 

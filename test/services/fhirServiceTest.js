@@ -29,7 +29,7 @@ const expect = chai.expect;
 describe('services/fhirService', () => {
     let zeroKitAdapter;
     let fhirService;
-    let authService = { clientId: testVariables.clientId };
+    const authService = { clientId: testVariables.clientId };
 
     let createRecordStub;
     let decryptStub;
@@ -39,6 +39,7 @@ describe('services/fhirService', () => {
     let generateTagsFromFhirObjectStub;
     let getInternalUserStub;
     let searchRecordsStub;
+    let getRecordsCountStub;
     let tagDecryptStub;
     let tagEncryptStub;
     let updateRecordStub;
@@ -61,9 +62,15 @@ describe('services/fhirService', () => {
             .returns([testVariables.tag]);
         getInternalUserStub = sinon.stub(UserService, 'getInternalUser')
             .returnsPromise().resolves(userResources.internalUser);
+        getRecordsCountStub = sinon.stub(documentRoutes, 'getRecordsCount')
+            .returnsPromise().resolves({
+                totalCount: recordResources.count,
+            });
         searchRecordsStub = sinon.stub(documentRoutes, 'searchRecords')
-            .returnsPromise().resolves([
-                Object.assign({}, recordResources.documentReferenceEncrypted)]);
+            .returnsPromise().resolves({
+                totalCount: recordResources.count,
+                records: [Object.assign({}, recordResources.documentReferenceEncrypted)],
+            });
         tagDecryptStub = sinon.stub(encryptionUtils, 'decrypt')
             .returns(testVariables.tag);
         tagEncryptStub = sinon.stub(encryptionUtils, 'encrypt')
@@ -137,7 +144,6 @@ describe('services/fhirService', () => {
 
     it('searchRecords - works as expected with all parameters', (done) => {
         const params = {
-            user_ids: [testVariables.userId, testVariables.secondUserId],
             client_id: testVariables.clientId,
             limit: 20,
             offset: 20,
@@ -147,7 +153,6 @@ describe('services/fhirService', () => {
         };
 
         const expectedParamsForRoute = {
-            user_ids: `${testVariables.userId},${testVariables.secondUserId}`,
             limit: 20,
             offset: 20,
             start_date: '2017-06-06',
@@ -155,12 +160,35 @@ describe('services/fhirService', () => {
             tags: `${testVariables.encryptedTag},${testVariables.encryptedTag},${testVariables.encryptedTag}`,
         };
 
-        fhirService.searchRecords(params)
+        fhirService.searchRecords(testVariables.userId, params)
             .then((res) => {
-                expect(res.length).to.equal(1);
-                expect(res[0].record_id).to.equal(testVariables.recordId);
+                expect(res.records.length).to.equal(1);
+                expect(res.totalCount).to.equal(recordResources.count);
+                expect(res.records[0].record_id).to.equal(testVariables.recordId);
                 expect(searchRecordsStub).to.be.calledOnce;
-                expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
+                expect(searchRecordsStub).to.be.calledWith(testVariables.userId,
+                    expectedParamsForRoute);
+                expect(getInternalUserStub).to.be.calledOnce;
+                done();
+            })
+            .catch(done);
+    });
+
+    it('searchRecords - returns only count when one of params is countOnly', (done) => {
+        const params = {
+            client_id: testVariables.clientId,
+        };
+
+        const expectedParamsForRoute = {
+            tags: `${testVariables.encryptedTag}`,
+        };
+
+        fhirService.searchRecords(testVariables.userId, params, true)
+            .then((res) => {
+                expect(res.totalCount).to.equal(recordResources.count);
+                expect(getRecordsCountStub).to.be.calledOnce;
+                expect(getRecordsCountStub).to.be.calledWith(testVariables.userId,
+                    expectedParamsForRoute);
                 expect(getInternalUserStub).to.be.calledOnce;
                 done();
             })
@@ -176,12 +204,13 @@ describe('services/fhirService', () => {
             tags: `${testVariables.encryptedTag}`,
         };
 
-        fhirService.searchRecords(params)
+        fhirService.searchRecords(testVariables.userId, params)
             .then((res) => {
-                expect(res.length).to.equal(1);
-                expect(res[0].record_id).to.equal(testVariables.recordId);
+                expect(res.records.length).to.equal(1);
+                expect(res.records[0].record_id).to.equal(testVariables.recordId);
                 expect(searchRecordsStub).to.be.calledOnce;
-                expect(searchRecordsStub).to.be.calledWith(expectedParamsForRoute);
+                expect(searchRecordsStub).to.be.calledWith(testVariables.userId,
+                    expectedParamsForRoute);
                 expect(getInternalUserStub).to.be.calledOnce;
                 done();
             })
@@ -208,6 +237,7 @@ describe('services/fhirService', () => {
         generateTagsFromFhirObjectStub.restore();
         getInternalUserStub.restore();
         searchRecordsStub.restore();
+        getRecordsCountStub.restore();
         tagDecryptStub.restore();
         tagEncryptStub.restore();
         updateRecordStub.restore();

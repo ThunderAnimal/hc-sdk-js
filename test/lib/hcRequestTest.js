@@ -47,7 +47,7 @@ describe('hcRequest', () => {
         }).default;
     });
 
-    it('hcRequest passes when api sends successful response', (done) => {
+    it('should pass when api sends successful response', (done) => {
         requestSendStub.resolves(
             { ok: true, body: { status: '201' } },
         );
@@ -63,7 +63,21 @@ describe('hcRequest', () => {
             .catch(done);
     });
 
-    it('hcRequest sends refresh request when api sends 401 unauthorised', (done) => {
+    it('should pass when api sends successful response', (done) => {
+        requestSendStub.resolves(
+            { ok: true, body: { status: '201' }, headers: { 'x-total-count': 1 } },
+        );
+
+        hcRequest('GET', 'path', { includeResponseHeaders: true })
+            .then((res) => {
+                expect(res.body.status).to.equal('201');
+                expect(requestStub).to.be.calledOnce;
+                done();
+            })
+            .catch(done);
+    });
+
+    it('should send refresh request when api sends 401 unauthorised', (done) => {
         requestSendStub.onCall(0).rejects({
             status: 401,
             body: { error: 'Your Authorization Token has expired' },

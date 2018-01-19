@@ -9,6 +9,9 @@ import documentRoutes from '../../src/routes/documentRoutes';
 import fileRoutes from '../../src/routes/fileRoutes';
 import DocumentService from '../../src/services/DocumentService';
 import hcDocumentUtils from '../../src/lib/models/utils/hcDocumentUtils';
+import testVariables from '../../test/testUtils/testVariables';
+import recordResources from '../../test/testUtils/recordResources';
+import taggingUtils from '../../src/lib/taggingUtils';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -143,6 +146,9 @@ describe('DocumentService', () => {
             .returnsPromise().resolves(documentReferenceRecordFactory([encryptedFile]));
         documentService.fhirService.updateFhirRecord = sinon.stub()
             .returnsPromise().resolves({ record_id: recordId });
+        documentService.fhirService.searchRecords = sinon.stub()
+            .returnsPromise().withArgs(testVariables.userId, { tags: [taggingUtils.buildTag('resourceType', 'documentReference')] })
+            .resolves({ totalCount: 1, records: [recordResources.documentReference] });
     });
 
     it('uploadDocument - Happy Path', (done) => {
@@ -219,7 +225,6 @@ describe('DocumentService', () => {
 
     it('updateDocument - fails when getFileUploadUrls fails ', (done) => {
         getFileUploadUrlsStub.rejects('error');
-
         documentService.updateDocument(userId, hcDocumentWithFileData).catch((err) => {
             expect(err).to.equal('error');
             expect(getFileUploadUrlsStub).to.be.calledOnce;
@@ -228,6 +233,59 @@ describe('DocumentService', () => {
             done();
         });
     });
+
+
+    describe('getDocuments', () => {
+        it('should pass', (done) => {
+            fromFhirObjectStub.returns(hcDocumentWithoutFileData);
+            documentService.getDocuments(testVariables.userId).then((result) => {
+                expect(result.records[0]).to.equal(hcDocumentWithoutFileData);
+                expect(result.totalCount).to.equal(1);
+                expect(fromFhirObjectStub).to.be.calledOnce;
+                done();
+            }).catch(done);
+        });
+
+        it('should fail if searchrecords return error', (done) => {
+            fromFhirObjectStub.returns(hcDocumentWithoutFileData);
+            documentService.fhirService.searchRecords = sinon.stub().returnsPromise().rejects('error');
+            documentService.getDocuments(testVariables.secondUserId)
+                .catch((err) => {
+                    expect(err).to.equal('error');
+                    expect(fromFhirObjectStub).to.not.be.called;
+                    done();
+                });
+        });
+    });
+
+    describe('getDocumentsCount', () => {
+        it('should pass', (done) => {
+            documentService.fhirService.searchRecords = sinon.stub()
+                .returnsPromise()
+                .withArgs(testVariables.userId, { tags: [taggingUtils.buildTag('resourceType', 'documentReference')] }, true)
+                .resolves({ totalCount: 1 });
+
+            documentService.getDocumentsCount(testVariables.userId).then((result) => {
+                expect(result.records).to.be.undefined;
+                expect(result.totalCount).to.equal(1);
+                expect(fromFhirObjectStub).to.not.be.called;
+                done();
+            }).catch(done);
+        });
+
+        it('should fail if searchrecords return error', (done) => {
+            fromFhirObjectStub.returns(hcDocumentWithoutFileData);
+            documentService.fhirService.searchRecords = sinon.stub().returnsPromise().rejects('error');
+            documentService.getDocuments(testVariables.secondUserId)
+                .then(() => done(Error('getDocumentsCount rejection didn\'t work properly in documentService.loginNode')))
+                .catch((err) => {
+                    expect(err).to.equal('error');
+                    expect(fromFhirObjectStub).to.not.be.called;
+                    done();
+                });
+        });
+    });
+
 
     afterEach(() => {
         getFileDownloadUrlStub.restore();

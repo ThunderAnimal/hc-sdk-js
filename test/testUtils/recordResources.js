@@ -2,6 +2,7 @@ import testVariables from './testVariables';
 import fhirResources from './fhirResources';
 
 const recordResources = {
+    count: 1,
     documentReference: {
         record_id: testVariables.recordId,
         date: testVariables.dateString,

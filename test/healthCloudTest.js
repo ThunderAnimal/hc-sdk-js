@@ -26,6 +26,8 @@ describe('HealthCloud', () => {
         expect(typeof healthCloud).to.equal('object');
         expect(typeof healthCloud.downloadDocument).to.equal('function');
         expect(typeof healthCloud.uploadDocument).to.equal('function');
+        expect(typeof healthCloud.getDocuments).to.equal('function');
+        expect(typeof healthCloud.getDocumentsCount).to.equal('function');
         expect(typeof healthCloud.getUser).to.equal('function');
         expect(typeof healthCloud.updateUser).to.equal('function');
         expect(typeof healthCloud.grantPermission).to.equal('function');
