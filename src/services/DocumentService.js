@@ -102,11 +102,11 @@ class DocumentService {
                     hcDocument.id,
                     hcDocumentUtils.toFhirObject(hcDocument));
             })
-            .then(record => hcDocument);
+            .then(() => hcDocument);
     }
 
     deleteDocument(ownerId, hcDocument) {
-        return this.fhirService.deleteRecord(ownerId, hcDocument.id);
+        return this.FhirService.deleteRecord(ownerId, hcDocument.id);
     }
 
     getDocuments(ownerId, params = {}) {

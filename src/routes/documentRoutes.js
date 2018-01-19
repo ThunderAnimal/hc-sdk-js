@@ -29,7 +29,7 @@ const documentRoutes = {
 
     getRecordsCount(userId, queryParams) {
         return hcRequest('HEAD', `${apiUrl}/users/${userId}/records`, { query: queryParams, authorize: true, includeResponseHeaders: true })
-            .then(({ body, headers }) => ({ totalCount: headers['x-total-count'] }));
+            .then(({ headers }) => ({ totalCount: headers['x-total-count'] }));
     },
 
     downloadRecord(userId, recordId) {

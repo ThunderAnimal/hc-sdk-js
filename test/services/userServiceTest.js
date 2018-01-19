@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import sessionHandler from 'session-handler';
-import UserService from '../../src/services/UserService';
+import userService from '../../src/services/userService';
 import userRoutes from '../../src/routes/userRoutes';
 import { NOT_LOGGED_IN } from '../../src/lib/errors/LoginError';
 import { MISSING_PARAMETERS, INVALID_PARAMETERS } from '../../src/lib/errors/ValidationError';
@@ -18,7 +18,7 @@ chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('services/UserService', () => {
+describe('services/userService', () => {
     let decryptStub;
     let encryptStub;
     let getGrantedPermissionsStub;
@@ -49,14 +49,14 @@ describe('services/UserService', () => {
             .returnsPromise().resolves();
 
 
-        UserService.zeroKitAdapter = {
+        userService.zeroKitAdapter = {
             decrypt: decryptStub,
             encrypt: encryptStub,
         };
     });
 
     it('getCurrentUser - Happy Path', (done) => {
-        const userId = UserService.getCurrentUser();
+        const userId = userService.getCurrentUser();
         expect(userId).to.deep.equal({ id: testVariables.userId, alias: testVariables.userAlias });
         expect(sessionHandlerGetStub).to.be.calledTwice;
         done();
@@ -64,21 +64,21 @@ describe('services/UserService', () => {
 
     it('getCurrentUser - fails when user is not logged in', (done) => {
         sessionHandlerGetStub.returns(null);
-        const user = UserService.getCurrentUser();
+        const user = userService.getCurrentUser();
         expect(user).to.equal(undefined);
         expect(sessionHandlerGetStub).to.be.calledOnce;
         done();
     });
 
     it('isCurrentUser - Happy Path', () => {
-        let isCurrentUser = UserService.isCurrentUser(testVariables.userId);
+        const isCurrentUser = userService.isCurrentUser(testVariables.userId);
         expect(isCurrentUser).to.equal(true);
         expect(sessionHandlerGetStub).to.be.calledTwice;
     });
 
     it('getInternalUser - Happy Path', (done) => {
-        UserService.user = undefined;
-        UserService.getInternalUser()
+        userService.user = undefined;
+        userService.getInternalUser()
             .then((res) => {
                 expect(res.tek).to.equal(testVariables.tek);
                 expect(res.zeroKitId).to.equal(testVariables.zeroKitId);
@@ -93,17 +93,17 @@ describe('services/UserService', () => {
     });
 
     it('getInternalUser - fails when getUserDetails fails', (done) => {
-        UserService.user = undefined;
+        userService.user = undefined;
         getUserDetailsStub.rejects();
-        UserService.getInternalUser().catch((res) => {
+        userService.getInternalUser().catch(() => {
             expect(getUserDetailsStub).to.be.calledOnce;
             done();
         });
     });
 
     it('getUser - Happy Path', (done) => {
-        UserService.user = undefined;
-        UserService.getUser()
+        userService.user = undefined;
+        userService.getUser()
             .then((res) => {
                 expect(res.tek).to.equal(undefined);
                 expect(res.zeroKitId).to.equal(undefined);
@@ -118,7 +118,7 @@ describe('services/UserService', () => {
     });
 
     it('resolveUser succeeds', (done) => {
-        UserService.resolveUser(testVariables.userAlias)
+        userService.resolveUser(testVariables.userAlias)
             .then((res) => {
                 expect(res).to.deep.equal({
                     id: testVariables.userId,
@@ -131,7 +131,7 @@ describe('services/UserService', () => {
     });
 
     it('getUserIdForAlias - Happy Path', (done) => {
-        UserService.getUserIdForAlias(testVariables.userAlias)
+        userService.getUserIdForAlias(testVariables.userAlias)
             .then((res) => {
                 expect(res).to.equal(testVariables.userId);
                 expect(resolveUserIdStub).to.be.calledOnce;
@@ -142,15 +142,15 @@ describe('services/UserService', () => {
 
     it('resolveUser - fails when resolveUserId fails', (done) => {
         resolveUserIdStub.rejects();
-        UserService.resolveUser().catch((res) => {
+        userService.resolveUser().catch(() => {
             expect(resolveUserIdStub).to.be.calledOnce;
             done();
         });
     });
 
     it('updateUser - Happy Path', (done) => {
-        UserService.user = undefined;
-        UserService.updateUser({ name: 'Glumli' }).then(() => {
+        userService.user = undefined;
+        userService.updateUser({ name: 'Glumli' }).then(() => {
             expect(getUserDetailsStub).to.be.calledOnce;
             expect(encryptStub).to.be.calledOnce;
             done();
@@ -159,7 +159,7 @@ describe('services/UserService', () => {
 
     it('updateUser - fails when no user is logged in', (done) => {
         sessionHandlerGetStub.withArgs('HC_Auth').returns(null);
-        UserService.updateUser({ name: 'Glumli' }).catch((res) => {
+        userService.updateUser({ name: 'Glumli' }).catch((res) => {
             expect(res.message).to.equal(NOT_LOGGED_IN);
             done();
         });
@@ -167,7 +167,7 @@ describe('services/UserService', () => {
 
     it('updateUser - fails updateUserCall fails', (done) => {
         updateUserStub.rejects();
-        UserService.updateUser({ name: 'fakeName' }).catch((res) => {
+        userService.updateUser({ name: 'fakeName' }).catch(() => {
             expect(getUserDetailsStub).to.be.calledOnce;
             expect(updateUserStub).to.be.calledOnce;
             done();
@@ -175,28 +175,28 @@ describe('services/UserService', () => {
     });
 
     it('updateUser - fails when no parameters are passed', (done) => {
-        UserService.updateUser().catch((res) => {
+        userService.updateUser().catch((res) => {
             expect(res.message).to.equal(MISSING_PARAMETERS);
             done();
         });
     });
 
     it('updateUser - fails when parameters is not an object', (done) => {
-        UserService.updateUser('string').catch((res) => {
+        userService.updateUser('string').catch((res) => {
             expect(res.message).to.equal(`${INVALID_PARAMETERS}: parameter is not an object`);
             done();
         });
     });
 
     it('updateUser - fails when parameters is an empty object', (done) => {
-        UserService.updateUser({}).catch((res) => {
+        userService.updateUser({}).catch((res) => {
             expect(res.message).to.equal(`${INVALID_PARAMETERS}: object is empty`);
             done();
         });
     });
 
     it('getGrantedPermissions - Happy Path', (done) => {
-        UserService.getGrantedPermissions()
+        userService.getGrantedPermissions()
             .then((res) => {
                 expect(res).to.deep.equal([{ granteeId: 'b' }]);
                 expect(getGrantedPermissionsStub).to.be.calledOnce;
@@ -206,9 +206,9 @@ describe('services/UserService', () => {
     });
 
     it('getGrantedPermissions - fails when no user logged in', (done) => {
-        UserService.user = undefined;
+        userService.user = undefined;
         sessionHandlerGetStub.returns(null);
-        UserService.getGrantedPermissions()
+        userService.getGrantedPermissions()
             .catch((res) => {
                 userRoutes.getGrantedPermissions.restore();
                 expect(res.message).to.equal(NOT_LOGGED_IN);
@@ -219,9 +219,9 @@ describe('services/UserService', () => {
     });
 
     it('getGrantedPermissions - fails when getGrantedPermissions fails', (done) => {
-        UserService.user = undefined;
+        userService.user = undefined;
         getGrantedPermissionsStub.rejects();
-        UserService.getGrantedPermissions().catch((res) => {
+        userService.getGrantedPermissions().catch(() => {
             expect(getGrantedPermissionsStub).to.be.calledOnce;
             done();
         });

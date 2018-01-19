@@ -1,6 +1,6 @@
 import fhirValidator from '../lib/fhirValidator';
 import documentRoutes from '../routes/documentRoutes';
-import UserService from '../services/UserService';
+import userService from './userService';
 import taggingUtils from '../lib/taggingUtils';
 import encryptionUtils from '../lib/EncryptionUtils';
 import dateUtils from '../lib/dateUtils';
@@ -38,7 +38,7 @@ class FHIRService {
 
     uploadRecord(ownerId, doc, tags, uploadRequest) {
         let owner;
-        return UserService.getInternalUser(ownerId)
+        return userService.getInternalUser(ownerId)
             .then((user) => {
                 owner = user;
                 return Promise.all([
@@ -63,9 +63,10 @@ class FHIRService {
             });
     }
 
+
     downloadFhirRecord(ownerId, recordId) {
         return documentRoutes.downloadRecord(ownerId, recordId)
-            .then(result => UserService.getInternalUser()
+            .then(result => userService.getInternalUser()
                 .then(user => this.decryptRecordAndTags(result, user.tek)));
     }
 
@@ -73,7 +74,7 @@ class FHIRService {
         let user;
         let totalCount;
 
-        return UserService.getInternalUser()
+        return userService.getInternalUser()
             .then((userObject) => {
                 user = userObject;
                 if (params.client_id) {
@@ -109,10 +110,10 @@ class FHIRService {
                 : { totalCount }));
     }
 
-    deleteRecord(ownerId, recordId) {
-        if (!ownerId) ownerId = UserService.getCurrentUser().id;
+    static deleteRecord(ownerId, recordID) {
+        const id = ownerId || userService.getCurrentUser().id;
 
-        return documentRoutes.deleteRecord(ownerId, recordId);
+        return documentRoutes.deleteRecord(id, recordID);
     }
 
     decryptRecordAndTags(record, tek) {

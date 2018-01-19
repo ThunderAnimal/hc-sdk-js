@@ -210,7 +210,7 @@ describe('DocumentService', () => {
         attachmentWithoutFile.id = fileId;
         toFhirObjectStub.returns(fhirObject);
 
-        documentService.updateDocument(userId, hcDocumentWithoutFileData).then((res) => {
+        documentService.updateDocument(userId, hcDocumentWithoutFileData).then(() => {
             expect(documentService.zeroKitAdapter.encryptBlob).to.be.not.called;
             expect(getFileUploadUrlsStub).to.be.not.called;
             expect(uploadFileStub).to.be.not.called;

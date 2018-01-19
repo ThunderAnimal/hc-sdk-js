@@ -71,7 +71,7 @@ describe('AuthService', () => {
 
     it('authorize() succeeds', (done) => {
         const handleIframeStub =
-            sinon.stub(authService, 'handleIframe')
+            sinon.stub(AuthService, 'handleIframe')
                 .yields(null, `code=kjhdshcsjkhcfs&state=${config.signinState}`);
 
         document.cookie = 'HC_User=123;';
@@ -86,7 +86,7 @@ describe('AuthService', () => {
     });
 
     it('idpLogin succeeds', (done) => {
-        const handleIframeStub = sinon.stub(authService, 'handleIframe');
+        const handleIframeStub = sinon.stub(AuthService, 'handleIframe');
         handleIframeStub
             .onCall(0)
             .yields(null, 'auth_token=kjhdshcsjkhcfs');
@@ -106,7 +106,7 @@ describe('AuthService', () => {
     });
 
     it('idpLogin returns error when token api returns error', (done) => {
-        const handleIframeStub = sinon.stub(authService, 'handleIframe');
+        const handleIframeStub = sinon.stub(AuthService, 'handleIframe');
         handleIframeStub.onCall(0).yields(null, 'auth_token=kjhdshcsjkhcfs');
         handleIframeStub.onCall(1).yields('failed');
         authService.idpLogin().catch((err) => {
@@ -118,7 +118,7 @@ describe('AuthService', () => {
     });
 
     it('idpLogin returns error when failing', (done) => {
-        const handleIframeStub = sinon.stub(authService, 'handleIframe');
+        const handleIframeStub = sinon.stub(AuthService, 'handleIframe');
         handleIframeStub.onCall(0).yields('failed');
         handleIframeStub.onCall(1).yields('failed');
         authService.idpLogin().catch((err) => {
@@ -140,7 +140,7 @@ describe('AuthService', () => {
             },
         };
 
-        authService.handleIframe(iframe, (err, result) => {
+        AuthService.handleIframe(iframe, (err, result) => {
             expect(result).to.equal('code=fakeCode&state=fakeState');
             done();
         });
@@ -157,14 +157,14 @@ describe('AuthService', () => {
             },
         };
 
-        authService.handleIframe(iframe, (err) => {
+        AuthService.handleIframe(iframe, (err) => {
             expect(err).to.equal('Failed');
             done();
         });
     });
 
     it('logout - Happy Path', (done) => {
-        authService.logout()
+        AuthService.logout()
             .then(() => {
                 expect(logoutStub).to.be.calledOnce;
                 expect(revokeRefreshTokenStub).to.be.calledOnce;
@@ -187,5 +187,7 @@ describe('AuthService', () => {
         revokeRefreshTokenStub.restore();
         authRoutes.getAccessTokenFromCredentials.restore();
         document.body.appendChild.restore();
+
+        AuthService.handleIframe.restore && AuthService.handleIframe.restore();
     });
 });

@@ -6,23 +6,21 @@ import ValidationError, {
     INVALID_PARAMETERS,
 } from '../lib/errors/ValidationError';
 
-class UserService {
-    constructor() {
-        this.user = null;
-    }
+const userService = {
+    user: null,
 
     setZeroKitAdapter(adapter) {
         this.zeroKitAdapter = adapter;
-    }
+    },
 
     resolveUser(alias) {
         return userRoutes.resolveUserId(alias)
             .then(user => ({ id: user.uid, zeroKitId: user.zerokit_id }));
-    }
+    },
 
     getUserIdForAlias(alias) {
         return this.resolveUser(alias).then(user => user.id);
-    }
+    },
 
     getCurrentUser() {
         const currentUser = sessionHandler.get('HC_User');
@@ -31,23 +29,24 @@ class UserService {
             alias: currentUser.split(',')[1],
             id: currentUser.split(',')[0],
         } : undefined;
-    }
+    },
 
     isCurrentUser(userId) {
         const currentUser = this.getCurrentUser();
         if (!currentUser || currentUser.id !== userId) return false;
         return true;
-    }
+    },
 
     getInternalUser(userId, partial = false) {
         return new Promise((resolve, reject) => {
             if (!this.getCurrentUser()) return reject(new LoginError(NOT_LOGGED_IN));
-            if (!userId) userId = this.getCurrentUser().id;
-            if (this.isCurrentUser(userId) && this.user) return resolve(this.user);
+
+            const id = userId || this.getCurrentUser().id;
+            if (this.isCurrentUser(id) && this.user) return resolve(this.user);
 
             const user = {};
 
-            return userRoutes.getUserDetails(userId)
+            return userRoutes.getUserDetails(id)
                 .then((userDetails) => {
                     user.id = userDetails.user.id;
                     user.alias = userDetails.user.email;
@@ -70,12 +69,12 @@ class UserService {
                     user.userData = JSON.parse(decryptedResults[0]);
                     user.tek = decryptedResults[1];
 
-                    if (this.isCurrentUser(userId)) this.user = user;
+                    if (this.isCurrentUser(id)) this.user = user;
                     return resolve(user);
                 })
                 .catch(reject);
         });
-    }
+    },
 
     getUser(userId) {
         return this.getInternalUser(userId)
@@ -85,7 +84,7 @@ class UserService {
                 state: userDetails.state,
                 userData: userDetails.userData,
             }));
-    }
+    },
 
     updateUser(params) {
         return new Promise((resolve, reject) => {
@@ -120,7 +119,7 @@ class UserService {
                 .then(resolve)
                 .catch(reject);
         });
-    }
+    },
 
     getGrantedPermissions(granteeId) {
         const owner = this.getCurrentUser();
@@ -131,7 +130,7 @@ class UserService {
             .then(permissions => permissions.map(permission => ({
                 granteeId: permission.grantee_id,
             })));
-    }
-}
+    },
+};
 
-export default new UserService();
+export default userService;

@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 import 'babel-polyfill';
 import chai from 'chai';
-import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import encryptionUtils from '../../src/lib/EncryptionUtils';
 

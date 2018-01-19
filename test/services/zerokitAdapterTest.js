@@ -7,7 +7,8 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import sessionHandler from 'session-handler';
-import UserService from '../../src/services/UserService';
+import userService from '../../src/services/userService';
+import AuthService from '../../src/services/AuthService';
 import userRoutes from '../../src/routes/userRoutes';
 import ZerokitAdapter from '../../src/services/ZeroKitAdapter';
 import * as loginForm from '../../src/templates/loginForm';
@@ -22,7 +23,6 @@ const expect = chai.expect;
 describe('zerokitAdapter', () => {
     let addTagEncryptionKeyStub;
     let addTresorStub;
-    let authServiceLogoutStub;
     let createTresorStub;
     let decryptStub;
     let encryptStub;
@@ -44,6 +44,7 @@ describe('zerokitAdapter', () => {
     let verifyShareAndGrantPermissionStub;
 
     let authService;
+    let authServiceLogoutStub;
     let zerokitAdapter;
     let zerokitAdapterNode;
     let zKitLoginObject;
@@ -102,9 +103,9 @@ describe('zerokitAdapter', () => {
             .returnsPromise().resolves();
 
 
+        authServiceLogoutStub = sinon.stub(AuthService, 'logout');
         authService = {
             idpLogin: idpLoginStub,
-            logout: authServiceLogoutStub,
             clientCredentialsLogin: sinon.stub().returnsPromise().withArgs(testVariables.userId)
                 .resolves(),
         };
@@ -139,10 +140,10 @@ describe('zerokitAdapter', () => {
         zerokitAdapterNode = new ZerokitAdapter({ authService });
         zerokitAdapterNode.zeroKit = Promise.resolve(zeroKitNode);
 
-        UserService.getCurrentUser = getCurrentUserStub;
-        UserService.getInternalUser = getInternalUserStub;
-        UserService.resolveUser = resolveUserStub;
-        UserService.user = {};
+        userService.getCurrentUser = getCurrentUserStub;
+        userService.getInternalUser = getInternalUserStub;
+        userService.resolveUser = resolveUserStub;
+        userService.user = {};
     });
 
 
@@ -157,7 +158,7 @@ describe('zerokitAdapter', () => {
                 expect(addTagEncryptionKeyStub).to.be.calledOnce;
                 expect(addTresorStub).to.be.calledOnce;
                 expect(zKitLoginObject.login).to.be.calledOnce;
-                expect(UserService.user.tresorId).to.equal(testVariables.tresorId);
+                expect(userService.user.tresorId).to.equal(testVariables.tresorId);
 
                 done();
             })
@@ -207,7 +208,7 @@ describe('zerokitAdapter', () => {
     });
 
     it('loginNode - createsTresor and tek on first login', (done) => {
-        UserService.getInternalUser = resolveUserStub;
+        userService.getInternalUser = resolveUserStub;
 
         zerokitAdapterNode.loginNode(testVariables.userAlias, testVariables.password)
             .then(() => {
@@ -267,7 +268,7 @@ describe('zerokitAdapter', () => {
         initRegistrationStub.rejects();
         zerokitAdapter.register()
             .then(() => done(Error('initRegistrationStub rejection didn\'t work properly in zerokitAdapter.register')))
-            .catch((err) => {
+            .catch(() => {
                 expect(initRegistrationStub).to.be.calledOnce;
                 expect(validateRegistrationStub).to.not.be.called;
                 expect(registerStub).to.not.be.called;
@@ -367,7 +368,7 @@ describe('zerokitAdapter', () => {
 
     it('grantPermission - Happy Path', (done) => {
         zerokitAdapter.grantPermission(testVariables.userAlias)
-            .then((res) => {
+            .then(() => {
                 expect(resolveUserStub).to.be.calledOnce;
                 expect(shareTresorStub).to.be.calledOnce;
                 expect(getInternalUserStub).to.be.calledOnce;
@@ -381,7 +382,7 @@ describe('zerokitAdapter', () => {
         shareTresorStub.rejects({ message: 'AlreadyMember' });
 
         zerokitAdapter.grantPermission('fakeGranteeEmail')
-            .then((res) => {
+            .then(() => {
                 expect(resolveUserStub).to.be.calledOnce;
                 expect(shareTresorStub).to.be.calledOnce;
                 expect(getInternalUserStub).to.be.calledOnce;
@@ -412,5 +413,6 @@ describe('zerokitAdapter', () => {
         sessionHandlerLogoutStub.restore();
         validateRegistrationStub.restore();
         verifyShareAndGrantPermissionStub.restore();
+        AuthService.logout.restore();
     });
 });

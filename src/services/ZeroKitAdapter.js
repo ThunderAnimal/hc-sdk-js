@@ -2,7 +2,8 @@
 import config from 'config';
 import sessionHandler from 'session-handler';
 import userRoutes from '../routes/userRoutes';
-import UserService from './UserService';
+import userService from './userService';
+import AuthService from './AuthService';
 import { createLoginFormTemplate, tagIds as loginFormIds } from '../templates/loginForm';
 import formStyles from '../templates/formStyles';
 import { createRegistrationFormTemplate, tagIds as registrationFormIds } from '../templates/registrationForm';
@@ -29,8 +30,8 @@ class ZeroKitAdapter {
                 script.src = `${config.zkit.service_url}/static/v4/zkit-sdk.js`;
                 script.querySelector('#zkit');
                 script.addEventListener('load', () => {
-                    if (zkit_sdk) {
-                        zkit_sdk.setup(config.zkit.service_url, '');
+                    if (zkit_sdk) { // eslint-disable-line camelcase
+                        zkit_sdk.setup(config.zkit.service_url, ''); // eslint-disable-line camelcase
                         resolve(zkit_sdk);
                     } else {
                         reject(new Error('Setting up ZeroKit failed.'));
@@ -42,7 +43,7 @@ class ZeroKitAdapter {
     }
 
     loginNode(hcUserAlias, password) {
-        return UserService.resolveUser(hcUserAlias)
+        return userService.resolveUser(hcUserAlias)
             .then(user => this.zeroKit.then(zeroKit => zeroKit.login(user.zeroKitId, password))
                 .then(() => this.authService.clientCredentialsLogin(user.id))
                 .then(() => {
@@ -54,7 +55,7 @@ class ZeroKitAdapter {
 
     login(zKitLoginObject, hcUserAlias) {
         let userId;
-        return UserService.resolveUser(hcUserAlias)
+        return userService.resolveUser(hcUserAlias)
             .then((user) => {
                 const { zeroKitId } = user;
                 userId = user.id;
@@ -69,14 +70,15 @@ class ZeroKitAdapter {
 
     setupUser() {
         let tek;
-        return UserService.getInternalUser()
+        return userService.getInternalUser()
             .then((user) => {
-                let tresorId;
-                ({ tresorId, tek } = user);
+                const tresorId = user.tresorId;
+                tek = user.tek;
+
                 if (!tresorId) {
                     return this.createTresor()
                         .then((createdTresorId) => {
-                            UserService.user.tresorId = createdTresorId;
+                            userService.user.tresorId = createdTresorId;
                             return createdTresorId;
                         });
                 }
@@ -86,7 +88,7 @@ class ZeroKitAdapter {
                 if (!tek) {
                     this.createTek(tresorId)
                         .then((createdTek) => {
-                            UserService.user.tek = createdTek;
+                            userService.user.tek = createdTek;
                         });
                 }
             });
@@ -128,7 +130,7 @@ class ZeroKitAdapter {
     createTek(tresorId) {
         const tek = encryptionUtils.generateKey();
         return this.zeroKit.then(zeroKit => zeroKit.encrypt(tresorId, tek)
-            .then(res => userRoutes.addTagEncryptionKey(UserService.getCurrentUser().id, res)
+            .then(res => userRoutes.addTagEncryptionKey(userService.getCurrentUser().id, res)
                 .then(() => tek)));
     }
 
@@ -172,7 +174,7 @@ class ZeroKitAdapter {
     }
 
     encrypt(ownerId, plainText) {
-        return UserService.getInternalUser(ownerId)
+        return userService.getInternalUser(ownerId)
             .then(owner => this.zeroKit.then(zeroKit =>
                 zeroKit.encrypt(owner.tresorId, plainText)));
     }
@@ -182,7 +184,7 @@ class ZeroKitAdapter {
     }
 
     encryptBlob(ownerId, plainBlob) {
-        return UserService.getInternalUser(ownerId)
+        return userService.getInternalUser(ownerId)
             .then(owner => this.zeroKit.then(zeroKit =>
                 zeroKit.encryptBlob(owner.tresorId, plainBlob)));
     }
@@ -193,7 +195,7 @@ class ZeroKitAdapter {
 
     createTresor() {
         return this.zeroKit.then(zeroKit => zeroKit.createTresor()
-            .then(tresorId => userRoutes.addTresor(UserService.getCurrentUser().id, tresorId)
+            .then(tresorId => userRoutes.addTresor(userService.getCurrentUser().id, tresorId)
                 .then(() => tresorId)));
     }
 
@@ -203,8 +205,8 @@ class ZeroKitAdapter {
 
         return Promise.all(
             [
-                UserService.resolveUser(granteeAlias),
-                UserService.getInternalUser(),
+                userService.resolveUser(granteeAlias),
+                userService.getInternalUser(),
             ],
         )
             .then((result) => {
@@ -225,7 +227,7 @@ class ZeroKitAdapter {
     logout() {
         return Promise.all([
             this.zeroKit.then(zerokit => zerokit.logout()),
-            this.authService.logout(),
+            AuthService.logout(),
         ])
             .then(() => {});
     }

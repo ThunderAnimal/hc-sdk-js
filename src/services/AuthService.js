@@ -3,6 +3,18 @@ import config from 'config';
 import sessionHandler from 'session-handler';
 import authRoutes from '../routes/authRoutes';
 
+const getCodeFromString = (queryString, key) => queryString
+    .substr(queryString.indexOf(`${key}=`))
+    .split('&')[0]
+    .split('=')[1];
+
+const getCodeAndStateFromHash = (string) => {
+    const code = getCodeFromString(string, 'code');
+    const state = getCodeFromString(string, 'state');
+
+    return { code, state };
+};
+
 class Auth {
     constructor(options = {}) {
         this.signInState = config.signinState;
@@ -14,10 +26,10 @@ class Auth {
         return new Promise((resolve, reject) => {
             const iframe = document.createElement('iframe');
             iframe.className = 'hidden';
-            iframe.onload = this.handleIframe.bind(this, iframe, (error, queryString) => {
+            iframe.onload = Auth.handleIframe.bind(this, iframe, (error, queryString) => {
                 if (error) return reject(error);
 
-                sessionHandler.set('HC_Id', this.getCodeFromString(queryString, 'auth_token'));
+                sessionHandler.set('HC_Id', getCodeFromString(queryString, 'auth_token'));
                 this.authorize()
                     .then(res => resolve(res))
                     .catch(err => reject(err));
@@ -35,10 +47,10 @@ class Auth {
         return new Promise((resolve, reject) => {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
-            iframe.onload = this.handleIframe.bind(this, iframe, (error, queryString) => {
+            iframe.onload = Auth.handleIframe.bind(this, iframe, (error, queryString) => {
                 if (error) return reject(error);
 
-                this.exchangeTokenAndLogin(this.getCodeAndStateFromHash(queryString))
+                this.exchangeTokenAndLogin(getCodeAndStateFromHash(queryString))
                     .then(res => resolve(res))
                     .catch(err => reject(err));
             });
@@ -55,12 +67,12 @@ class Auth {
         });
     }
 
-    handleIframe(iframe, callback) {
+    static handleIframe(iframe, callback) {
         let iframeLocation;
         try {
             iframeLocation = iframe.contentWindow.location;
             if (iframeLocation.origin !== window.location.origin) return false;
-        } catch (err) {
+        } catch (err) { // TODO handle this better
             return false;
         }
         if (iframeLocation.pathname === location.pathname) {
@@ -68,7 +80,7 @@ class Auth {
 
             document.body.removeChild(iframe);
             if (queryString && queryString.indexOf('error') !== -1) {
-                callback(this.getCodeFromString(queryString, 'error'));
+                callback(getCodeFromString(queryString, 'error'));
                 return;
             }
             callback(null, queryString);
@@ -86,20 +98,6 @@ class Auth {
             .then((res) => {
                 sessionHandler.set('HC_Auth', res.access_token);
             });
-    }
-
-    getCodeAndStateFromHash(string) {
-        const code = this.getCodeFromString(string, 'code');
-        const state = this.getCodeFromString(string, 'state');
-
-        return { code, state };
-    }
-
-    getCodeFromString(queryString, key) {
-        return queryString
-            .substr(queryString.indexOf(`${key}=`))
-            .split('&')[0]
-            .split('=')[1];
     }
 
     exchangeTokenAndLogin(options) {
@@ -123,7 +121,7 @@ class Auth {
         });
     }
 
-    logout() {
+    static logout() {
         return authRoutes.revokeRefreshToken(sessionHandler.get('HC_Refresh'))
             .then(sessionHandler.logout.bind(sessionHandler));
     }

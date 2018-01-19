@@ -1,13 +1,13 @@
 import ZeroKitAdapter from './services/ZeroKitAdapter';
 import AuthService from './services/AuthService';
 import DocumentService from './services/DocumentService';
-import UserService from './services/UserService';
+import userService from './services/userService';
 import HCDocument from './lib/models/HCDocument';
 import HCAttachment from './lib/models/HCAttachment';
 
 class HealthCloud {
     constructor({ documentService, zeroKitAdapter }) {
-        UserService.setZeroKitAdapter(zeroKitAdapter);
+        userService.setZeroKitAdapter(zeroKitAdapter);
 
         this.downloadDocument = documentService.downloadDocument.bind(documentService);
         this.deleteDocument = documentService.deleteDocument.bind(documentService);
@@ -15,12 +15,12 @@ class HealthCloud {
         this.getDocumentsCount = documentService.getDocumentsCount.bind(documentService);
         this.uploadDocument = documentService.uploadDocument.bind(documentService);
         this.updateDocument = documentService.updateDocument.bind(documentService);
-        this.getCurrentUser = UserService.getCurrentUser.bind(UserService);
-        this.getUserIdByAlias = UserService.getUserIdForAlias.bind(UserService);
-        this.getUser = UserService.getUser.bind(UserService);
-        this.updateUser = UserService.updateUser.bind(UserService);
+        this.getCurrentUser = userService.getCurrentUser.bind(userService);
+        this.getUserIdByAlias = userService.getUserIdForAlias.bind(userService);
+        this.getUser = userService.getUser.bind(userService);
+        this.updateUser = userService.updateUser.bind(userService);
         this.grantPermission = zeroKitAdapter.grantPermission.bind(zeroKitAdapter);
-        this.getGrantedPermissions = UserService.getGrantedPermissions.bind(UserService);
+        this.getGrantedPermissions = userService.getGrantedPermissions.bind(userService);
         this.logout = zeroKitAdapter.logout.bind(zeroKitAdapter);
 
         this.models = {

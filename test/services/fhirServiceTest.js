@@ -8,7 +8,7 @@ import sinonChai from 'sinon-chai';
 
 import documentRoutes from '../../src/routes/documentRoutes';
 import FhirService from '../../src/services/FhirService';
-import UserService from '../../src/services/UserService';
+import userService from '../../src/services/userService';
 import encryptionUtils from '../../src/lib/EncryptionUtils';
 import fhirValidator from '../../src/lib/fhirValidator';
 import ZeroKitAdapter from '../../src/services/ZeroKitAdapter';
@@ -27,9 +27,10 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('services/fhirService', () => {
+    const authService = { clientId: testVariables.clientId };
+
     let zeroKitAdapter;
     let fhirService;
-    const authService = { clientId: testVariables.clientId };
 
     let createRecordStub;
     let decryptStub;
@@ -60,7 +61,7 @@ describe('services/fhirService', () => {
             .returnsPromise().resolves('encrypted_body');
         generateTagsFromFhirObjectStub = sinon.stub(taggingUtils, 'generateTagsFromFhirObject')
             .returns([testVariables.tag]);
-        getInternalUserStub = sinon.stub(UserService, 'getInternalUser')
+        getInternalUserStub = sinon.stub(userService, 'getInternalUser')
             .returnsPromise().resolves(userResources.internalUser);
         getRecordsCountStub = sinon.stub(documentRoutes, 'getRecordsCount')
             .returnsPromise().resolves({
@@ -90,7 +91,7 @@ describe('services/fhirService', () => {
 
     it('createFhirRecord - Happy Path', (done) => {
         fhirService.createFhirRecord(testVariables.userId, fhirResources.documentReference)
-            .then((result) => {
+            .then(() => {
                 expect(createRecordStub).to.be.calledOnce;
                 expect(tagEncryptStub.getCall(1).args[0])
                     .to.equal(`client=${stringUtils.addPercentEncoding(testVariables.clientId)}`);
@@ -108,7 +109,8 @@ describe('services/fhirService', () => {
         validateStub.rejects();
 
         fhirService.uploadFhirRecord(testVariables.userId, fhirResources.documentReference)
-            .catch((err) => {
+            .then(() => done(Error('fhirValidation didn\'t fail as expected')))
+            .catch(() => {
                 expect(validateStub).to.be.calledOnce;
                 expect(createRecordStub).to.not.be.called;
                 done();
@@ -218,7 +220,7 @@ describe('services/fhirService', () => {
     });
 
     it('deleteRecord - Happy Path', (done) => {
-        fhirService.deleteRecord(testVariables.userId, testVariables.recordId)
+        FhirService.deleteRecord(testVariables.userId, testVariables.recordId)
             .then(() => {
                 expect(deleteRecordStub).to.be.calledOnce;
                 expect(deleteRecordStub).to.be
