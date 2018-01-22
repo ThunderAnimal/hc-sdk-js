@@ -15,21 +15,21 @@ chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('sessionHandler node', () => {
-    it('get and set sessionHandler succeeds', () => {
-        sessionHandler.set('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
-        const userCookie = sessionHandler.get('HC_User');
+    it('getItem and setItem succeeds', () => {
+        sessionHandler.setItem('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
+        const userCookie = sessionHandler.getItem('HC_User');
         expect(userCookie).to.equal(`${testVariables.userId},${testVariables.userAlias}`);
     });
 
-    it('deleteCookie sessionHandler succeeds', () => {
-        sessionHandler.set('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
-        sessionHandler.deleteCookie('HC_User');
-        expect(sessionHandler.get('HC_User')).to.be.undefined;
+    it('removeItem succeeds', () => {
+        sessionHandler.setItem('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
+        sessionHandler.removeItem('HC_User');
+        expect(sessionHandler.getItem('HC_User')).to.be.undefined;
     });
 
-    it('logout sessionHandler succeeds', () => {
-        sessionHandler.set('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
+    it('logout succeeds', () => {
+        sessionHandler.setItem('HC_User', `${testVariables.userId},${testVariables.userAlias}`);
         sessionHandler.logout();
-        expect(sessionHandler.get('HC_User')).to.be.undefined;
+        expect(sessionHandler.getItem('HC_User')).to.be.undefined;
     });
 });

@@ -47,7 +47,7 @@ class ZeroKitAdapter {
             .then(user => this.zeroKit.then(zeroKit => zeroKit.login(user.zeroKitId, password))
                 .then(() => this.authService.clientCredentialsLogin(user.id))
                 .then(() => {
-                    sessionHandler.set('HC_User', `${user.id},${hcUserAlias}`);
+                    sessionHandler.setItem('HC_User', `${user.id},${hcUserAlias}`);
                     return this.setupUser();
                 })
                 .then(() => ({ id: user.id, alias: hcUserAlias })));
@@ -59,7 +59,7 @@ class ZeroKitAdapter {
             .then((user) => {
                 const { zeroKitId } = user;
                 userId = user.id;
-                sessionHandler.set('HC_User', `${userId},${hcUserAlias}`);
+                sessionHandler.setItem('HC_User', `${userId},${hcUserAlias}`);
 
                 return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
             })

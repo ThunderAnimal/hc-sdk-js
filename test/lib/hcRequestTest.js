@@ -92,8 +92,8 @@ describe('hcRequest', () => {
         hcRequest = proxyquire('../../src/lib/hcRequest', {
             './sessionHandler/web': {
                 default: {
-                    get: getAccessTokkenStub,
-                    set: sinon.stub().returns(true),
+                    getItem: getAccessTokkenStub,
+                    setItem: sinon.stub().returns(true),
                 },
             },
             '../routes/authRoutes': {

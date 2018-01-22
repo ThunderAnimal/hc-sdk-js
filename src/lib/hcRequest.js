@@ -9,14 +9,14 @@ const buildCustomError = error => ({
 
 const sendRefreshToken = () => {
     const params = {
-        refresh_token: sessionHandler.get('HC_Refresh'),
+        refresh_token: sessionHandler.getItem('HC_Refresh'),
         grant_type: 'refresh_token',
     };
 
     return authRoutes.getRefreshTokenFromCode(params)
         .then((res) => {
-            sessionHandler.set('HC_Auth', res.access_token);
-            sessionHandler.set('HC_Refresh', res.refresh_token);
+            sessionHandler.setItem('HC_Auth', res.access_token);
+            sessionHandler.setItem('HC_Refresh', res.refresh_token);
             return res;
         });
 };
@@ -37,7 +37,7 @@ const hcRequest = (type, path, {
 
     const promise = () => {
         if (authorize) {
-            headers.Authorization = `Bearer ${sessionHandler.get('HC_Auth')}`;
+            headers.Authorization = `Bearer ${sessionHandler.getItem('HC_Auth')}`;
         }
         return request(type, path)
             .set(headers)

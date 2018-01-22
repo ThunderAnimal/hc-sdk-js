@@ -10,7 +10,7 @@ const authRoutes = {
     getAccessTokenFromCode(body) {
         const headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${sessionHandler.get('HC_Id')}`,
+            Authorization: `Bearer ${sessionHandler.getItem('HC_Id')}`,
         };
 
         return hcRequest('POST', `${apiUrl}/auth/token`, { body, headers });
@@ -27,7 +27,7 @@ const authRoutes = {
     getRefreshTokenFromCode(body) {
         const headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${sessionHandler.get('HC_Id')}`,
+            Authorization: `Bearer ${sessionHandler.getItem('HC_Id')}`,
         };
 
         return hcRequest('POST', `${apiUrl}/auth/token`, { body, headers });
@@ -36,7 +36,7 @@ const authRoutes = {
     revokeRefreshToken(token) {
         const headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${sessionHandler.get('HC_Id')}`,
+            Authorization: `Bearer ${sessionHandler.getItem('HC_Id')}`,
         };
 
         const body = { token };

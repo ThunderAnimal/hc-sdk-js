@@ -43,7 +43,7 @@ describe('services/userService', () => {
             .returnsPromise().resolves({
                 uid: testVariables.userId, zerokit_id: testVariables.zeroKitId,
             });
-        sessionHandlerGetStub = sinon.stub(sessionHandler, 'get')
+        sessionHandlerGetStub = sinon.stub(sessionHandler, 'getItem')
             .returns(`${testVariables.userId},${testVariables.userAlias}`);
         updateUserStub = sinon.stub(userRoutes, 'updateUser')
             .returnsPromise().resolves();

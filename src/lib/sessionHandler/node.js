@@ -1,14 +1,14 @@
 const sessionHandler = {
     localStorage: new Map(),
 
-    get(name) {
-        return this.localStorage.get(name);
+    getItem(key) {
+        return this.localStorage.get(key);
     },
-    set(name, val) {
-        this.localStorage.set(name, val);
+    setItem(key, value) {
+        this.localStorage.set(key, value);
     },
-    deleteCookie(name) {
-        this.localStorage.delete(name);
+    removeItem(key) {
+        this.localStorage.delete(key);
     },
     logout() {
         this.localStorage.clear();

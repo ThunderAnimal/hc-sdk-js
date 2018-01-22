@@ -29,7 +29,7 @@ class Auth {
             iframe.onload = Auth.handleIframe.bind(this, iframe, (error, queryString) => {
                 if (error) return reject(error);
 
-                sessionHandler.set('HC_Id', getCodeFromString(queryString, 'auth_token'));
+                sessionHandler.setItem('HC_Id', getCodeFromString(queryString, 'auth_token'));
                 this.authorize()
                     .then(res => resolve(res))
                     .catch(err => reject(err));
@@ -61,7 +61,7 @@ class Auth {
                 'response_type=code&' +
                 'scope=everything&' +
                 `state=${this.signInState}#` +
-                `${sessionHandler.get('HC_Id')}`;
+                `${sessionHandler.getItem('HC_Id')}`;
 
             document.body.appendChild(iframe);
         });
@@ -96,7 +96,7 @@ class Auth {
         };
         return authRoutes.getAccessTokenFromCredentials(body)
             .then((res) => {
-                sessionHandler.set('HC_Auth', res.access_token);
+                sessionHandler.setItem('HC_Auth', res.access_token);
             });
     }
 
@@ -112,8 +112,8 @@ class Auth {
 
                 authRoutes.getAccessTokenFromCode(params)
                     .then((res) => {
-                        sessionHandler.set('HC_Auth', res.access_token);
-                        sessionHandler.set('HC_Refresh', res.refresh_token);
+                        sessionHandler.setItem('HC_Auth', res.access_token);
+                        sessionHandler.setItem('HC_Refresh', res.refresh_token);
                         resolve(res);
                     })
                     .catch(err => reject(err));
@@ -122,7 +122,7 @@ class Auth {
     }
 
     static logout() {
-        return authRoutes.revokeRefreshToken(sessionHandler.get('HC_Refresh'))
+        return authRoutes.revokeRefreshToken(sessionHandler.getItem('HC_Refresh'))
             .then(sessionHandler.logout.bind(sessionHandler));
     }
 }

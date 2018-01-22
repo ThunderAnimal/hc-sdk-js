@@ -23,9 +23,9 @@ const userService = {
     },
 
     getCurrentUser() {
-        const currentUser = sessionHandler.get('HC_User');
+        const currentUser = sessionHandler.getItem('HC_User');
 
-        return currentUser && sessionHandler.get('HC_Auth') ? {
+        return currentUser && sessionHandler.getItem('HC_Auth') ? {
             alias: currentUser.split(',')[1],
             id: currentUser.split(',')[0],
         } : undefined;

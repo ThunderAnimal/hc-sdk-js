@@ -1,34 +1,35 @@
-const sessionHandler = {
+import environmentUtils from '../environmentUtils';
 
-    get(key) {
-        return this.getCookie(key);
-    },
-
-    set(key, value) {
-        document.cookie = `${key}=${value};path=/`;
-    },
-
-    getCookie(cookie) {
-        let Cookie;
-        const pattern = RegExp(`${cookie}=.[^;]*`);
+const cookieStorage = {
+    getItem(key) {
+        const pattern = new RegExp(`${key}=.[^;]*`);
         const matched = document.cookie.match(pattern);
 
         if (matched) {
-            Cookie = matched[0].split('=');
-            return Cookie[1];
+            return matched[0].split('=')[1];
         }
         return undefined;
     },
 
-    deleteCookie(name) {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+    setItem(key, value) {
+        document.cookie = `${key}=${value};path=/`;
     },
 
-    logout() {
-        this.deleteCookie('HC_Id');
-        this.deleteCookie('HC_Auth');
-        this.deleteCookie('HC_User');
-        this.deleteCookie('HC_Refresh');
+    removeItem(key) {
+        document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+    },
+};
+
+const storage = environmentUtils.getLocalStorage() || cookieStorage;
+const sessionHandler = {
+    setItem: (key, value) => storage.setItem(key, value),
+    getItem: key => storage.getItem(key),
+    removeItem: key => storage.removeItem(key),
+    logout: () => {
+        storage.removeItem('HC_Id');
+        storage.removeItem('HC_Auth');
+        storage.removeItem('HC_User');
+        storage.removeItem('HC_Refresh');
     },
 };
 
