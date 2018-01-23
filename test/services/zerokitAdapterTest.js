@@ -350,6 +350,7 @@ describe('zerokitAdapter', () => {
             .then(() => {
                 expect(logoutStub).to.be.calledOnce;
                 expect(authServiceLogoutStub).to.be.calledOnce;
+                expect(userService.user).to.equal(null);
                 done();
             })
             .catch(done);

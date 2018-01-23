@@ -229,7 +229,7 @@ class ZeroKitAdapter {
             this.zeroKit.then(zerokit => zerokit.logout()),
             AuthService.logout(),
         ])
-            .then(() => {});
+            .then(() => { userService.resetUser(); });
     }
 }
 

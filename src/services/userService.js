@@ -13,6 +13,10 @@ const userService = {
         this.zeroKitAdapter = adapter;
     },
 
+    resetUser() {
+        this.user = null;
+    },
+
     resolveUser(alias) {
         return userRoutes.resolveUserId(alias)
             .then(user => ({ id: user.uid, zeroKitId: user.zerokit_id }));

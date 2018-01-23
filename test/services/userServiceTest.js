@@ -227,6 +227,11 @@ describe('services/userService', () => {
         });
     });
 
+    it('resets the user successfully', () => {
+        userService.resetUser();
+        expect(userService.user).to.equal(null);
+    });
+
     afterEach(() => {
         getGrantedPermissionsStub.restore();
         getUserDetailsStub.restore();
