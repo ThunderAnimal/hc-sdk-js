@@ -12,4 +12,4 @@ VERSION=$1
 git add . && \
     git commit -m "releasing ${VERSION}" && \
     git tag "$VERSION" -m "$(cat CHANGELOG.md | scripts/read_changelog.sh ${VERSION})" && \
-    git push origin master --tag
+    git push origin release --tag
