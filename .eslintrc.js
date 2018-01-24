@@ -46,5 +46,6 @@ module.exports = {
         zkit_sdk: true,
         NODE: true,
         __karma__: true,
+        VERSION: true,
     },
 };

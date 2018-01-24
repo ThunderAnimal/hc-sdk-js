@@ -1,3 +1,4 @@
+import config from 'config';
 import request from 'superagent-bluebird-promise';
 import sessionHandler from 'session-handler';
 import authRoutes from '../routes/authRoutes';
@@ -24,6 +25,8 @@ const sendRefreshToken = () => {
 const isExpired = error =>
     error.status === 401 && error.body && error.body.error && error.body.error.includes('expired');
 
+const isHealthCloudPath = path => path.startsWith(config.api);
+
 const hcRequest = (type, path, {
     body,
     query = {},
@@ -34,10 +37,12 @@ const hcRequest = (type, path, {
 } = {}) => {
     let retries = 0;
 
-
     const promise = () => {
         if (authorize) {
             headers.Authorization = `Bearer ${sessionHandler.getItem('HC_Auth')}`;
+        }
+        if (isHealthCloudPath(path)) {
+            headers = { 'GC-SDK-Version': `JS ${VERSION}`, ...headers };
         }
         return request(type, path)
             .set(headers)

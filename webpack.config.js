@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const packageJson = require('./package.json');
 
 module.exports = (env) => {
     const config = {
@@ -29,9 +30,10 @@ module.exports = (env) => {
             new webpack.DefinePlugin({
                 'global.GENTLY': env.TARGET !== 'node',
                 NODE: env.TARGET === 'node',
+                VERSION: JSON.stringify(packageJson.version),
             }),
+            new webpack.BannerPlugin(`Version: ${JSON.stringify(packageJson.version)}`),
         ],
-
     };
     return config;
 };
