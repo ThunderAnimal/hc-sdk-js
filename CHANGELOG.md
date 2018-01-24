@@ -3,3 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] 
+### Added
+* first public release of the Javascript SDK
+* integrates 0kit as identity and E2EE provider
+* login/logout functionality
+* encrypt/decrypt of records
+* searching records by originating app
+* Document API implemented:
+** upload/download medical documents
+* models are internally stored as FHIR-JSON resources
+** DocumentReference available
