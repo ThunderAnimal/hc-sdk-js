@@ -1,22 +1,23 @@
 const tagIds = {
-    hcUserRegister: 'hcUserRegister',
-    zkitRegistration: 'zkitRegistration',
+  hcUserRegister: "hcUserRegister",
+  zkitRegistration: "zkitRegistration"
 };
 
 const createRegistrationFormTemplate = () => {
-    const registrationForm = document.createElement('div');
-    registrationForm.innerHTML = `
+  const registrationForm = document.createElement("div");
+  registrationForm.innerHTML = `
             <div class="row">
                 <label>E-Mail-Adresse</label>
-            <input type="text" id="${tagIds.hcUserRegister}" placeholder="Email">
+            <input type="text" id="${
+              tagIds.hcUserRegister
+            }" placeholder="Email">
             </div>
             <div class="row">
                 <label>Passwort</label>
             <div id="${tagIds.zkitRegistration}"></div>
             </div>
     `;
-    return registrationForm;
+  return registrationForm;
 };
-
 
 export { tagIds, createRegistrationFormTemplate };

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "cd .. && npm run build && mv dest/* example/assets && cd example && node server.js",
+    "start":
+      "cd .. && npm run build && mv dest/* example/assets && cd example && node server.js",
     "start:only": "node server.js"
   },
   "author": "gesundheitscloud",

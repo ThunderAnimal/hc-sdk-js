@@ -16,7 +16,8 @@
     "karma:node": "karma start karma.conf.js --node true",
     "karma:prod:web": "karma start karma.conf.js --single-run --node false",
     "karma:prod:node": "karma start karma.conf.js --single-run --node true",
-    "test": "yarn lint && yarn build && yarn karma:prod:web && yarn karma:prod:node && codecov"
+    "test":
+      "eslint --fix src test && yarn build && yarn karma:prod:web && yarn karma:prod:node && codecov"
   },
   "husky": {
     "hooks": {

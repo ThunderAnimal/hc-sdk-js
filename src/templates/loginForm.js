@@ -1,12 +1,12 @@
 const tagIds = {
-    hcUserLogin: 'hcUserLogin',
-    zkitLogin: 'zkitLogin',
-    submitBtn: 'submitBtn',
+  hcUserLogin: "hcUserLogin",
+  zkitLogin: "zkitLogin",
+  submitBtn: "submitBtn"
 };
 
 const createLoginFormTemplate = () => {
-    const loginForm = document.createElement('form');
-    loginForm.innerHTML = `
+  const loginForm = document.createElement("form");
+  loginForm.innerHTML = `
             <div class="row">
                 <label>E-Mail-Adresse</label>
                 <input type="text" id="${tagIds.hcUserLogin}">
@@ -19,8 +19,7 @@ const createLoginFormTemplate = () => {
             <button id="${tagIds.submitBtn}">ANMELDEN</button>
             </div>
     `;
-    return loginForm;
+  return loginForm;
 };
-
 
 export { tagIds, createLoginFormTemplate };
