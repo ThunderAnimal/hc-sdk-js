@@ -3,7 +3,8 @@
 import 'babel-polyfill';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import taggingUtils from '../../src/lib/taggingUtils';
+import taggingUtils, { tagKeys } from '../../src/lib/taggingUtils';
+import testVariables from '../../test/testUtils/testVariables';
 
 chai.use(sinonChai);
 
@@ -44,9 +45,9 @@ describe('taggingUtils', () => {
     };
 
     it('generateTagsFromFhirObject succeeds', (done) => {
-        const tags = taggingUtils.generateTagsFromFhirObject(fhirObject);
-        expect(tags.length).to.equal(1);
-        expect(tags[0]).to.equal('resourcetype=patient');
+        const generatedTags = taggingUtils.generateTagsFromFhirObject(fhirObject);
+        expect(generatedTags.length).to.equal(1);
+        expect(generatedTags[0]).to.equal('resourcetype=patient');
         done();
     });
 
@@ -58,5 +59,22 @@ describe('taggingUtils', () => {
             '%3B%2C%2F%3F%3A%40%26%3D%2B%24%23%2d%5f%2e%21%7e%2a%27%28%29abc%20abc%20123='
             + '%3B%2C%2F%3F%3A%40%26%3D%2B%24%23%2d%5f%2e%21%7e%2a%27%28%29abc%20abc%20123');
         done();
+    });
+
+    it('returns correct tag value when getValue is called with tag', () => {
+        const tagValue = taggingUtils.getValue(testVariables.secondTag);
+        expect(tagValue).to.equal('1');
+    });
+
+    it('returns undefined when getValue is called with incorrect tag format', () => {
+        const tagValue = taggingUtils.getValue('client%2');
+        expect(tagValue).to.equal(undefined);
+    });
+
+    it('returns correct tag value when getTagValueFromList is called with list and tag', () => {
+        const tagValue = taggingUtils.getTagValueFromList(
+            [testVariables.tag, testVariables.secondTag], tagKeys.client,
+        );
+        expect(tagValue).to.equal('1');
     });
 });

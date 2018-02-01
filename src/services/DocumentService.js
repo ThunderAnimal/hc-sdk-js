@@ -1,7 +1,7 @@
 import documentRoutes from '../routes/documentRoutes';
 import fileRoutes from '../routes/fileRoutes';
 import FhirService from './FhirService';
-import taggingUtils from '../lib/taggingUtils';
+import taggingUtils, { tagKeys } from '../lib/taggingUtils';
 import hcDocumentUtils from '../lib/models/utils/hcDocumentUtils';
 import ValidationError from '../lib/errors/ValidationError';
 
@@ -115,6 +115,8 @@ class DocumentService {
             .then((result) => {
                 result.records = result.records.map((record) => {
                     const hcDocument = hcDocumentUtils.fromFhirObject(record.body);
+                    hcDocument.client = taggingUtils.getTagValueFromList(record.tags,
+                        tagKeys.client);
                     hcDocument.id = record.record_id;
                     return hcDocument;
                 });

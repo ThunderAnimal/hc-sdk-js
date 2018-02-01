@@ -1,7 +1,7 @@
 import fhirValidator from '../lib/fhirValidator';
 import documentRoutes from '../routes/documentRoutes';
 import userService from './userService';
-import taggingUtils from '../lib/taggingUtils';
+import taggingUtils, { tagKeys } from '../lib/taggingUtils';
 import encryptionUtils from '../lib/EncryptionUtils';
 import dateUtils from '../lib/dateUtils';
 
@@ -30,7 +30,7 @@ class FHIRService {
             .then(() => {
                 const tags = [
                     ...taggingUtils.generateTagsFromFhirObject(fhirObject),
-                    taggingUtils.buildTag('client', this.zeroKitAdapter.authService.clientId),
+                    taggingUtils.buildTag(tagKeys.client, this.zeroKitAdapter.authService.clientId),
                 ];
                 return this.uploadRecord(ownerId, fhirObject, tags, uploadRequest);
             });
