@@ -1,10 +1,10 @@
-import makeJWK from './jwk';
-
 const crypto = window.crypto || window.msCrypto;
 
+const iv = new Uint8Array([124, 217, 143, 93, 158, 16, 65, 155, 218, 47, 56, 37, 231, 77, 126, 88]);
+
 // ALGORITHMS
-const AES_GCM = {
-    name: 'AES-GCM',
+const AES_CBC = {
+    name: 'AES-CBC',
     length: 256,
 };
 
@@ -23,17 +23,11 @@ const PBKDF2 = {
 };
 
 const jwkToWebCrypto = {
-    A256GCM: AES_GCM,
+    A256CBC: AES_CBC,
     'RSA-OAEP-256': RSA_OAEP,
 };
 
-// iv: Is initialization vector. It must be 16 bytes
-const iv = crypto.getRandomValues(new Uint8Array(16));
-
-// eslint-disable-next-line no-unused-vars
-const JWK = Object;
-
-const convertStringToArrayBuffer = (str) => {
+const convertStringToArrayBufferView = (str) => {
     const bytes = new Uint8Array(str.length);
 
     for (let i = 0; i < str.length; i += 1) {
@@ -43,7 +37,7 @@ const convertStringToArrayBuffer = (str) => {
     return bytes;
 };
 
-const convertArrayBufferToString = (arrayBuffer) => {
+const convertArrayBufferViewToString = (arrayBuffer) => {
     let str = '';
 
     for (let i = 0; i < arrayBuffer.byteLength; i += 1) {
@@ -53,6 +47,12 @@ const convertArrayBufferToString = (arrayBuffer) => {
     return str;
 };
 
+/**
+ * Transformation from jwk to key.
+ *
+ * @param {Object} jwk - The jwk representation of the key
+ * @returns {Promise} Resolves to the key as a CryptoKey.
+ */
 const getKeyFromJWK = (jwk) => {
     const alg = jwkToWebCrypto[jwk.alg];
 
@@ -65,15 +65,21 @@ const getKeyFromJWK = (jwk) => {
     );
 };
 
+/**
+ * Transformation from jwk to key.
+ *
+ * @param {CryptoKey} key - the key that should be exported
+ * @returns {Promise} Resolves to the key as an jwk object.
+ */
 const getJWKFromKey = key =>
     crypto.subtle.exportKey('jwk', key);
 
 /**
  * Symmetric encryption of data with JWK
  *
- * @param {JWK} jwk that specifies the crypto primitives
- * @param {ArrayBuffer} data that should be encrypted
- * @returns {ArrayBuffer} encrypted data
+ * @param {Object} jwk - The jwk representation of the key
+ * @param {ArrayBufferView} data that should be encrypted
+ * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
 const symEncrypt = (jwk, data) =>
     getKeyFromJWK(jwk)
@@ -88,9 +94,9 @@ const symEncrypt = (jwk, data) =>
 /**
  * Symmetric decryption of data with JWK
  *
- * @param {JWK} jwk that specifies the crypto primitives
- * @param {ArrayBuffer} data that should be decrypted
- * @returns {ArrayBuffer} decrypted data
+ * @param {Object} jwk that specifies the crypto primitives
+ * @param {ArrayBufferView} encrypted data that should be decrypted
+ * @returns {Promise} Resolves to plain data as an ArrayBufferView
  */
 const symDecrypt = (jwk, data) =>
     getKeyFromJWK(jwk)
@@ -107,8 +113,9 @@ const symDecrypt = (jwk, data) =>
 
 /**
  * Creates key out of given String (aka password)
+ *
  * @param {String} masterKey
- * @returns {ArrayBuffer} secret key
+ * @returns {Promise} Resolves to from masterKey derived key as a CryptoKey
  */
 const deriveKey = masterKey =>
     crypto.subtle.importKey(
@@ -121,7 +128,7 @@ const deriveKey = masterKey =>
         .then(key => crypto.subtle.deriveKey(
             PBKDF2,
             key,
-            AES_GCM,
+            AES_CBC,
             true,
             ['encrypt', 'decrypt'],
         ))
@@ -130,9 +137,9 @@ const deriveKey = masterKey =>
 /**
  * Asymmetric encryption of data with JWK
  *
- * @param {JWK} publicKeyJWK that contains all the public keys that should have access
- * @param {JWK} data that will be encrypted with the keys from
- * @returns {ArrayBuffer} distributed key
+ * @param {Object} publicKeyJWK - jwk representation of the a public key
+ * @param {ArrayBufferView} data that will be encrypted
+ * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
 const asymEncrypt = (publicKeyJWK, data) =>
     getKeyFromJWK(publicKeyJWK)
@@ -148,8 +155,8 @@ const asymEncrypt = (publicKeyJWK, data) =>
  * Asymmetric decryption of data with JWK
  *
  * @param {JWK} privateKeyJWK
- * @param {ArrayBuffer} data
- * @returns {JWK} common key
+ * @param {ArrayBufferView} data
+ * @returns {Promise} Resolves to decrypted data as an ArrayBufferView
  */
 const asymDecrypt = (privateKeyJWK, data) =>
     getKeyFromJWK(privateKeyJWK)
@@ -167,7 +174,7 @@ const asymDecrypt = (privateKeyJWK, data) =>
 /**
  * Creates a random symmetric key.
  *
- * @returns {JWK} sym key
+ * @returns {Promise} Resolves to a symmetric key as a jwk object
  */
 const generateSymKey = () =>
     // Parameters:
@@ -178,7 +185,7 @@ const generateSymKey = () =>
     // 3. Usage of the key. (http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface-types)
     crypto.subtle.generateKey(
         {
-            name: 'AES-GCM',
+            name: 'AES-CBC',
             length: 256,
         },
         true,
@@ -189,7 +196,7 @@ const generateSymKey = () =>
 /**
  * Creates a random public-private key pair
  *
- * @returns {JWK} key pair
+ * @returns {Promise} Resolves to an object containing a public and a private key as jwk objects
  */
 const generateAsymKeyPair = () =>
     // Parameters:
@@ -218,7 +225,6 @@ const generateAsymKeyPair = () =>
         }));
 
 const hcCrypto = {
-    makeJWK,
     deriveKey,
     generateSymKey,
     generateAsymKeyPair,
@@ -230,8 +236,8 @@ const hcCrypto = {
 
     getKeyFromJWK,
     getJWKFromKey,
-    convertStringToArrayBuffer,
-    convertArrayBufferToString,
+    convertStringToArrayBufferView,
+    convertArrayBufferViewToString,
 };
 
 export default hcCrypto;
