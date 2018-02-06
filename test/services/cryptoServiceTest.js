@@ -6,19 +6,21 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 
-import createCryptoService from '../../src/services/encryptionService';
+import createCryptoService from '../../src/services/cryptoService';
 
 import mock from '../mockData';
 
 import cryptoLib from '../../src/lib/crypto';
-import cryptoRoutes from '../../src/routes/encryptionRoutes';
+import cryptoRoutes from '../../src/routes/cryptoRoutes';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
-describe('encryptionService', () => {
+describe('cryptoService', () => {
     let getDistributedKey;
+    let getUserPublicKey;
     let asymDecrypt;
+    let asymEncrypt;
     let generateSymKey;
     let symEncryptDataKey;
     let symEncryptData;
@@ -29,6 +31,22 @@ describe('encryptionService', () => {
         getDistributedKey = sinon.stub(cryptoRoutes, 'getDistributedKey')
             .returnsPromise()
             .withArgs(mock.clientID, mock.userID)
+            .resolves(mock.distributedKeyJWK);
+
+        getUserPublicKey = sinon.stub(cryptoRoutes, 'getUserPublicKey')
+            .returnsPromise()
+            .withArgs(mock.granteeID)
+            .resolves(mock.publicGranteeJWK);
+
+        cryptoRoutes.postCommonKey = arg1 => (arg2) => {
+            expect(arg1).to.equal(mock.granteeID);
+            expect(arg2).to.equal(mock.distributedKeyJWK);
+            return Promise.resolve({ status: 200 });
+        };
+
+        asymEncrypt = sinon.stub(cryptoLib, 'asymEncrypt')
+            .returnsPromise()
+            .withArgs(mock.publicGranteeJWK, mock.commonKey)
             .resolves(mock.distributedKeyJWK);
 
         asymDecrypt = sinon.stub(cryptoLib, 'asymDecrypt')
@@ -63,8 +81,10 @@ describe('encryptionService', () => {
 
     afterEach(() => {
         // eslint-disable no-unused-expressions
-        cryptoRoutes.getDistributedKey.restore();
+        cryptoRoutes.getDistributedKey.restore();;
+        cryptoRoutes.getUserPublicKey.restore();
         cryptoLib.asymDecrypt.restore();
+        cryptoLib.asymEncrypt.restore();
         cryptoLib.generateSymKey.restore();
         cryptoLib.symEncrypt.restore();
         cryptoLib.symDecrypt.restore();
@@ -120,6 +140,33 @@ describe('encryptionService', () => {
                 expect(symDecryptData).to.be.calledOnce;
                 expect(symDecryptData).to.be.calledWith(mock.dataKey, mock.encryptedData);
             })
+            .then(() => done())
+            .catch(done);
+    });
+
+    it('should be possible to grant permission to given userID', (done) => {
+        const {
+            grantPermission,
+        } = createCryptoService(mock.clientID)(mock.privateClientUserJWK)(mock.userID);
+
+        grantPermission(mock.granteeID).then(({ status }) => {
+            expect(status).to.equal(200);
+
+            // common key
+            expect(getDistributedKey).to.be.calledOnce;
+            expect(getDistributedKey).to.be.calledWith(mock.clientID, mock.userID);
+            expect(asymDecrypt).to.be.calledOnce;
+            expect(asymDecrypt).to.be.calledWith(
+                mock.privateClientUserJWK,
+                mock.distributedKeyJWK);
+
+            // encryption
+            expect(asymEncrypt).to.be.calledOnce;
+            expect(asymEncrypt).to.be.calledWith(mock.publicGranteeJWK, mock.commonKey);
+
+            expect(getUserPublicKey).to.be.calledOnce;
+            expect(getUserPublicKey).to.be.calledWith(mock.granteeID);
+        })
             .then(() => done())
             .catch(done);
     });

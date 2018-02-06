@@ -1,6 +1,8 @@
 const clientID = '1123581321';
 const userID = '12624120';
+const granteeID = '31415926';
 const privateClientUserJWK = { alg: 'RSA-OAEP-256', key: '0x6f98b5d235160fecc2e25ee936b72baa' };
+const publicGranteeJWK = { alg: 'RSA-OAEP-256', key: '0x1a04c9d235160fecc2e25ee936b72bad', type: 'public' };
 const distributedKeyJWK = { alg: 'RSA-OAEP-256', key: '0x0104e8509268bb285b37594ebab6e605' };
 const commonKey = { alg: 'AES-GCM', key: '0xcd4c547729e999147b396cde9ec31e5a' };
 const dataKey = { alg: 'AES-GCM', key: '0xcc5a547729e999147b396cde9ec31e5b' };
@@ -41,7 +43,9 @@ const encryptedData = 'bdc6df3dc62305ba3272e91b622dd7f5'
 export default {
     clientID,
     userID,
+    granteeID,
     privateClientUserJWK,
+    publicGranteeJWK,
     distributedKeyJWK,
     commonKey,
     dataKey,

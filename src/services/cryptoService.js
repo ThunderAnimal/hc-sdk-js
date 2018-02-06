@@ -1,9 +1,9 @@
 import cryptoLib from '../lib/crypto';
-import cryptoRoutes from '../routes/encryptionRoutes';
+import cryptoRoutes from '../routes/cryptoRoutes';
 
-// decryptDistributedKey :: JWK -> ArrayBuffer -> Promise(JWK)
-const decryptDistributedKey = privateKey => distributedKey =>
-    cryptoLib.asymDecrypt(privateKey, distributedKey);
+// decryptCommonKey :: JWK -> ArrayBuffer -> Promise(JWK)
+const decryptCommonKey = privateKey => encryptedCommonKey =>
+    cryptoLib.asymDecrypt(privateKey, encryptedCommonKey);
 
 // createEncryptData :: Promise(JWK) -> ArrayBuffer -> Promise([ ArrayBuffer, ArrayBuffer ])
 const createEncryptData = commonKeyPromise => (data) => {
@@ -27,20 +27,36 @@ const createDecryptData = commonKeyPromise => (encryptedData, encryptedDataKey) 
         .then(commonKey => cryptoLib.symDecrypt(commonKey, encryptedDataKey))
         .then(dataKey => cryptoLib.symDecrypt(dataKey, encryptedData));
 
+// TODO change name to something not use case driven or move to userService
+// createGrantPermission :: Promise(JWK) -> String -> Promise(Object)
+const createGrantPermission = commonKeyPromise => (userID) => {
+    const userPublicKeyPromise = cryptoRoutes.getUserPublicKey(userID);
+
+    return Promise.all([
+        commonKeyPromise,
+        userPublicKeyPromise,
+    ]).then(([commonKey, publicKey]) =>
+        cryptoLib.asymEncrypt(publicKey, commonKey),
+    ).then(cryptoRoutes.postCommonKey(userID)); // too much?
+};
+
 // createCryptoService :: String -> JWK -> String -> Object
 const createCryptoService = clientID => privateKey => (userID) => {
     const commonKeyPromise = cryptoRoutes
         .getDistributedKey(clientID, userID)
-        .then(decryptDistributedKey(privateKey));
+        .then(decryptCommonKey(privateKey));
 
     // encryptData :: ArrayBuffer -> Promise([ArrayBuffer, ArrayBuffer])
     const encryptData = createEncryptData(commonKeyPromise);
     // decryptData :: ArrayBuffer -> ArrayBuffer -> Promise(ArrayBuffer)
     const decryptData = createDecryptData(commonKeyPromise);
+    // grantPermission :: ArrayBuffer -> Promise(Object)
+    const grantPermission = createGrantPermission(commonKeyPromise);
 
     return {
         encryptData,
         decryptData,
+        grantPermission,
     };
 };
 
