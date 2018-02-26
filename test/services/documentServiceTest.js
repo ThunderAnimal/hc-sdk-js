@@ -7,20 +7,23 @@ import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import documentRoutes from '../../src/routes/documentRoutes';
 import fileRoutes from '../../src/routes/fileRoutes';
-import DocumentService from '../../src/services/DocumentService';
+import documentService from '../../src/services/documentService';
 import hcDocumentUtils from '../../src/lib/models/utils/hcDocumentUtils';
 import testVariables from '../../test/testUtils/testVariables';
 import recordResources from '../../test/testUtils/recordResources';
 import taggingUtils from '../../src/lib/taggingUtils';
+import encryptionResources from '../testUtils/encryptionResources';
+import crypto from '../../src/lib/crypto';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
 const expect = chai.expect;
 
-describe('DocumentService', () => {
+describe('documentService', () => {
     let getFileUploadUrlsStub;
     let getFileDownloadUrlStub;
+    let fetchFileKeyStub;
 
     let fromFhirObjectStub;
     let toFhirObjectStub;
@@ -31,12 +34,17 @@ describe('DocumentService', () => {
 
     let updateRecordStatusStub;
 
-    let decryptStub;
-    let encryptStub;
-    let decryptBlobStub;
-    let encryptBlobStub;
+    let convertBlobToArrayBufferViewStub;
 
-    let zeroKitAdapter;
+    let decryptDataStub;
+    let encryptBlobsStub;
+
+    let encryptionServiceStub;
+
+    let createFhirRecordStub;
+    let downloadFhirRecordStub;
+    let updateFhirRecordStub;
+    let searchRecordsStub;
 
     const file = {
         name: 'file',
@@ -73,7 +81,6 @@ describe('DocumentService', () => {
     hcDocumentWithFileData.toFhirObject = sinon.stub().returns(fhirObject);
     hcDocumentWithFileData.creationDate = date;
 
-    let documentService;
     const sasToken = 'sas_token';
     const encryptedFile = 'encrypted_file';
 
@@ -115,6 +122,8 @@ describe('DocumentService', () => {
         // stubs
         getFileUploadUrlsStub = sinon.stub(documentRoutes, 'getFileUploadUrls').returnsPromise();
         getFileDownloadUrlStub = sinon.stub(documentRoutes, 'getFileDownloadUrl').returnsPromise();
+        fetchFileKeyStub = sinon.stub(documentRoutes, 'fetchFileKey')
+            .returnsPromise().resolves(encryptionResources.encryptedFileKey);
 
         fromFhirObjectStub = sinon.stub(hcDocumentUtils, 'fromFhirObject');
         toFhirObjectStub = sinon.stub(hcDocumentUtils, 'toFhirObject');
@@ -125,113 +134,140 @@ describe('DocumentService', () => {
 
         updateRecordStatusStub = sinon.stub(documentRoutes, 'updateRecordStatus').returnsPromise();
 
-        decryptStub = sinon.stub().returnsPromise().resolves();
-        encryptStub = sinon.stub().returnsPromise().withArgs(file)
-            .resolves(encryptedFile);
-        decryptBlobStub = sinon.stub().returnsPromise().resolves(file);
-        encryptBlobStub = sinon.stub().returnsPromise().withArgs(file)
-            .resolves(encryptedFile);
+        convertBlobToArrayBufferViewStub = sinon.stub(crypto, 'convertBlobToArrayBufferView')
+            .returnsPromise().resolves(encryptionResources.file);
 
-        zeroKitAdapter = {
-            decrypt: decryptStub,
-            encrypt: encryptStub,
-            decryptBlob: decryptBlobStub,
-            encryptBlob: encryptBlobStub,
-            authService: { clientId: testVariables.clientId },
-        };
+        decryptDataStub = sinon.stub().returnsPromise().resolves();
+        encryptBlobsStub = sinon.stub().returnsPromise().withArgs(file)
+            .resolves([[encryptedFile]], encryptionResources.encryptedDataKey);
 
-        documentService = new DocumentService({ zeroKitAdapter });
-        documentService.fhirService.createFhirRecord = sinon.stub()
+        encryptionServiceStub = sinon.stub().returns({
+            decryptData: decryptDataStub,
+            encryptBlobs: encryptBlobsStub,
+        });
+
+        documentService.encryptionService = encryptionServiceStub;
+
+        createFhirRecordStub = sinon.stub()
             .returnsPromise().resolves(documentReferenceRecord);
-        documentService.fhirService.downloadFhirRecord = sinon.stub()
+        downloadFhirRecordStub = sinon.stub()
             .returnsPromise().resolves(documentReferenceRecordFactory([encryptedFile]));
-        documentService.fhirService.updateFhirRecord = sinon.stub()
+        updateFhirRecordStub = sinon.stub()
             .returnsPromise().resolves({ record_id: recordId });
-        documentService.fhirService.searchRecords = sinon.stub()
+        searchRecordsStub = sinon.stub()
             .returnsPromise().withArgs(testVariables.userId, { tags: [taggingUtils.buildTag('resourceType', 'documentReference')] })
             .resolves({ totalCount: 1, records: [recordResources.documentReference] });
+
+        documentService.fhirService = {
+            createFhirRecord: createFhirRecordStub,
+            downloadFhirRecord: downloadFhirRecordStub,
+            updateFhirRecord: updateFhirRecordStub,
+            searchRecords: searchRecordsStub,
+        };
     });
 
-    it('uploadDocument - Happy Path', (done) => {
-        getFileUploadUrlsStub.resolves([{ sas_token: sasToken, id: fileId }]);
-        uploadFileStub.resolves(['']);
-        toFhirObjectStub.returns(fhirObject);
+    describe('uploadDocument', () => {
+        let doc;
+        beforeEach(() => {
+            doc = JSON.parse(JSON.stringify(hcDocumentWithFileData));
+        });
 
-        documentService.uploadDocument(userId, hcDocumentWithFileData)
-            .then(() => {
-                expect(documentService.fhirService.createFhirRecord).to.be.calledOnce;
-                expect(zeroKitAdapter.encryptBlob).to.be.calledOnce;
-                expect(zeroKitAdapter.encryptBlob).to.be.calledWith(userId, file);
-                expect(getFileUploadUrlsStub).to.be.calledOnce;
-                expect(uploadFileStub).to.be.calledOnce;
-                expect(uploadFileStub).to.be.calledWith(sasToken, encryptedFile);
-                expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
-                expect(documentService.fhirService.updateFhirRecord)
-                    .to.be.calledWith(userId, recordId, fhirObject);
-                done();
-            });
-    });
+        it('rejects when getFileUploadUrls fails ', (done) => {
+            getFileUploadUrlsStub.rejects('error');
+            uploadFileStub.resolves();
+            updateRecordStatusStub.resolves();
 
-    it('downloadDocument - Happy Path', (done) => {
-        attachmentWithoutFile.id = fileId;
-        attachmentWithFile.id = fileId;
-        fromFhirObjectStub.returns(hcDocumentWithoutFileData);
-        getFileDownloadUrlStub.resolves({ sas_token: sasToken });
-        downloadFileStub.resolves(encryptedFile);
+            documentService.uploadDocument(userId, doc)
+                .then(() => done(Error('uploadDocument rejection didn\'t work properly')))
+                .catch((err) => {
+                    expect(err).to.equal('error');
+                    expect(getFileUploadUrlsStub).to.be.calledOnce;
+                    expect(uploadFileStub).to.be.not.called;
+                    expect(updateRecordStatusStub).to.be.not.called;
+                    done();
+                })
+                .catch(done);
+        });
 
-        documentService.downloadDocument(userId, recordId).then((hcDocument) => {
-            expect(decryptBlobStub).to.be.calledOnce;
-            expect(documentService.fhirService.downloadFhirRecord).to.be.calledOnce;
-            expect(downloadFileStub).to.be.calledOnce;
-            expect(hcDocument.id).to.equal(recordId);
+        it('should resolve, when called with correct hcDocument with files', (done) => {
+            getFileUploadUrlsStub.resolves([{ sas_token: sasToken, id: fileId }]);
+            uploadFileStub.resolves(['']);
+            toFhirObjectStub.returns(fhirObject);
 
-            attachmentWithoutFile.id = undefined;
-            attachmentWithFile.id = undefined;
-            done();
+            documentService.uploadDocument(userId, hcDocumentWithFileData)
+                .then(() => {
+                    expect(documentService.fhirService.createFhirRecord).to.be.calledOnce;
+                    expect(encryptBlobsStub).to.be.calledOnce;
+                    expect(encryptBlobsStub).to.be.calledWith([file]);
+                    expect(getFileUploadUrlsStub).to.be.calledOnce;
+                    expect(uploadFileStub).to.be.calledOnce;
+                    expect(uploadFileStub).to.be.calledWith(sasToken, encryptedFile);
+                    expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
+                    expect(documentService.fhirService.updateFhirRecord)
+                        .to.be.calledWith(userId, recordId, fhirObject);
+                    done();
+                })
+                .catch(done);
         });
     });
 
-    it('uploadDocument - rejects when getFileUploadUrls fails ', (done) => {
-        getFileUploadUrlsStub.rejects('error');
-        uploadFileStub.resolves();
-        updateRecordStatusStub.resolves();
 
-        documentService.uploadDocument(userId, hcDocumentWithFileData).catch((err) => {
-            expect(err).to.equal('error');
-            expect(getFileUploadUrlsStub).to.be.calledOnce;
-            expect(uploadFileStub).to.be.not.called;
-            expect(updateRecordStatusStub).to.be.not.called;
-            done();
+    describe('downloadDocument', () => {
+        it('should resolve to a correct hcDocument with files', (done) => {
+            attachmentWithoutFile.id = fileId;
+            attachmentWithFile.id = fileId;
+            fromFhirObjectStub.returns(hcDocumentWithoutFileData);
+            getFileDownloadUrlStub.resolves({ sas_token: sasToken });
+            downloadFileStub.resolves(encryptedFile);
+
+            documentService.downloadDocument(userId, recordId)
+                .then((hcDocument) => {
+                    expect(decryptDataStub).to.be.calledOnce;
+                    expect(documentService.fhirService.downloadFhirRecord).to.be.calledOnce;
+                    expect(downloadFileStub).to.be.calledOnce;
+                    expect(hcDocument.id).to.equal(recordId);
+
+                    attachmentWithoutFile.id = undefined;
+                    attachmentWithFile.id = undefined;
+                    done();
+                })
+                .catch(done);
         });
     });
 
-    it('updateDocument - Happy Path with no changes', (done) => {
-        documentService.fhirService.updateFhirRecord = sinon.stub()
-            .returnsPromise().resolves(fhirObject);
-        attachmentWithoutFile.id = fileId;
-        toFhirObjectStub.returns(fhirObject);
+    describe('updateDocument', () => {
+        it('should resolve, when document is not changed', (done) => {
+            documentService.fhirService.updateFhirRecord = sinon.stub()
+                .returnsPromise().resolves(fhirObject);
+            attachmentWithoutFile.id = fileId;
+            toFhirObjectStub.returns(fhirObject);
+            encryptBlobsStub.resolves([[], encryptionResources.encryptedFileKey]);
 
-        documentService.updateDocument(userId, hcDocumentWithoutFileData).then(() => {
-            expect(documentService.zeroKitAdapter.encryptBlob).to.be.not.called;
-            expect(getFileUploadUrlsStub).to.be.not.called;
-            expect(uploadFileStub).to.be.not.called;
-            expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
-            expect(documentService.fhirService.updateFhirRecord)
-                .to.be.calledWith(userId, recordId, fhirObject);
+            documentService.updateDocument(userId, hcDocumentWithoutFileData)
+                .then(() => {
+                    expect(encryptBlobsStub).to.be.calledWith([]);
+                    expect(getFileUploadUrlsStub).to.be.not.called;
+                    expect(uploadFileStub).to.be.not.called;
+                    expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
+                    expect(documentService.fhirService.updateFhirRecord)
+                        .to.be.calledWith(userId, recordId, fhirObject);
 
-            attachmentWithoutFile.id = undefined;
-            done();
+                    attachmentWithoutFile.id = undefined;
+                    done();
+                })
+                .catch(done);
         });
-    });
 
-    it('updateDocument - fails when getFileUploadUrls fails ', (done) => {
-        getFileUploadUrlsStub.rejects('error');
-        documentService.updateDocument(userId, hcDocumentWithFileData).catch((err) => {
-            expect(err).to.equal('error');
-            expect(getFileUploadUrlsStub).to.be.calledOnce;
-            expect(uploadFileStub).to.be.not.called;
-            expect(updateRecordStatusStub).to.be.not.called;
-            done();
+        it('fails when getFileUploadUrls fails ', (done) => {
+            getFileUploadUrlsStub.rejects('error');
+            documentService.updateDocument(userId, hcDocumentWithFileData)
+                .catch((err) => {
+                    expect(err).to.equal('error');
+                    expect(getFileUploadUrlsStub).to.be.calledOnce;
+                    expect(uploadFileStub).to.be.not.called;
+                    expect(updateRecordStatusStub).to.be.not.called;
+                    done();
+                });
         });
     });
 
@@ -239,12 +275,14 @@ describe('DocumentService', () => {
     describe('getDocuments', () => {
         it('should pass', (done) => {
             fromFhirObjectStub.returns(hcDocumentWithoutFileData);
-            documentService.getDocuments(testVariables.userId).then((result) => {
-                expect(result.records[0]).to.equal(hcDocumentWithoutFileData);
-                expect(result.totalCount).to.equal(1);
-                expect(fromFhirObjectStub).to.be.calledOnce;
-                done();
-            }).catch(done);
+            documentService.getDocuments(testVariables.userId)
+                .then((result) => {
+                    expect(result.records[0]).to.equal(hcDocumentWithoutFileData);
+                    expect(result.totalCount).to.equal(1);
+                    expect(fromFhirObjectStub).to.be.calledOnce;
+                    done();
+                })
+                .catch(done);
         });
 
         it('should fail if searchrecords return error', (done) => {
@@ -297,6 +335,12 @@ describe('DocumentService', () => {
         isValidStub.restore();
         uploadFileStub.restore();
         updateRecordStatusStub.restore();
-        encryptBlobStub.resetHistory();
+        encryptBlobsStub.resetHistory();
+        convertBlobToArrayBufferViewStub.restore();
+        fetchFileKeyStub.restore();
+        searchRecordsStub.resetHistory();
+        createFhirRecordStub.resetHistory();
+        downloadFhirRecordStub.resetHistory();
+        updateFhirRecordStub.resetHistory();
     });
 });

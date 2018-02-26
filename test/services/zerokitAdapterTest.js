@@ -147,24 +147,6 @@ describe('zerokitAdapter', () => {
     });
 
 
-    it('login - createsTresor and tek on first login', (done) => {
-        const internalUser = Object.assign({}, userResources.internalUser);
-        internalUser.tek = undefined;
-        internalUser.tresorId = undefined;
-        getInternalUserStub.resolves(internalUser);
-        zerokitAdapter.login(zKitLoginObjectPromise, testVariables.userAlias)
-            .then((res) => {
-                expect(res.alias).to.equal(testVariables.userAlias);
-                expect(addTagEncryptionKeyStub).to.be.calledOnce;
-                expect(addTresorStub).to.be.calledOnce;
-                expect(zKitLoginObject.login).to.be.calledOnce;
-                expect(userService.user.tresorId).to.equal(testVariables.tresorId);
-
-                done();
-            })
-            .catch(done);
-    });
-
     it('login - rejects when idpLogin fails', (done) => {
         idpLoginStub.rejects();
 

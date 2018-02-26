@@ -44,10 +44,10 @@ describe('taggingUtils', () => {
         },
     };
 
-    it('generateTagsFromFhirObject succeeds', (done) => {
-        const generatedTags = taggingUtils.generateTagsFromFhirObject(fhirObject);
-        expect(generatedTags.length).to.equal(1);
-        expect(generatedTags[0]).to.equal('resourcetype=patient');
+    it('generateTags succeeds', (done) => {
+        const tags = taggingUtils.generateTags(fhirObject);
+        expect(tags.length).to.equal(1);
+        expect(tags[0]).to.equal('resourcetype=patient');
         done();
     });
 

@@ -8,9 +8,9 @@ export const tagKeys = {
 };
 
 const taggingUtils = {
-
-    generateTagsFromFhirObject(fhirObject) {
+    generateTags(fhirObject) {
         const tagObject = {};
+        if (this.clientId) tagObject.clientId = this.clientId;
         if (fhirObject.resourceType) tagObject.resourceType = fhirObject.resourceType;
 
         return Object.keys(tagObject).map(tagKey =>

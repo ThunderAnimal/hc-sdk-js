@@ -1,6 +1,7 @@
 import sessionHandler from 'session-handler';
 import userRoutes from '../routes/userRoutes';
 import LoginError, { NOT_LOGGED_IN } from '../lib/errors/LoginError';
+import crypto from '../lib/crypto';
 import ValidationError, {
     MISSING_PARAMETERS,
     INVALID_PARAMETERS,
@@ -46,7 +47,9 @@ const userService = {
             if (!this.getCurrentUser()) return reject(new LoginError(NOT_LOGGED_IN));
 
             const id = userId || this.getCurrentUser().id;
-            if (this.isCurrentUser(id) && this.user) return resolve(this.user);
+            if (this.isCurrentUser(id) && this.user) {
+                return resolve(this.user);
+            }
 
             const user = {};
 
@@ -89,6 +92,57 @@ const userService = {
                 userData: userDetails.userData,
             }));
     },
+
+    setupCUP(user) {
+        if (!user.CUP) {
+            return this.createCUP()
+                .then(CUP => ({ ...user, CUP }));
+        }
+        return user;
+    },
+
+    setupCommonKey(user) {
+        if (!user.commonKey) {
+            return this.createCommonKey()
+                .then(commonKey => ({ ...user, commonKey }));
+        }
+        return user;
+    },
+
+    setupTEK(user) {
+        if (!user.tek) {
+            return this.createTek(user.commonKey)
+                .then(tek => ({ ...user, tek }));
+        }
+        return user;
+    },
+
+    setUser(user) {
+        this.user = user;
+        return this.user;
+    },
+
+    setupUser() {
+        return this.getInternalUser()
+            .then(this.setupCUP.bind(this))
+            .then(this.setupCommonKey.bind(this))
+            .then(this.setupTEK.bind(this))
+            .then(this.setUser.bind(this));
+    },
+
+    // TODO encryptionService?
+    createCUP() {
+        return crypto.generateAsymKeyPair().then(keyPair => ({
+            ...keyPair,
+            granteeKeys: [],
+        }));
+    },
+
+    // TODO encryptionService?
+    createCommonKey: crypto.generateSymKey,
+
+    // TODO tagEncryptionService
+    createTek: crypto.generateSymKey,
 
     updateUser(params) {
         return new Promise((resolve, reject) => {

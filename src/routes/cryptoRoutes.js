@@ -1,11 +1,15 @@
-// String -> String -> Promise({ JWK, ArrayBuffer })
-const getDistributedKey = (clientID, userID) =>
-    Promise.resolve({
-        jwk: { alg: 'ED25519' },
-        distributedKey: 0xdeafbee,
-    });
+// TODO remove eslint ignore
+/* eslint-disable no-unused-vars */
+import userService from '../services/userService';
+import crypto from '../lib/crypto';
 
-const getUserPublicKey = (userID) =>
+// String -> String -> Promise(String)
+const getCommonKey = (clientID, userID) =>
+    crypto.asymEncryptString(
+        userService.user.CUP.publicKey,
+        JSON.stringify(userService.user.commonKey));
+
+const getUserPublicKey = userID =>
     Promise.resolve({
         alg: 'RSA',
         key: 0xfeebeee,
@@ -17,7 +21,7 @@ const postCommonKey = targetUserID => commonKey =>
     });
 
 export default {
-    getDistributedKey,
+    getCommonKey,
     getUserPublicKey,
     postCommonKey,
 };

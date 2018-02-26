@@ -3,6 +3,9 @@ import hcRequest from '../lib/hcRequest';
 
 const apiUrl = config.api;
 
+// TODO remove when endpoint is in place
+const attachmentKeys = {};
+
 const documentRoutes = {
 
     getFileDownloadUrl(userId, recordId, fileId) {
@@ -42,6 +45,15 @@ const documentRoutes = {
 
     deleteRecord(userId, recordId) {
         return hcRequest('DELETE', `${apiUrl}/users/${userId}/records/${recordId}`, { authorize: true });
+    },
+
+    uploadAttachmentKey(userId, recordId, attachmentKey) {
+        attachmentKeys[recordId] = attachmentKey;
+        return Promise.resolve(attachmentKey);
+    },
+
+    fetchAttachmentKey(userId, recordId) {
+        return Promise.resolve(attachmentKeys[recordId]);
     },
 };
 

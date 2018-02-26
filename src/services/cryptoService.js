@@ -3,60 +3,73 @@ import cryptoRoutes from '../routes/cryptoRoutes';
 
 // decryptCommonKey :: JWK -> ArrayBuffer -> Promise(JWK)
 const decryptCommonKey = privateKey => encryptedCommonKey =>
-    cryptoLib.asymDecrypt(privateKey, encryptedCommonKey);
+    cryptoLib.asymDecryptString(privateKey, encryptedCommonKey)
+        .then(JSON.parse);
 
-// createEncryptData :: Promise(JWK) -> ArrayBuffer -> Promise([ ArrayBuffer, ArrayBuffer ])
-const createEncryptData = commonKeyPromise => (data) => {
-    const dataKeyPromise = cryptoLib.generateSymKey();
+// createEncryptData :: encrypt<Data> => Promise(JWK) -> Data ->
+//      Promise([ String/ArrayBufferView, String ])
+const createEncryptData = encryptionMethod => commonKeyPromise =>
+    (data, givenEncryptedDataKeyPromise) => {
+        const dataKeyPromise = Promise.all([commonKeyPromise, givenEncryptedDataKeyPromise])
+            .then(([commonKey, encryptedDataKey]) => {
+                if (encryptedDataKey) {
+                    return cryptoLib.symDecryptObject(commonKey, encryptedDataKey);
+                }
+                return cryptoLib.generateSymKey();
+            });
+        return Promise.all([commonKeyPromise, dataKeyPromise])
+            .then(([commonKey, dataKey]) => {
+                const encryptedDataKeyPromise = cryptoLib.symEncryptObject(commonKey, dataKey);
+                const encryptedDataPromise = encryptionMethod(dataKey, data);
 
-    return Promise.all([commonKeyPromise, dataKeyPromise])
-        .then(([commonKey, dataKey]) => {
-            const encryptedDataKeyPromise = cryptoLib.symEncrypt(commonKey, dataKey);
-            const encryptedDataPromise = cryptoLib.symEncrypt(dataKey, data);
+                return Promise.all([
+                    encryptedDataPromise,
+                    encryptedDataKeyPromise,
+                ]);
+            });
+    };
 
-            return Promise.all([
-                encryptedDataPromise,
-                encryptedDataKeyPromise,
-            ]);
-        });
-};
+const createEncryptArrayBufferView = createEncryptData(cryptoLib.symEncrypt);
 
-// createDecryptData :: Promise(JWK) -> ArrayBuffer -> ArrayBuffer -> Promise(ArrayBuffer)
-const createDecryptData = commonKeyPromise => (encryptedData, encryptedDataKey) =>
+const createEncryptBlobs = createEncryptData((dataKey, blobArray) =>
+    Promise.all(blobArray.map(blob => cryptoLib.symEncryptBlob(dataKey, blob))));
+
+const createEncryptString = createEncryptData(cryptoLib.symEncryptString);
+
+const createEncryptObject = createEncryptData(cryptoLib.symEncryptObject);
+
+// createDecryptData :: Promise(JWK) -> String, ArrayBuffer -> Promise(ArrayBuffer)
+const createDecryptData = commonKeyPromise => (encryptedDataKey, encryptedData) =>
     commonKeyPromise
-        .then(commonKey => cryptoLib.symDecrypt(commonKey, encryptedDataKey))
+        .then(commonKey => cryptoLib.symDecryptString(commonKey, encryptedDataKey))
+        .then(JSON.parse)
         .then(dataKey => cryptoLib.symDecrypt(dataKey, encryptedData));
-
-// TODO change name to something not use case driven or move to userService
-// createGrantPermission :: Promise(JWK) -> String -> Promise(Object)
-const createGrantPermission = commonKeyPromise => (userID) => {
-    const userPublicKeyPromise = cryptoRoutes.getUserPublicKey(userID);
-
-    return Promise.all([
-        commonKeyPromise,
-        userPublicKeyPromise,
-    ]).then(([commonKey, publicKey]) =>
-        cryptoLib.asymEncrypt(publicKey, commonKey),
-    ).then(cryptoRoutes.postCommonKey(userID)); // too much?
-};
 
 // createCryptoService :: String -> JWK -> String -> Object
 const createCryptoService = clientID => privateKey => (userID) => {
     const commonKeyPromise = cryptoRoutes
-        .getDistributedKey(clientID, userID)
+        .getCommonKey(clientID, userID)
         .then(decryptCommonKey(privateKey));
 
-    // encryptData :: ArrayBuffer -> Promise([ArrayBuffer, ArrayBuffer])
-    const encryptData = createEncryptData(commonKeyPromise);
+    // encryptData :: ArrayBufferView -> Promise([ArrayBufferView, String(base64)])
+    const encryptArrayBufferView = createEncryptArrayBufferView(commonKeyPromise);
+    // encryptString :: String -> Promise([String(base64), String(base64)])
+    const encryptString = createEncryptString(commonKeyPromise);
+    // encryptBlobs :: [ArrayBufferView] -> Promise([[ArrayBufferView], String(base64)])
+    const encryptBlobs = createEncryptBlobs(commonKeyPromise);
+    // encryptObject :: ArrayBufferView -> Promise([String(base64), String(base64)])
+    const encryptObject = createEncryptObject(commonKeyPromise);
+
+
     // decryptData :: ArrayBuffer -> ArrayBuffer -> Promise(ArrayBuffer)
     const decryptData = createDecryptData(commonKeyPromise);
-    // grantPermission :: ArrayBuffer -> Promise(Object)
-    const grantPermission = createGrantPermission(commonKeyPromise);
 
     return {
-        encryptData,
+        encryptArrayBufferView,
+        encryptString,
+        encryptBlobs,
+        encryptObject,
         decryptData,
-        grantPermission,
     };
 };
 

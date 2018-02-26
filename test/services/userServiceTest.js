@@ -89,7 +89,7 @@ describe('services/userService', () => {
                 expect(decryptStub).to.be.calledTwice;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('getInternalUser - fails when getUserDetails fails', (done) => {
@@ -114,7 +114,7 @@ describe('services/userService', () => {
                 expect(decryptStub).to.be.calledTwice;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('resolveUser succeeds', (done) => {
@@ -127,7 +127,7 @@ describe('services/userService', () => {
                 expect(resolveUserIdStub).to.be.calledOnce;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('getUserIdForAlias - Happy Path', (done) => {
@@ -137,7 +137,7 @@ describe('services/userService', () => {
                 expect(resolveUserIdStub).to.be.calledOnce;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('resolveUser - fails when resolveUserId fails', (done) => {
@@ -202,7 +202,7 @@ describe('services/userService', () => {
                 expect(getGrantedPermissionsStub).to.be.calledOnce;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('getGrantedPermissions - fails when no user logged in', (done) => {
@@ -215,7 +215,7 @@ describe('services/userService', () => {
                 expect(getGrantedPermissionsStub).to.not.be.called;
                 done();
             })
-            .catch(console.log);
+            .catch(done);
     });
 
     it('getGrantedPermissions - fails when getGrantedPermissions fails', (done) => {

@@ -64,7 +64,7 @@ class ZeroKitAdapter {
                 return zKitLoginObject.then(loginObject => loginObject.login(zeroKitId));
             })
             .then(() => this.authService.idpLogin())
-            .then(() => this.setupUser())
+            // .then(() => this.setupUser())
             .then(() => ({ id: userId, alias: hcUserAlias }));
     }
 

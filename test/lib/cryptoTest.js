@@ -1,10 +1,10 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
+/* eslint-disable no-unused-vars */
 import 'babel-polyfill';
 import crypto from '../../src/lib/crypto';
 
 describe('encryptionService', () => {
-
     describe('keys', () => {
         it('should be possible to derive a key');
         it('should be possible to generate a symmetric key');

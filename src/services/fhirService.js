@@ -1,74 +1,78 @@
 import fhirValidator from '../lib/fhirValidator';
 import documentRoutes from '../routes/documentRoutes';
 import userService from './userService';
-import taggingUtils, { tagKeys } from '../lib/taggingUtils';
-import encryptionUtils from '../lib/EncryptionUtils';
+import taggingUtils from '../lib/taggingUtils';
 import dateUtils from '../lib/dateUtils';
+import crypto from '../lib/crypto';
 
-class FHIRService {
-    constructor(options = {}) {
-        this.zeroKitAdapter = options.zeroKitAdapter;
-    }
-
-    updateFhirRecord(ownerId, recordId, fhirObject) {
+const FHIRService = {
+    updateFhirRecord(ownerId, recordId, fhirObject, attachmentKey = null) {
         const updateRequest =
             (userId, params) => documentRoutes.updateRecord(userId, recordId, params);
 
         return this.downloadFhirRecord(ownerId, recordId)
             .then((record) => {
                 const updatedFhirObject = Object.assign(record.body, fhirObject);
-                return this.uploadFhirRecord(ownerId, updatedFhirObject, updateRequest);
+                return this.uploadFhirRecord(
+                    ownerId, updatedFhirObject, updateRequest, attachmentKey);
             });
-    }
+    },
 
     createFhirRecord(ownerId, fhirObject) {
         return this.uploadFhirRecord(ownerId, fhirObject, documentRoutes.createRecord);
-    }
+    },
 
-    uploadFhirRecord(ownerId, fhirObject, uploadRequest) {
-        return fhirValidator.validate(fhirObject)
+    uploadFhirRecord(ownerId, fhirResource, uploadRequest, attachmentKey) {
+        return fhirValidator.validate(fhirResource)
             .then(() => {
                 const tags = [
-                    ...taggingUtils.generateTagsFromFhirObject(fhirObject),
-                    taggingUtils.buildTag(tagKeys.client, this.zeroKitAdapter.authService.clientId),
+                    ...taggingUtils.generateTags(fhirResource),
                 ];
-                return this.uploadRecord(ownerId, fhirObject, tags, uploadRequest);
+                return this.uploadRecord(ownerId, fhirResource, tags, uploadRequest, attachmentKey);
             });
-    }
+    },
 
-    uploadRecord(ownerId, doc, tags, uploadRequest) {
+    uploadRecord(ownerId, resource, tags, uploadRequest, attachmentKey) {
         let owner;
         return userService.getInternalUser(ownerId)
             .then((user) => {
                 owner = user;
                 return Promise.all([
-                    this.zeroKitAdapter.encrypt(owner.id, JSON.stringify(doc)),
-                    tags.map(tag => encryptionUtils.encrypt(tag, owner.tek)),
+                    this.encryptionService(owner.id).encryptObject(resource),
+                    Promise.all(tags.map(tag => crypto.symEncryptString(owner.tek, tag))),
                 ]);
             })
             .then((results) => {
+                const dataIndex = 0;
+                const keyIndex = 1;
                 const params = {
-                    encrypted_body: results[0],
+                    encrypted_body: results[0][dataIndex],
+                    encrypted_key: results[0][keyIndex],
                     encrypted_tags: results[1],
                     date: dateUtils.formatDateYyyyMmDd(new Date()),
+                    // TODO uncomment, when endpoint is in place
+                    // attachment_key: attachmentKey,
                 };
                 return uploadRequest(owner.id, params);
             })
             .then((result) => {
-                delete result.encrypted_body;
-                delete result.encrypted_tags;
-                result.body = doc;
-                result.tags = tags;
-                return result;
+                // remove when attachment_key column is added
+                documentRoutes.uploadAttachmentKey(ownerId, result.record_id, attachmentKey);
+                return {
+                    body: resource,
+                    tags,
+                    date: result.date,
+                    record_id: result.record_id,
+                };
             });
-    }
+    },
 
 
     downloadFhirRecord(ownerId, recordId) {
         return documentRoutes.downloadRecord(ownerId, recordId)
             .then(result => userService.getInternalUser()
                 .then(user => this.decryptRecordAndTags(result, user.tek)));
-    }
+    },
 
     searchRecords(ownerId, params, countOnly = false) {
         let user;
@@ -86,17 +90,21 @@ class FHIRService {
                 }
 
                 if (params.tags) {
-                    params.tags = params.tags
-                        .map(tag => encryptionUtils.encrypt(tag, user.tek)).join(',');
+                    return Promise.all(params.tags
+                        .map(tag => crypto.symEncryptString(user.tek, tag)))
+                        .then(encryptedTags => encryptedTags.join(','))
+                        .then((tags) => {
+                            params.tags = tags;
+                            return params;
+                        });
                 }
-
                 return params;
             })
             .then((queryParams) => {
                 if (countOnly) {
-                    return documentRoutes.getRecordsCount(ownerId, queryParams);
+                    return documentRoutes.getRecordsCount(user.id, queryParams);
                 }
-                return documentRoutes.searchRecords(ownerId, queryParams);
+                return documentRoutes.searchRecords(user.id, queryParams);
             })
             .then((searchResult) => {
                 totalCount = searchResult.totalCount;
@@ -108,25 +116,34 @@ class FHIRService {
             .then(results => (results
                 ? { totalCount, records: results }
                 : { totalCount }));
-    }
+    },
 
-    static deleteRecord(ownerId, recordID) {
+    deleteRecord(ownerId, recordID) {
         const id = ownerId || userService.getCurrentUser().id;
 
         return documentRoutes.deleteRecord(id, recordID);
-    }
+    },
 
     decryptRecordAndTags(record, tek) {
+        const tagsPromise = Promise.all(record.encrypted_tags.map(tag =>
+            crypto.symDecryptString(tek, tag)));
+
+        const recordPromise = this.encryptionService(record.userId)
+            .decryptData(
+                record.encrypted_key,
+                crypto.convertBase64ToArrayBufferView(record.encrypted_body))
+            .then(crypto.convertArrayBufferViewToString)
+            .then(JSON.parse);
         return Promise.all([
-            this.zeroKitAdapter.decrypt(record.encrypted_body),
-            record.encrypted_tags.map(tag => encryptionUtils.decrypt(tag, tek)),
+            recordPromise,
+            tagsPromise,
         ])
             .then(results => ({
-                body: JSON.parse(results[0]),
+                body: results[0],
                 tags: results[1],
                 record_id: record.record_id,
             }));
-    }
-}
+    },
+};
 
 export default FHIRService;

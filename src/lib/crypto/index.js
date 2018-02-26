@@ -37,15 +37,33 @@ const convertStringToArrayBufferView = (str) => {
     return bytes;
 };
 
-const convertArrayBufferViewToString = (arrayBuffer) => {
+const convertBase64ToArrayBufferView = base64String =>
+    convertStringToArrayBufferView(atob(base64String));
+
+const convertObjectToArrayBufferView = object =>
+    convertStringToArrayBufferView(JSON.stringify(object));
+
+const convertArrayBufferViewToString = (arrayBufferView) => {
     let str = '';
 
-    for (let i = 0; i < arrayBuffer.byteLength; i += 1) {
-        str += String.fromCharCode(arrayBuffer[i]);
+    for (let i = 0; i < arrayBufferView.byteLength; i += 1) {
+        str += String.fromCharCode(arrayBufferView[i]);
     }
 
     return str;
 };
+
+const convertArrayBufferViewToBase64 = arrayBufferView =>
+    btoa(convertArrayBufferViewToString(arrayBufferView));
+
+const convertBlobToArrayBufferView = blob =>
+    new Promise((resolve) => {
+        const fileReader = new FileReader();
+        fileReader.onload = (event) => {
+            resolve(new Uint8Array(event.target.result));
+        };
+        fileReader.readAsArrayBuffer(blob);
+    });
 
 /**
  * Transformation from jwk to key.
@@ -91,6 +109,19 @@ const symEncrypt = (jwk, data) =>
         ))
         .then(result => new Uint8Array(result));
 
+
+const symEncryptString = (jwk, string) =>
+    symEncrypt(jwk, convertStringToArrayBufferView(string))
+        .then(convertArrayBufferViewToBase64);
+
+const symEncryptObject = (jwk, object) =>
+    symEncryptString(jwk, JSON.stringify(object));
+
+const symEncryptBlob = (jwk, blob) =>
+    convertBlobToArrayBufferView(blob)
+        .then(arrayBufferString => symEncrypt(jwk, arrayBufferString));
+
+
 /**
  * Symmetric decryption of data with JWK
  *
@@ -107,9 +138,12 @@ const symDecrypt = (jwk, data) =>
             }, key, data))
         .then(result => new Uint8Array(result));
 
-// helpers
-// const symencrypt = (key: string, data: string, alg?: Algorithm) => {}
-// const symdecrypt = (key: string, data: string, alg?: Algorithm) => {}
+const symDecryptString = (jwk, base64String) =>
+    symDecrypt(jwk, convertBase64ToArrayBufferView(base64String))
+        .then(convertArrayBufferViewToString);
+
+const symDecryptObject = (jwk, base64String) =>
+    symDecryptString(jwk, base64String).then(JSON.parse);
 
 /**
  * Creates key out of given String (aka password)
@@ -151,6 +185,9 @@ const asymEncrypt = (publicKeyJWK, data) =>
         ))
         .then(result => new Uint8Array(result));
 
+const asymEncryptString = (publicKeyJWK, string) =>
+    asymEncrypt(publicKeyJWK, convertStringToArrayBufferView(string));
+
 /**
  * Asymmetric decryption of data with JWK
  *
@@ -167,9 +204,9 @@ const asymDecrypt = (privateKeyJWK, data) =>
             }, key, data))
         .then(result => new Uint8Array(result));
 
-// helpers
-// asymencrypt(pubkey: string[], commonkey: string, alg?: Algorithm)
-// asymdecrypt(privkey: string, distributedKey: string, alg?: Algorithm)
+const asymDecryptString = (privateKeyJWK, base64String) =>
+    asymDecrypt(privateKeyJWK, base64String)
+        .then(convertArrayBufferViewToString);
 
 /**
  * Creates a random symmetric key.
@@ -229,14 +266,26 @@ const hcCrypto = {
     generateSymKey,
     generateAsymKeyPair,
 
-    symEncrypt,
-    symDecrypt,
-    asymEncrypt,
-    asymDecrypt,
-
     getKeyFromJWK,
     getJWKFromKey,
+
+    symEncrypt,
+    symEncryptString,
+    symEncryptObject,
+    symEncryptBlob,
+    symDecrypt,
+    symDecryptString,
+    symDecryptObject,
+
+    asymEncrypt,
+    asymEncryptString,
+    asymDecrypt,
+    asymDecryptString,
+
     convertStringToArrayBufferView,
+    convertBase64ToArrayBufferView,
+    convertObjectToArrayBufferView,
+    convertBlobToArrayBufferView,
     convertArrayBufferViewToString,
 };
 
