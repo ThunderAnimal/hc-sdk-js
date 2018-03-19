@@ -6,6 +6,10 @@ const isHealthCloudPath = path => path.startsWith(config.api);
 const hcRequest = {
     accessToken: undefined,
 
+    setAccessToken(accessToken) {
+        this.accessToken = `Bearer ${accessToken}`;
+    },
+
     submit(type, path, {
         body,
         query = {},
@@ -16,7 +20,7 @@ const hcRequest = {
     } = {}) {
         const h = headers;
         if (authorize) {
-            h.Authorization = `Bearer ${this.accessToken}`;
+            h.Authorization = this.accessToken;
         }
         if (isHealthCloudPath(path)) {
             h['GC-SDK-Version'] = `JS ${VERSION}`;

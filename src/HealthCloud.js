@@ -9,7 +9,7 @@ import HCAuthor from './lib/models/HCAuthor';
 import HCSpecialty from './lib/models/HCSpecialty';
 
 class HealthCloud {
-    constructor({ clientId }) {
+    constructor(clientId, userId, privateKey, accessToken) {
         taggingUtils.clientId = clientId;
 
         this.downloadDocument = documentService.downloadDocument.bind(documentService);
@@ -23,13 +23,13 @@ class HealthCloud {
         this.getUser = userService.getUser.bind(userService);
         this.updateUser = userService.updateUser.bind(userService);
         this.logout = userService.resetUser.bind(userService);
+        this.updateAccessToken = hcRequest.setAccessToken.bind(hcRequest);
 
-        this.setup = (privateKey, accessToken, userId) => {
-            documentService.setEncryptionService(
-                createClientEncryptionService(clientId)(privateKey));
-            hcRequest.accessToken = accessToken;
-            userService.currentUser = userId;
-        };
+        // setup
+        documentService.setEncryptionService(
+            createClientEncryptionService(clientId)(privateKey));
+        hcRequest.setAccessToken(accessToken);
+        userService.currentUser = userId;
 
         this.models = {
             HCDocument,
@@ -40,16 +40,4 @@ class HealthCloud {
     }
 }
 
-class HealthCloudWeb extends HealthCloud {
-    constructor({ clientId }) {
-        super({ clientId });
-    }
-}
-
-class HealthCloudNode extends HealthCloud {
-    constructor({ clientId }) {
-        super({ clientId });
-    }
-}
-
-module.exports = NODE ? HealthCloudNode : HealthCloudWeb;
+module.exports = HealthCloud;

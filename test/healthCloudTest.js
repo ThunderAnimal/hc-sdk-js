@@ -22,7 +22,7 @@ describe('HealthCloud', () => {
     });
 
     it('the healthcloud object is initiated correctly', (done) => {
-        const healthCloud = new HealthCloud({ clientId: '1' });
+        const healthCloud = new HealthCloud('1');
         expect(typeof healthCloud).to.equal('object');
         expect(typeof healthCloud.downloadDocument).to.equal('function');
         expect(typeof healthCloud.uploadDocument).to.equal('function');
