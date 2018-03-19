@@ -52,7 +52,8 @@ describe('fhir validator', () => {
             .then((res) => {
                 expect(res.types.toString()).to.equal(schema.types.toString());
                 done();
-            });
+            })
+            .catch(done);
     });
 
 
@@ -62,7 +63,8 @@ describe('fhir validator', () => {
                 expect(res).to.not.be.null;
                 expect(res).to.equal(true);
                 done();
-            });
+            })
+            .catch(done);
     });
 
     it('isValidResourceType fails for invalid resource', (done) => {
@@ -81,7 +83,8 @@ describe('fhir validator', () => {
             .then((res) => {
                 expect(res).to.not.be.null;
                 done();
-            });
+            })
+            .catch(done);
     });
 
     it('validate fails if invalid resource type', (done) => {

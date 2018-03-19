@@ -26,7 +26,6 @@ module.exports = function (config) {
                 ['aliasify', {
                     aliases: {
                         config: './src/config/develop',
-                        'session-handler': './src/lib/sessionHandler/web',
                     },
                 }],
             ],

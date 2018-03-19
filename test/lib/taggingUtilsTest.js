@@ -46,8 +46,8 @@ describe('taggingUtils', () => {
 
     it('generateTags succeeds', (done) => {
         const tags = taggingUtils.generateTags(fhirObject);
-        expect(tags.length).to.equal(1);
-        expect(tags[0]).to.equal('resourcetype=patient');
+        expect(tags.length).to.equal(2);
+        expect(tags[1]).to.equal('resourcetype=patient');
         done();
     });
 

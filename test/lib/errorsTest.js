@@ -4,7 +4,7 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
 import ValidationError from '../../src/lib/errors/ValidationError';
-import LoginError from '../../src/lib/errors/LoginError';
+import SetupError from '../../src/lib/errors/SetupError';
 
 chai.use(sinonChai);
 
@@ -22,8 +22,8 @@ describe('ValidationError', () => {
 describe('ValidationError', () => {
     it('getConformance succeeds', (done) => {
         const errorMsg = 'some message';
-        const loginError = new LoginError(errorMsg);
-        expect(loginError.name).to.equal('LoginError');
+        const loginError = new SetupError(errorMsg);
+        expect(loginError.name).to.equal('SetupError');
         expect(loginError.message).to.equal(errorMsg);
         done();
     });

@@ -23,7 +23,6 @@ module.exports = (env) => {
         resolve: {
             alias: {
                 config: path.resolve(__dirname, `src/config/${env.NODE_ENV}.js`),
-                'session-handler': path.resolve(__dirname, `src/lib/sessionHandler/${env.TARGET}.js`),
             },
         },
         plugins: [

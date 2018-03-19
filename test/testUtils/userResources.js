@@ -25,8 +25,10 @@ const userResources = {
             zerokit_id: testVariables.zeroKitId,
             tresor_id: testVariables.tresorId,
             state: testVariables.state,
-            tag_encryption_key: testVariables.encryptedTek,
-            user_data: { encrypted_data: testVariables.encryptedUserData },
+            // TODO encryptedUserData, when encryption works
+            tag_encryption_key: testVariables.tek,
+            // TODO encryptedUserData, when encryption works
+            user_data: { encrypted_data: JSON.stringify(testVariables.userData) },
         },
     },
 };

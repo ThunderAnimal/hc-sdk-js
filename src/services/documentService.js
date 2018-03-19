@@ -21,7 +21,7 @@ const documentService = {
             .then((record) => {
                 hcDocument = hcDocumentUtils.fromFhirObject(record.body);
                 // TODO use when collumn is added
-                // encryptedAttachmentKey = record.file_key;
+                // encryptedAttachmentKey = record.attachment_key;
                 // TODO return only the Promise.all part
                 return documentRoutes.fetchAttachmentKey(ownerId, documentId)
                     .then((attachmentKey) => {

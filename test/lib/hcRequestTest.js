@@ -1,11 +1,13 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-env mocha */
+/* eslint-disable max-nested-callbacks */
 import 'babel-polyfill';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import sinonStubPromise from 'sinon-stub-promise';
 import proxy from 'proxyquireify';
+
 import '../../src/lib/hcRequest';
 
 const proxyquire = proxy(require);
@@ -42,74 +44,56 @@ describe('hcRequest', () => {
             set: requestSetStub,
         });
 
+
         hcRequest = proxyquire('../../src/lib/hcRequest', {
             'superagent-bluebird-promise': requestStub,
         }).default;
     });
 
-    it('should pass when api sends successful response', (done) => {
-        requestSendStub.resolves(
-            { ok: true, body: { status: '201' } },
-        );
+    describe('submit', () => {
+        it('should pass when api sends successful response', (done) => {
+            requestSendStub.resolves(
+                { ok: true, body: { status: '201' } },
+            );
 
-        hcRequest('POST', 'path')
-            .then((res) => {
-                expect(res.status).to.equal('201');
-                expect(requestStub).to.be.calledWith('POST');
-                expect(requestSendStub.firstCall.args[0]).to.be.undefined;
-                expect(requestStub).to.be.calledOnce;
-                done();
-            })
-            .catch(done);
-    });
-
-    it('should pass when api sends successful response', (done) => {
-        requestSendStub.resolves(
-            { ok: true, body: { status: '201' }, headers: { 'x-total-count': 1 } },
-        );
-
-        hcRequest('GET', 'path', { includeResponseHeaders: true })
-            .then((res) => {
-                expect(res.body.status).to.equal('201');
-                expect(requestStub).to.be.calledOnce;
-                done();
-            })
-            .catch(done);
-    });
-
-    it('should send refresh request when api sends 401 unauthorised', (done) => {
-        requestSendStub.onCall(0).rejects({
-            status: 401,
-            body: { error: 'Your Authorization Token has expired' },
+            hcRequest.submit('POST', '/path')
+                .then((res) => {
+                    expect(res.status).to.equal('201');
+                    expect(requestStub).to.be.calledWith('POST');
+                    expect(requestSendStub.firstCall.args[0]).to.be.undefined;
+                    expect(requestStub).to.be.calledOnce;
+                    done();
+                })
+                .catch(done);
         });
-        requestSendStub.onCall(1).resolves({ ok: true, body: { status: '201' } });
 
-        const getRefreshTokenStub = sinon.stub().returnsPromise().resolves({
-            access_token: 'fakeAccessToken', refresh_token: 'fakeRefreshToken',
+        it('should pass when api sends successful response', (done) => {
+            requestSendStub.resolves(
+                { ok: true, body: { status: '201' }, headers: { 'x-total-count': 1 } },
+            );
+
+            hcRequest.submit('GET', 'path', { includeResponseHeaders: true })
+                .then((res) => {
+                    expect(res.body.status).to.equal('201');
+                    expect(requestStub).to.be.calledOnce;
+                    done();
+                })
+                .catch(done);
         });
-        const getAccessTokkenStub = sinon.stub().returns('token');
 
-        hcRequest = proxyquire('../../src/lib/hcRequest', {
-            './sessionHandler/web': {
-                default: {
-                    getItem: getAccessTokkenStub,
-                    setItem: sinon.stub().returns(true),
-                },
-            },
-            '../routes/authRoutes': {
-                default: { getRefreshTokenFromCode: getRefreshTokenStub },
-            },
-            'superagent-bluebird-promise': requestStub,
-        }).default;
+        it('should throw error, when 401 unauthorised', (done) => {
+            requestSendStub.rejects({
+                status: 401,
+                body: { error: 'Your Authorization Token has expired' },
+            });
 
-        hcRequest('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
-            .then((res) => {
-                expect(res.status).to.equal('201');
-                expect(getRefreshTokenStub).to.be.calledOnce;
-                expect(getAccessTokkenStub).to.be.calledThrice;
-                done();
-            })
-            .catch(done);
+            hcRequest.submit('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
+                .catch((error) => {
+                    expect(error.status).to.equal(401);
+                    done();
+                })
+                .catch(done);
+        });
     });
 
 

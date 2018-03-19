@@ -1,48 +1,25 @@
 import config from 'config';
 import request from 'superagent-bluebird-promise';
-import sessionHandler from 'session-handler';
-import authRoutes from '../routes/authRoutes';
-
-const buildCustomError = error => ({
-    status: error.status,
-    error: error.body || error,
-});
-
-const sendRefreshToken = () => {
-    const params = {
-        refresh_token: sessionHandler.getItem('HC_Refresh'),
-        grant_type: 'refresh_token',
-    };
-
-    return authRoutes.getRefreshTokenFromCode(params)
-        .then((res) => {
-            sessionHandler.setItem('HC_Auth', res.access_token);
-            sessionHandler.setItem('HC_Refresh', res.refresh_token);
-            return res;
-        });
-};
-
-const isExpired = error =>
-    error.status === 401 && error.body && error.body.error && error.body.error.includes('expired');
 
 const isHealthCloudPath = path => path.startsWith(config.api);
 
-const hcRequest = (type, path, {
-    body,
-    query = {},
-    headers = {},
-    responseType = '',
-    authorize = false,
-    includeResponseHeaders = false,
-} = {}) => {
-    let retries = 0;
+const hcRequest = {
+    accessToken: undefined,
 
-    const promise = () => {
+    submit(type, path, {
+        body,
+        query = {},
+        headers = {},
+        responseType = '',
+        authorize = false,
+        includeResponseHeaders = false,
+    } = {}) {
+        const h = headers;
         if (authorize) {
-            headers.Authorization = `Bearer ${sessionHandler.getItem('HC_Auth')}`;
+            h.Authorization = `Bearer ${this.accessToken}`;
         }
         if (isHealthCloudPath(path)) {
-            headers = { 'GC-SDK-Version': `JS ${VERSION}`, ...headers };
+            h['GC-SDK-Version'] = `JS ${VERSION}`;
         }
         return request(type, path)
             .set(headers)
@@ -54,18 +31,9 @@ const hcRequest = (type, path, {
                     return ({ body: res.body, headers: res.headers });
                 }
                 return res.body || res.text;
-            })
-            .catch((err) => {
-                if (isExpired(err) && retries < 2) {
-                    retries += 1;
-                    return sendRefreshToken()
-                        .then(() => promise());
-                }
-                throw buildCustomError(err);
             });
-    };
-
-    return promise();
+        // TODO handle errors
+    },
 };
 
 

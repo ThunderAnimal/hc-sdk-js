@@ -1,26 +1,24 @@
-import sessionHandler from 'session-handler';
 import userRoutes from '../routes/userRoutes';
-import LoginError, { NOT_LOGGED_IN } from '../lib/errors/LoginError';
-import crypto from '../lib/crypto';
+import SetUpError, { NOT_SETUP } from '../lib/errors/SetupError';
+// import crypto from '../lib/crypto';
 import ValidationError, {
     MISSING_PARAMETERS,
     INVALID_PARAMETERS,
 } from '../lib/errors/ValidationError';
 
 const userService = {
-    user: null,
+    currentUser: undefined,
 
-    setZeroKitAdapter(adapter) {
-        this.zeroKitAdapter = adapter;
-    },
+    user: null,
 
     resetUser() {
         this.user = null;
+        this.currentUser = undefined;
     },
 
     resolveUser(alias) {
         return userRoutes.resolveUserId(alias)
-            .then(user => ({ id: user.uid, zeroKitId: user.zerokit_id }));
+            .then(user => ({ id: user.uid }));
     },
 
     getUserIdForAlias(alias) {
@@ -28,25 +26,21 @@ const userService = {
     },
 
     getCurrentUser() {
-        const currentUser = sessionHandler.getItem('HC_User');
+        // TODO throw error
+        // if (!this.currentUser) throw new SetUpError(NOT_SETUP);
+        if (!this.currentUser) console.warn(new SetUpError(NOT_SETUP));
 
-        return currentUser && sessionHandler.getItem('HC_Auth') ? {
-            alias: currentUser.split(',')[1],
-            id: currentUser.split(',')[0],
-        } : undefined;
+
+        return this.currentUser;
     },
 
     isCurrentUser(userId) {
-        const currentUser = this.getCurrentUser();
-        if (!currentUser || currentUser.id !== userId) return false;
-        return true;
+        return userId === this.getCurrentUser();
     },
 
     getInternalUser(userId, partial = false) {
         return new Promise((resolve, reject) => {
-            if (!this.getCurrentUser()) return reject(new LoginError(NOT_LOGGED_IN));
-
-            const id = userId || this.getCurrentUser().id;
+            const id = userId || this.getCurrentUser();
             if (this.isCurrentUser(id) && this.user) {
                 return resolve(this.user);
             }
@@ -57,18 +51,18 @@ const userService = {
                 .then((userDetails) => {
                     user.id = userDetails.user.id;
                     user.alias = userDetails.user.email;
-                    user.zeroKitId = userDetails.user.zerokit_id;
-                    user.tresorId = userDetails.user.tresor_id;
                     user.state = userDetails.user.state;
 
                     if (partial) return resolve(user);
 
                     const userDataPromise =
                         userDetails.user.user_data && userDetails.user.user_data.encrypted_data ?
-                            this.zeroKitAdapter.decrypt(userDetails.user.user_data.encrypted_data) :
+                            // TODO proper decryption
+                            userDetails.user.user_data.encrypted_data :
                             Promise.resolve('{}');
                     const tekPromise = userDetails.user.tag_encryption_key ?
-                        this.zeroKitAdapter.decrypt(userDetails.user.tag_encryption_key) :
+                    // TODO decryption
+                        userDetails.user.tag_encryption_key :
                         Promise.resolve(undefined);
                     return Promise.all([userDataPromise, tekPromise]);
                 })
@@ -93,65 +87,9 @@ const userService = {
             }));
     },
 
-    setupCUP(user) {
-        if (!user.CUP) {
-            return this.createCUP()
-                .then(CUP => ({ ...user, CUP }));
-        }
-        return user;
-    },
-
-    setupCommonKey(user) {
-        if (!user.commonKey) {
-            return this.createCommonKey()
-                .then(commonKey => ({ ...user, commonKey }));
-        }
-        return user;
-    },
-
-    setupTEK(user) {
-        if (!user.tek) {
-            return this.createTek(user.commonKey)
-                .then(tek => ({ ...user, tek }));
-        }
-        return user;
-    },
-
-    setUser(user) {
-        this.user = user;
-        return this.user;
-    },
-
-    setupUser() {
-        return this.getInternalUser()
-            .then(this.setupCUP.bind(this))
-            .then(this.setupCommonKey.bind(this))
-            .then(this.setupTEK.bind(this))
-            .then(this.setUser.bind(this));
-    },
-
-    // TODO encryptionService?
-    createCUP() {
-        return crypto.generateAsymKeyPair().then(keyPair => ({
-            ...keyPair,
-            granteeKeys: [],
-        }));
-    },
-
-    // TODO encryptionService?
-    createCommonKey: crypto.generateSymKey,
-
-    // TODO tagEncryptionService
-    createTek: crypto.generateSymKey,
-
     updateUser(params) {
         return new Promise((resolve, reject) => {
             const currentUser = this.getCurrentUser();
-
-            if (!(currentUser && currentUser.id)) {
-                reject(new LoginError(NOT_LOGGED_IN));
-                return;
-            }
 
             if (!params) {
                 reject(new ValidationError(MISSING_PARAMETERS));
@@ -171,23 +109,12 @@ const userService = {
             this.getInternalUser(currentUser.id, true)
                 .then(user => Object.assign({}, user.userData, params))
                 .then(JSON.stringify)
-                .then(data => this.zeroKitAdapter.encrypt(currentUser.id, data))
+                // TODO encrypt
                 .then(encryptedUserDetails =>
                     userRoutes.updateUser(currentUser.id, { encrypted_data: encryptedUserDetails }))
                 .then(resolve)
                 .catch(reject);
         });
-    },
-
-    getGrantedPermissions(granteeId) {
-        const owner = this.getCurrentUser();
-        if (!(owner && owner.id)) {
-            return Promise.reject(new LoginError(NOT_LOGGED_IN));
-        }
-        return userRoutes.getGrantedPermissions(owner.id, granteeId)
-            .then(permissions => permissions.map(permission => ({
-                granteeId: permission.grantee_id,
-            })));
     },
 };
 

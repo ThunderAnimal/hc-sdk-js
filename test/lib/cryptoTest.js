@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-unused-vars */
+/* eslint-disable max-nested-callbacks */
 import 'babel-polyfill';
 import crypto from '../../src/lib/crypto';
 
