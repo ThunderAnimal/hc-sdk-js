@@ -83,6 +83,7 @@ const getKeyFromJWK = (jwk) => {
     );
 };
 
+
 /**
  * Transformation from jwk to key.
  *
@@ -91,6 +92,41 @@ const getKeyFromJWK = (jwk) => {
  */
 const getJWKFromKey = key =>
     crypto.subtle.exportKey('jwk', key);
+
+
+const getKeyFromPKCS8 = (PKCS8) => {
+    const alg = RSA_OAEP;
+
+    return crypto.subtle.importKey(
+        'pkcs8',
+        convertBase64ToArrayBufferView(PKCS8),
+        alg,
+        true,
+        ['decrypt'],
+    );
+};
+
+const getPKCS8FromKey = key =>
+    crypto.subtle.exportKey('pkcs8', key)
+        .then(PKCS8 => new Uint8Array(PKCS8))
+        .then(convertArrayBufferViewToBase64);
+
+const getKeyFromSPKI = (SPKI) => {
+    const alg = RSA_OAEP;
+
+    return crypto.subtle.importKey(
+        'spki',
+        convertBase64ToArrayBufferView(SPKI),
+        alg,
+        true,
+        ['encrypt'],
+    );
+};
+
+const getSPKIFromKey = key =>
+    crypto.subtle.exportKey('spki', key)
+        .then(SPKI => new Uint8Array(SPKI))
+        .then(convertArrayBufferViewToBase64);
 
 /**
  * Symmetric encryption of data with JWK
@@ -175,8 +211,8 @@ const deriveKey = masterKey =>
  * @param {ArrayBufferView} data that will be encrypted
  * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
-const asymEncrypt = (publicKeyJWK, data) =>
-    getKeyFromJWK(publicKeyJWK)
+const asymEncrypt = (publicKeySPKI, data) =>
+    getKeyFromSPKI(publicKeySPKI)
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
@@ -185,18 +221,19 @@ const asymEncrypt = (publicKeyJWK, data) =>
         ))
         .then(result => new Uint8Array(result));
 
-const asymEncryptString = (publicKeyJWK, string) =>
-    asymEncrypt(publicKeyJWK, convertStringToArrayBufferView(string));
+const asymEncryptString = (publicKeySPKI, string) =>
+    asymEncrypt(publicKeySPKI, convertStringToArrayBufferView(string))
+        .then(convertArrayBufferViewToBase64);
 
 /**
  * Asymmetric decryption of data with JWK
  *
- * @param {JWK} privateKeyJWK
+ * @param {PKCS8} privateKeyPKCS8
  * @param {ArrayBufferView} data
  * @returns {Promise} Resolves to decrypted data as an ArrayBufferView
  */
-const asymDecrypt = (privateKeyJWK, data) =>
-    getKeyFromJWK(privateKeyJWK)
+const asymDecrypt = (privateKeyPKCS8, data) =>
+    getKeyFromPKCS8(privateKeyPKCS8)
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
@@ -204,8 +241,8 @@ const asymDecrypt = (privateKeyJWK, data) =>
             }, key, data))
         .then(result => new Uint8Array(result));
 
-const asymDecryptString = (privateKeyJWK, base64String) =>
-    asymDecrypt(privateKeyJWK, base64String)
+const asymDecryptString = (privateKeyPKCS8, base64String) =>
+    asymDecrypt(privateKeyPKCS8, convertBase64ToArrayBufferView(base64String))
         .then(convertArrayBufferViewToString);
 
 /**
@@ -253,8 +290,8 @@ const generateAsymKeyPair = () =>
         ['encrypt', 'decrypt'],
     )
         .then(keyPair => Promise.all([
-            getJWKFromKey(keyPair.publicKey),
-            getJWKFromKey(keyPair.privateKey),
+            getSPKIFromKey(keyPair.publicKey),
+            getPKCS8FromKey(keyPair.privateKey),
         ]))
         .then(jwks => ({
             publicKey: jwks[0],
@@ -268,6 +305,12 @@ const hcCrypto = {
 
     getKeyFromJWK,
     getJWKFromKey,
+
+    getKeyFromPKCS8,
+    getPKCS8FromKey,
+
+    getKeyFromSPKI,
+    getSPKIFromKey,
 
     symEncrypt,
     symEncryptString,
@@ -287,6 +330,7 @@ const hcCrypto = {
     convertObjectToArrayBufferView,
     convertBlobToArrayBufferView,
     convertArrayBufferViewToString,
+    convertArrayBufferViewToBase64,
 };
 
 export default hcCrypto;
