@@ -7,13 +7,12 @@ import ValidationError, {
 } from '../lib/errors/ValidationError';
 
 const userService = {
-    currentUser: undefined,
-
+    currentUser: null,
     user: null,
 
     resetUser() {
         this.user = null;
-        this.currentUser = undefined;
+        this.currentUser = null;
     },
 
     resolveUser(alias) {

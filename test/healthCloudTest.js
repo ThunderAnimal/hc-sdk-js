@@ -34,6 +34,4 @@ describe('HealthCloud', () => {
 
         done();
     });
-
-    // TODO test setup
 });

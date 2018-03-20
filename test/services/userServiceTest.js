@@ -211,7 +211,7 @@ describe('services/userService', () => {
         it('should reset the userService', () => {
             userService.resetUser();
             expect(userService.user).to.equal(null);
-            expect(userService.currentUser).to.equal(undefined);
+            expect(userService.currentUser).to.equal(null);
         });
     });
 
