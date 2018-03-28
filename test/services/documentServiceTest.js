@@ -23,7 +23,7 @@ const expect = chai.expect;
 describe('documentService', () => {
     let getFileUploadUrlsStub;
     let getFileDownloadUrlStub;
-    let fetchFileKeyStub;
+    let fetchAttachmentKeyStub;
 
     let fromFhirObjectStub;
     let toFhirObjectStub;
@@ -122,8 +122,8 @@ describe('documentService', () => {
         // stubs
         getFileUploadUrlsStub = sinon.stub(documentRoutes, 'getFileUploadUrls').returnsPromise();
         getFileDownloadUrlStub = sinon.stub(documentRoutes, 'getFileDownloadUrl').returnsPromise();
-        fetchFileKeyStub = sinon.stub(documentRoutes, 'fetchFileKey')
-            .returnsPromise().resolves(encryptionResources.encryptedFileKey);
+        fetchAttachmentKeyStub = sinon.stub(documentRoutes, 'fetchAttachmentKey')
+            .returnsPromise().resolves(encryptionResources.encryptedAttachmentKey);
 
         fromFhirObjectStub = sinon.stub(hcDocumentUtils, 'fromFhirObject');
         toFhirObjectStub = sinon.stub(hcDocumentUtils, 'toFhirObject');
@@ -241,7 +241,7 @@ describe('documentService', () => {
                 .returnsPromise().resolves(fhirObject);
             attachmentWithoutFile.id = fileId;
             toFhirObjectStub.returns(fhirObject);
-            encryptBlobsStub.resolves([[], encryptionResources.encryptedFileKey]);
+            encryptBlobsStub.resolves([[], encryptionResources.encryptedAttachmentKey]);
 
             documentService.updateDocument(userId, hcDocumentWithoutFileData)
                 .then(() => {
@@ -337,7 +337,7 @@ describe('documentService', () => {
         updateRecordStatusStub.restore();
         encryptBlobsStub.resetHistory();
         convertBlobToArrayBufferViewStub.restore();
-        fetchFileKeyStub.restore();
+        fetchAttachmentKeyStub.restore();
         searchRecordsStub.resetHistory();
         createFhirRecordStub.resetHistory();
         downloadFhirRecordStub.resetHistory();

@@ -50,21 +50,16 @@ const FHIRService = {
                     encrypted_key: results[0][keyIndex],
                     encrypted_tags: results[1],
                     date: dateUtils.formatDateYyyyMmDd(new Date()),
-                    // TODO uncomment, when endpoint is in place
-                    // attachment_key: attachmentKey,
+                    attachment_key: attachmentKey,
                 };
                 return uploadRequest(owner.id, params);
             })
-            .then((result) => {
-                // remove when attachment_key column is added
-                documentRoutes.uploadAttachmentKey(ownerId, result.record_id, attachmentKey);
-                return {
-                    body: resource,
-                    tags,
-                    date: result.date,
-                    record_id: result.record_id,
-                };
-            });
+            .then(result => ({
+                body: resource,
+                tags,
+                date: result.date,
+                record_id: result.record_id,
+            }));
     },
 
 

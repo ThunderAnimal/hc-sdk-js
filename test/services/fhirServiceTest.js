@@ -10,7 +10,6 @@ import sinonChai from 'sinon-chai';
 import documentRoutes from '../../src/routes/documentRoutes';
 import fhirService from '../../src/services/fhirService';
 import userService from '../../src/services/userService';
-import encryptionUtils from '../../src/lib/EncryptionUtils';
 import fhirValidator from '../../src/lib/fhirValidator';
 import taggingUtils from '../../src/lib/taggingUtils';
 
@@ -46,7 +45,6 @@ describe('services/fhirService', () => {
     let getInternalUserStub;
     let searchRecordsStub;
     let getRecordsCountStub;
-    let tagDecryptStub;
     let updateRecordStub;
     let validateStub;
 
@@ -82,8 +80,6 @@ describe('services/fhirService', () => {
                 totalCount: recordResources.count,
                 records: [Object.assign({}, recordResources.documentReferenceEncrypted)],
             });
-        tagDecryptStub = sinon.stub(encryptionUtils, 'decrypt')
-            .returns(testVariables.tag);
         updateRecordStub = sinon.stub(documentRoutes, 'updateRecord')
             .returnsPromise().resolves(Object.assign({}, recordResources.documentReference));
         validateStub = sinon.stub(fhirValidator, 'validate')
@@ -257,7 +253,6 @@ describe('services/fhirService', () => {
         getInternalUserStub.restore();
         searchRecordsStub.restore();
         getRecordsCountStub.restore();
-        tagDecryptStub.restore();
         updateRecordStub.restore();
         validateStub.restore();
     });

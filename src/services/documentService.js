@@ -20,18 +20,12 @@ const documentService = {
         return this.fhirService.downloadFhirRecord(ownerId, documentId)
             .then((record) => {
                 hcDocument = hcDocumentUtils.fromFhirObject(record.body);
-                // TODO use when collumn is added
-                // encryptedAttachmentKey = record.attachment_key;
-                // TODO return only the Promise.all part
-                return documentRoutes.fetchAttachmentKey(ownerId, documentId)
-                    .then((attachmentKey) => {
-                        encryptedAttachmentKey = attachmentKey;
-                        return Promise.all(
-                            hcDocument.attachments.map(attachment =>
-                                documentRoutes
-                                    .getFileDownloadUrl(ownerId, documentId, attachment.id)),
-                        );
-                    });
+                encryptedAttachmentKey = record.attachment_key;
+                return Promise.all(
+                    hcDocument.attachments.map(attachment =>
+                        documentRoutes
+                            .getFileDownloadUrl(ownerId, documentId, attachment.id)),
+                );
             })
             .then(sasUrls => Promise.all(
                 sasUrls.map(sasUrl => fileRoutes.downloadFile(sasUrl.sas_token)

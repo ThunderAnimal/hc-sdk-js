@@ -10,8 +10,8 @@ const symKey = {
 const commonKey = symKey;
 const dataKey = symKey;
 const encryptedDataKey = 'encrypted_data_key';
-const fileKey = symKey;
-const encryptedFileKey = 'encrypted_file_key';
+const attachmentKey = symKey;
+const encryptedAttachmentKey = 'encrypted_attachment_key';
 const data = new Uint8Array([1, 2, 3, 4, 5, 6]);
 const encryptedData = 'encryptedData';
 const string = 'string';
@@ -29,8 +29,8 @@ export default {
     commonKey,
     dataKey,
     encryptedDataKey,
-    fileKey,
-    encryptedFileKey,
+    attachmentKey,
+    encryptedAttachmentKey,
     data,
     encryptedData,
     string,
