@@ -5,13 +5,11 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import proxy from 'proxyquireify';
 import config from 'config';
-import '../../src/routes/documentRoutes';
+import documentRoutes from '../../src/routes/documentRoutes';
 import testVariables from '../../test/testUtils/testVariables';
 import recordResources from '../../test/testUtils/recordResources';
-
-const proxyquire = proxy(require);
+import hcRequest from '../../src/lib/hcRequest';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -21,14 +19,9 @@ const expect = chai.expect;
 
 describe('documentRoutes', () => {
     let requestStub;
-    let documentRoutes;
-
 
     beforeEach(() => {
-        requestStub = sinon.stub().returnsPromise();
-        documentRoutes = proxyquire('../../src/routes/documentRoutes', {
-            '../lib/hcRequest': { default: requestStub },
-        }).default;
+        requestStub = sinon.stub(hcRequest, 'submit').returnsPromise();
     });
 
     it('getFileDownloadUrl passes', (done) => {
@@ -132,6 +125,6 @@ describe('documentRoutes', () => {
     });
 
     afterEach(() => {
-        requestStub.reset();
+        requestStub.restore();
     });
 });

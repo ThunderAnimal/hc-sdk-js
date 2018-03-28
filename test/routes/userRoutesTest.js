@@ -5,10 +5,8 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import proxy from 'proxyquireify';
-import '../../src/routes/userRoutes';
-
-const proxyquire = proxy(require);
+import userRoutes from '../../src/routes/userRoutes';
+import hcRequest from '../../src/lib/hcRequest';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -18,43 +16,9 @@ const expect = chai.expect;
 
 describe('userRoutes', () => {
     let requestStub;
-    let userRoutes;
 
     beforeEach(() => {
-        requestStub = sinon.stub().returnsPromise();
-        userRoutes = proxyquire('../../src/routes/userRoutes', {
-            '../lib/hcRequest': { default: requestStub },
-        }).default;
-    });
-
-    it('initRegistration passes', (done) => {
-        const hcUserAlias = 'test';
-        requestStub.resolves('pass');
-        userRoutes.initRegistration(hcUserAlias).then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub).to.be.calledWith('POST');
-            done();
-        });
-    });
-
-    it('initRegistration yields failure, when the request gets rejected', (done) => {
-        requestStub.rejects('error');
-        userRoutes.initRegistration('test').catch((err) => {
-            expect(err).to.equal('error');
-            expect(requestStub).to.be.calledOnce;
-            done();
-        });
-    });
-
-    it('validateRegistration passes', (done) => {
-        requestStub.resolves('pass');
-        userRoutes.validateRegistration('testUserAlias', '12345').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub).to.be.calledWith('POST');
-            done();
-        });
+        requestStub = sinon.stub(hcRequest, 'submit').returnsPromise();
     });
 
     it('resolveUserId returns error on request failure', (done) => {
@@ -74,63 +38,6 @@ describe('userRoutes', () => {
             expect(requestStub).to.be.calledOnce;
             expect(requestStub.firstCall.args[2].authorize).to.equal(true);
             expect(requestStub).to.be.calledWith('GET');
-            done();
-        });
-    });
-
-    it('getGrantedPermissions passes', (done) => {
-        requestStub.resolves('pass');
-        userRoutes.getGrantedPermissions('userId', 'granteeId').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('GET');
-            done();
-        });
-    });
-
-    it('getGrantedPermissions returns error on request failure', (done) => {
-        requestStub.rejects('error');
-        userRoutes.getGrantedPermissions('userId', 'granteeId').catch((err) => {
-            expect(err).to.equal('error');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub).to.be.calledWith('GET');
-            done();
-        });
-    });
-
-    it('addTresor passes', (done) => {
-        requestStub.resolves('pass');
-        userRoutes.addTresor('userId', 'test')
-            .then((res) => {
-                expect(res).to.equal('pass');
-                expect(requestStub).to.be.calledOnce;
-                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-                expect(requestStub).to.be.calledWith('POST');
-                done();
-            })
-            .catch(done);
-    });
-
-    it('verifyShareAndGrantPermission passes', (done) => {
-        requestStub.resolves('pass');
-        userRoutes.verifyShareAndGrantPermission('ownerId',
-            'granteeId', 'operationId').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('POST');
-            done();
-        });
-    });
-
-    it('verifyShareAndGrantPermission returns error on request failure', (done) => {
-        requestStub.rejects('error');
-        userRoutes.verifyShareAndGrantPermission('ownerId',
-            'granteeId', 'operationId').catch((err) => {
-            expect(err).to.equal('error');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub).to.be.calledWith('POST');
             done();
         });
     });
@@ -157,6 +64,6 @@ describe('userRoutes', () => {
     });
 
     afterEach(() => {
-        requestStub.reset();
+        requestStub.restore();
     });
 });

@@ -5,7 +5,7 @@ const fhirSchemaUrl = config.fhirSchemaUrl;
 
 const fhir = {
     getFhirSchema() {
-        return hcRequest('GET', fhirSchemaUrl);
+        return hcRequest.submit('GET', fhirSchemaUrl);
     },
 };
 

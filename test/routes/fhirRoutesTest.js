@@ -5,10 +5,8 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import proxy from 'proxyquireify';
-import '../../src/routes/fhirRoutes';
-
-const proxyquire = proxy(require);
+import fhirRoutes from '../../src/routes/fhirRoutes';
+import hcRequest from '../../src/lib/hcRequest';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -18,13 +16,9 @@ const expect = chai.expect;
 
 describe('fhirRoutes', () => {
     let requestStub;
-    let fhirRoutes;
 
     beforeEach(() => {
-        requestStub = sinon.stub().returnsPromise();
-        fhirRoutes = proxyquire('../../src/routes/fhirRoutes', {
-            '../lib/hcRequest': { default: requestStub },
-        }).default;
+        requestStub = sinon.stub(hcRequest, 'submit').returnsPromise();
     });
 
     it('getSchema passes', (done) => {
@@ -38,6 +32,6 @@ describe('fhirRoutes', () => {
     });
 
     afterEach(() => {
-        requestStub.reset();
+        requestStub.restore();
     });
 });
