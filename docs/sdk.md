@@ -200,8 +200,37 @@ The resulting object has the following attributes:
 - type: string
 - creationDate: date
 - title: string
-- author: string
+- author: Author
+- additionalIds: string Array
 - id: string, created by platform on upload, do not change
+
+#### Author
+An Author contains information about the author of document.
+```javascript
+let hcAuthor = new HC.models.Author(options);
+```
+where options is an object containing the following attributes:
+- identifier: string (custom identifier used for author)
+- firstName: string
+- lastName: string
+- prefix: string (eg. Capt., Mr., Mrs.)
+- suffix: string (eg Sr., Late)
+- street: string
+- city: string
+- postalCode: string
+- telephone: string
+- website: string
+- specialty: int (standard set of codes are allowed in specialty value.
+  Refer https://www.hl7.org/fhir/valueset-c80-practice-codes.html. You can also use 
+  the Specialty enum defined below.)
+
+#### Specialty
+Specialty is an enum, which has standard set of codes corresponding to the specialty of author(practitionar)
+```javascript
+HC.models.Specialty.AdultMentalIllness is 408467006
+```
+The complete list of specialties can be found at https://www.hl7.org/fhir/valueset-c80-practice-codes.html
+
 
 #### Attachment
 An attachment contains the file specific data.

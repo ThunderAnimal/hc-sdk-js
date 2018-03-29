@@ -49,11 +49,13 @@ class DocumentService {
             return Promise.reject(new ValidationError('Not a valid hcDocument'));
         }
 
-        return this.fhirService.createFhirRecord(ownerId, hcDocumentUtils.toFhirObject(hcDocument))
-            .then((record) => {
-                hcDocument.id = record.record_id;
-                return this.updateDocument(ownerId, hcDocument);
-            });
+        return this.fhirService.createFhirRecord(ownerId, hcDocumentUtils.toFhirObject(
+            hcDocument,
+            this.zeroKitAdapter.authService.clientId),
+        ).then((record) => {
+            hcDocument.id = record.record_id;
+            return this.updateDocument(ownerId, hcDocument);
+        });
     }
 
     updateDocument(ownerId, hcDocument) {
@@ -100,7 +102,10 @@ class DocumentService {
                 return this.fhirService.updateFhirRecord(
                     ownerId,
                     hcDocument.id,
-                    hcDocumentUtils.toFhirObject(hcDocument));
+                    hcDocumentUtils.toFhirObject(
+                        hcDocument,
+                        this.zeroKitAdapter.authService.clientId),
+                );
             })
             .then(() => hcDocument);
     }

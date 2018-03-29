@@ -8,13 +8,15 @@ class HCDocument {
         title,
         creationDate = new Date(),
         author,
+        additionalIds,
         id,
     } = {}) {
         if (!(Array.isArray(files)
+                && (!additionalIds || typeof additionalIds === 'object')
                 && typeof type === 'string'
                 && typeof title === 'string'
                 && creationDate instanceof Date
-                && typeof author === 'string')) {
+                && (!author || typeof author === 'object'))) {
             throw new ValidationError('HCDocument: Invalid arguments');
         }
         this.attachments = files.map(file => new HCAttachment({ file }));
@@ -22,6 +24,7 @@ class HCDocument {
         this.creationDate = creationDate;
         this.title = title;
         this.author = author;
+        this.additionalIds = additionalIds;
         this.id = id;
     }
 }

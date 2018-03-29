@@ -1,53 +1,90 @@
 import Ajv from 'ajv';
 import HCDocument from '../HCDocument';
-import hcAttachmentUtils from './hcAttachmentUtils';
+import hcAttachmentUtils, { schema as attachmentSchema } from './hcAttachmentUtils';
+import hcAuthorUtils, { schema as authorSchema } from './hcAuthorUtils';
+import hcSpecialtyUtils from './hcSpecialtyUtils';
 
 const schema = {
     type: 'object',
     properties: {
         title: { type: 'string' },
-        author: { type: 'string' },
+        author: authorSchema,
+        additionalIds: {
+            type: 'object',
+        },
         type: { type: 'string' },
-        attachments: { type: 'array' },
+        attachments: {
+            type: 'array',
+            items: attachmentSchema,
+        },
         id: { type: 'string' },
     },
     required: ['title', 'attachments', 'type'],
 };
-
 const ajv = new Ajv();
 const validate = ajv.compile(schema);
 
 const hcDocumentUtils = {
     isValid(hcDocument) {
-        return validate(hcDocument) &&
-            hcDocument.attachments.every((attachment => hcAttachmentUtils.isValid(attachment)));
+        return validate(hcDocument);
     },
 
     fromFhirObject(fhirObject) {
         const hcDocument = new HCDocument({
             type: fhirObject.type.text,
             creationDate: new Date(fhirObject.indexed),
-            author: (fhirObject.author && fhirObject.author.length > 0) ? fhirObject.author[0].display : '',
-            title: fhirObject.subject.reference,
+            title: fhirObject.description,
+            additionalIds: fhirObject.identifier && fhirObject.identifier.length > 0
+                ? fhirObject.identifier
+                    .reduce((obj, item) => {
+                        obj[item.assigner.reference] = item.value;
+                        return obj;
+                    })
+                : null,
         });
-        hcDocument.attachments = fhirObject.content.map(content =>
-            hcAttachmentUtils.fromFhirObject(content.attachment));
-
+        hcDocument.attachments = fhirObject.content ? fhirObject.content.map(content =>
+            hcAttachmentUtils.fromFhirObject(content.attachment)) : [];
+        // fhirObject.author contains the reference id to the author in contained array.
+        if (fhirObject.contained && fhirObject.contained.length > 0) {
+            const author = fhirObject.contained.find((el => el.id === 'contained-author-id'));
+            hcDocument.author = author ? hcAuthorUtils.fromFhirObject(author) : '';
+        }
         return hcDocument;
     },
 
-    toFhirObject(hcDocument) {
+    toFhirObject(hcDocument, clientId) {
         const fhirObject = {
             resourceType: 'DocumentReference',
             status: 'current',
             type: { text: hcDocument.type },
             indexed: hcDocument.creationDate.toISOString(),
-            author: [{ display: hcDocument.author }],
+            author: [{ reference: '#contained-author-id' }],
+            description: hcDocument.title,
             subject: { reference: hcDocument.title },
         };
-        fhirObject.content = hcDocument.attachments.map(attachment =>
-            ({ attachment: hcAttachmentUtils.toFhirObject(attachment) }));
+        fhirObject.content = hcDocument.attachments ? hcDocument.attachments.map(attachment =>
+            ({ attachment: hcAttachmentUtils.toFhirObject(attachment) })) : [];
 
+        fhirObject.contained = [hcAuthorUtils.toFhirObject(hcDocument.author, clientId)];
+        if (hcDocument.additionalIds) {
+            fhirObject.identifier = Object.keys(hcDocument.additionalIds).map(key => ({
+                value: hcDocument.additionalIds[key],
+                assigner: {
+                    reference: key,
+                },
+            }));
+        }
+        // Information about where the document was created.
+        if (hcDocument.author.specialty) {
+            fhirObject.context = {
+                practiceSetting: {
+                    coding: [{
+                        display: hcSpecialtyUtils.display(hcDocument.author.specialty),
+                        code: hcDocument.author.specialty,
+                    }],
+                },
+            };
+        }
         return fhirObject;
     },
 };

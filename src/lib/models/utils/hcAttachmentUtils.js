@@ -1,7 +1,6 @@
-import Ajv from 'ajv';
 import HCAttachment from '../HCAttachment';
 
-const schema = {
+export const schema = {
     type: 'object',
     properties: {
         title: { type: 'string' },
@@ -10,14 +9,7 @@ const schema = {
     required: [],
 };
 
-const ajv = new Ajv();
-const validate = ajv.compile(schema);
-
 const hcAttachmentUtils = {
-    isValid(hcAttachment) {
-        return validate(hcAttachment);
-    },
-
     fromFhirObject(fhirObject) {
         const attachment = new HCAttachment({
             title: fhirObject.title,

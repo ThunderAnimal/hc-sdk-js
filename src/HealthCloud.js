@@ -4,6 +4,8 @@ import DocumentService from './services/DocumentService';
 import userService from './services/userService';
 import HCDocument from './lib/models/HCDocument';
 import HCAttachment from './lib/models/HCAttachment';
+import HCAuthor from './lib/models/HCAuthor';
+import HCSpecialty from './lib/models/HCSpecialty';
 
 class HealthCloud {
     constructor({ documentService, zeroKitAdapter }) {
@@ -26,6 +28,8 @@ class HealthCloud {
         this.models = {
             HCDocument,
             HCAttachment,
+            HCAuthor,
+            HCSpecialty,
         };
     }
 }

@@ -137,6 +137,7 @@ describe('DocumentService', () => {
             encrypt: encryptStub,
             decryptBlob: decryptBlobStub,
             encryptBlob: encryptBlobStub,
+            authService: { clientId: testVariables.clientId },
         };
 
         documentService = new DocumentService({ zeroKitAdapter });
