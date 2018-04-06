@@ -81,15 +81,36 @@ describe('hcRequest', () => {
                 .catch(done);
         });
 
-        it('should throw error, when 401 unauthorised', (done) => {
+        it('should throw error, when 401 unauthorised and requestAcessToken is not set', (done) => {
             requestSendStub.rejects({
                 status: 401,
                 body: { error: 'Your Authorization Token has expired' },
             });
 
+            requestSendStub.onCall(2).resolves({ ok: true, body: { status: '201' } });
+
             hcRequest.submit('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
+                .then(done)
                 .catch((error) => {
                     expect(error.status).to.equal(401);
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should throw error, when 401 unauthorised and requestAcessToken is set', (done) => {
+            requestSendStub.rejects({
+                status: 401,
+                body: { error: 'Your Authorization Token has expired' },
+            });
+
+            requestSendStub.onCall(2).resolves({ ok: true, body: { status: '201' } });
+
+            hcRequest.requestAccessToken = sinon.stub().returnsPromise().resolves();
+
+            hcRequest.submit('POST', '/users/fakeUserId/documents/fakeDocumentId', { authorize: true })
+                .then(() => {
+                    expect(requestSendStub).to.be.calledThrice;
                     done();
                 })
                 .catch(done);

@@ -1,10 +1,17 @@
 import config from 'config';
 import request from 'superagent-bluebird-promise';
 
+const maxRetries = 2;
+
 const isHealthCloudPath = path => path.startsWith(config.api);
 
+const isExpired = error =>
+    error.status === 401 && error.body && error.body.error && error.body.error.includes('expired');
+
 const hcRequest = {
-    accessToken: undefined,
+    accessToken: null,
+
+    requestAccessToken: null,
 
     setAccessToken(accessToken) {
         this.accessToken = `Bearer ${accessToken}`;
@@ -18,6 +25,8 @@ const hcRequest = {
         authorize = false,
         includeResponseHeaders = false,
     } = {}) {
+        let retries = 0;
+
         const h = headers;
         if (authorize) {
             h.Authorization = this.accessToken;
@@ -25,7 +34,7 @@ const hcRequest = {
         if (isHealthCloudPath(path)) {
             h['GC-SDK-Version'] = `JS ${VERSION}`;
         }
-        return request(type, path)
+        const submitRequest = () => request(type, path)
             .set(headers)
             .query(query)
             .responseType(responseType)
@@ -35,8 +44,17 @@ const hcRequest = {
                     return ({ body: res.body, headers: res.headers });
                 }
                 return res.body || res.text;
+            })
+            .catch((err) => {
+                if (isExpired(err) && this.requestAccessToken && retries < maxRetries) {
+                    retries += 1;
+                    return this.requestAccessToken()
+                        .then(() => submitRequest());
+                }
+                throw err;
             });
-        // TODO handle errors
+
+        return submitRequest();
     },
 };
 

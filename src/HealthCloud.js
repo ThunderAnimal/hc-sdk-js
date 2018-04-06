@@ -9,7 +9,7 @@ import HCAuthor from './lib/models/HCAuthor';
 import HCSpecialty from './lib/models/HCSpecialty';
 
 class HealthCloud {
-    constructor(clientId, userId, privateKey, accessToken) {
+    constructor(clientId, userId, privateKey, accessToken, requestAccessToken) {
         taggingUtils.clientId = clientId;
 
         this.downloadDocument = documentService.downloadDocument.bind(documentService);
@@ -29,6 +29,7 @@ class HealthCloud {
         documentService.setEncryptionService(
             createClientEncryptionService(clientId)(privateKey));
         hcRequest.setAccessToken(accessToken);
+        hcRequest.requestAccessToken = requestAccessToken;
         userService.currentUser = userId;
 
         this.models = {
