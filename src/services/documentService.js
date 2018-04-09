@@ -128,7 +128,6 @@ const documentService = {
     deleteDocument(ownerId, hcDocument) {
         return this.fhirService.deleteRecord(ownerId, hcDocument.id);
     },
-
     getDocuments(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
         return this.fhirService.searchRecords(ownerId, params)

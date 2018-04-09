@@ -26,24 +26,28 @@ export const schema = {
 const hcAuthorUtils = {
     fromFhirObject(fhirObject) {
         const options = {
-            identifier: fhirObject.identifier && fhirObject.identifier.length > 0 ? fhirObject.identifier[0].value : '',
+            identifier: fhirObject.identifier && fhirObject.identifier[0] ?
+                fhirObject.identifier[0].value : undefined,
         };
-        if (fhirObject.name && fhirObject.name.length > 0) {
-            options.firstName = fhirObject.name[0].given ? fhirObject.name[0].given[0] : '';
-            options.lastName = fhirObject.name[0].family;
-            options.prefix = fhirObject.name[0].prefix ? fhirObject.name[0].prefix[0] : '';
-            options.suffix = fhirObject.name[0].suffix ? fhirObject.name[0].suffix[0] : '';
+
+        if (fhirObject.name && fhirObject.name[0]) {
+            const name = fhirObject.name[0];
+            options.firstName = name.given && name.given[0] ? name.given[0] : undefined;
+            options.lastName = name.family;
+            options.prefix = name.prefix && name.prefix[0] ? name.prefix[0] : undefined;
+            options.suffix = name.suffix && name.suffix[0] ? name.suffix[0] : undefined;
         }
         if (fhirObject.address && fhirObject.address.length > 0) {
-            options.street = fhirObject.address[0].line ? fhirObject.address[0].line[0] : '';
-            options.city = fhirObject.address[0].city;
-            options.postalCode = fhirObject.address[0].postalCode;
+            const address = fhirObject.address[0];
+            options.street = address.line && address.line[0] ? address.line[0] : undefined;
+            options.city = address.city;
+            options.postalCode = address.postalCode;
         }
         if (fhirObject.telecom) {
             const telephone = fhirObject.telecom.find(el => el.value === 'phone');
-            options.telephone = telephone ? telephone.value : '';
+            options.telephone = telephone ? telephone.value : undefined;
             const website = fhirObject.telecom.find(el => el.value === 'url');
-            options.website = website ? website.value : '';
+            options.website = website ? website.value : undefined;
         }
         return new HCAuthor(options);
     },

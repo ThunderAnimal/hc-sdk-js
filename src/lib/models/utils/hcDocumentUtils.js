@@ -40,7 +40,7 @@ const hcDocumentUtils = {
                         obj[item.assigner.reference] = item.value;
                         return obj;
                     })
-                : null,
+                : undefined,
         });
         hcDocument.attachments = fhirObject.content ? fhirObject.content.map(content =>
             hcAttachmentUtils.fromFhirObject(content.attachment)) : [];

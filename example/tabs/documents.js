@@ -7,8 +7,8 @@ function cleanUp() {
 
 function getDocuments() {
     cleanUp();
-    HC.getDocuments().then((hcDocuments) => {
-        hcDocuments.forEach((hcDocument) => {
+    HC.getDocuments(HC.getCurrentUser().id).then((hcDocuments) => {
+        hcDocuments.records.forEach((hcDocument) => {
             let documentElement = document.createElement('div');
             documentElement.hcDocument = hcDocument
             documentElement.innerHTML = `${hcDocument.id}: ${hcDocument.title}`;
@@ -27,7 +27,7 @@ function createUpdateForm(userId, hcDocument, display) {
 
     let authorInput = document.createElement('input');
     authorInput.type = 'text';
-    authorInput.value = hcDocument.author;
+    authorInput.value = hcDocument.author.firstName;
     updateForm.appendChild(authorInput);
 
     let fileInput = document.createElement('input');
@@ -39,7 +39,7 @@ function createUpdateForm(userId, hcDocument, display) {
     updateButton.textContent = 'Press me to update this document.';
     updateButton.addEventListener('click', () => {
         hcDocument.title = titleInput.value;
-        hcDocument.author = authorInput.value;
+        hcDocument.author.firstName = authorInput.value;
         hcDocument.attachments.push(
             ...[...fileInput.files].map(file => new HC.models.HCAttachment({ file })));
         HC.updateDocument(userId, hcDocument)
@@ -101,8 +101,9 @@ function getDocument(documentId) {
         .then(displayDocument);
 }
 
-function uploadDocument(files, title, author) {
-    let hcDocument = new HC.models.HCDocument({ files, title, author });
+function uploadDocument(files, title, authorName) {
+    let hcAuthor = new HC.models.HCAuthor({ firstName: authorName });
+    let hcDocument = new HC.models.HCDocument({ files, title, author: hcAuthor });
 
     HC.uploadDocument(HC.getCurrentUser().id, hcDocument)
         .then(displayDocument);
