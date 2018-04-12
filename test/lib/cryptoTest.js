@@ -34,9 +34,9 @@ describe('crypto', () => {
         const plainText = 'Hello Martians!';
         let cipherResult;
 
-        describe('getKeyFromSPKI', () => {
+        describe('getPublicKeyFromSPKI', () => {
             it('should import a SPKI key correctly', (done) => {
-                crypto.getKeyFromSPKI(SPKIKey)
+                crypto.getPublicKeyFromSPKI(SPKIKey)
                     .then((pk) => {
                         publicKey = pk;
                         done();
@@ -45,9 +45,9 @@ describe('crypto', () => {
             });
         });
 
-        describe('getSPKIFromKey', () => {
+        describe('getSPKIFromPublicKey', () => {
             it('should export key to SPKIKey correctly', (done) => {
-                crypto.getSPKIFromKey(publicKey)
+                crypto.getSPKIFromPublicKey(publicKey)
                     .then((SPKI) => {
                         expect(SPKI).to.equal(SPKIKey);
                         done();
@@ -56,9 +56,9 @@ describe('crypto', () => {
             });
         });
 
-        describe('getKeyFromPKCS8', () => {
+        describe('getPrivateKeyFromPKCS8', () => {
             it('should import PKCS8 key correctly', (done) => {
-                crypto.getKeyFromPKCS8(PKCS8Key)
+                crypto.getPrivateKeyFromPKCS8(PKCS8Key)
                     .then((pk) => {
                         privateKey = pk;
                         done();
@@ -67,9 +67,9 @@ describe('crypto', () => {
             });
         });
 
-        describe('getPKCS8FromKey', () => {
+        describe('getPKCS8FromPrivateKey', () => {
             it('should export key to PKCS8 correctly', (done) => {
-                crypto.getPKCS8FromKey(privateKey)
+                crypto.getPKCS8FromPrivateKey(privateKey)
                     .then((PKCS8) => {
                         expect(PKCS8).to.equal(PKCS8Key);
                         done();
@@ -124,9 +124,9 @@ describe('crypto', () => {
         const plainText = 'Hello Martians!';
 
 
-        describe('importRawKey', () => {
+        describe('getSymKeyFromString', () => {
             it('should import a raw key correctly', (done) => {
-                crypto.importRawKey(rawKey)
+                crypto.getSymKeyFromString(rawKey)
                     .then((key) => {
                         symKey = key;
                         done();
@@ -135,9 +135,9 @@ describe('crypto', () => {
             });
         });
 
-        describe('getSPKIFromKey', () => {
+        describe('getSPKIFromPublicKey', () => {
             it('should export key to raw key correctly', (done) => {
-                crypto.exportRawKey(symKey)
+                crypto.getStringFromSymKey(symKey)
                     .then((key) => {
                         expect(key).to.equal(rawKey);
                         done();

@@ -66,7 +66,7 @@ const convertBlobToArrayBufferView = blob =>
  * @param {String} key - base64 encoded key
  * @returns {Promise} Resolves to the key as a CryptoKey.
  */
-const importRawKey = (key) => {
+const getSymKeyFromString = (key) => {
     const alg = AES_CBC;
 
     return crypto.subtle.importKey(
@@ -85,13 +85,13 @@ const importRawKey = (key) => {
  * @param {Object} key - the key that should be exported
  * @returns {Promise} Resolves to the key as an base64 encoded String.
  */
-const exportRawKey = key =>
+const getStringFromSymKey = key =>
     crypto.subtle.exportKey('raw', key)
         .then(byteKey => new Uint8Array(byteKey))
         .then(convertArrayBufferViewToBase64);
 
 
-const getKeyFromPKCS8 = (PKCS8) => {
+const getPrivateKeyFromPKCS8 = (PKCS8) => {
     const alg = RSA_OAEP;
 
     return crypto.subtle.importKey(
@@ -103,12 +103,12 @@ const getKeyFromPKCS8 = (PKCS8) => {
     );
 };
 
-const getPKCS8FromKey = key =>
+const getPKCS8FromPrivateKey = key =>
     crypto.subtle.exportKey('pkcs8', key)
         .then(PKCS8 => new Uint8Array(PKCS8))
         .then(convertArrayBufferViewToBase64);
 
-const getKeyFromSPKI = (SPKI) => {
+const getPublicKeyFromSPKI = (SPKI) => {
     const alg = RSA_OAEP;
 
     return crypto.subtle.importKey(
@@ -120,7 +120,7 @@ const getKeyFromSPKI = (SPKI) => {
     );
 };
 
-const getSPKIFromKey = key =>
+const getSPKIFromPublicKey = key =>
     crypto.subtle.exportKey('spki', key)
         .then(SPKI => new Uint8Array(SPKI))
         .then(convertArrayBufferViewToBase64);
@@ -130,15 +130,15 @@ const importKey = (key) => {
     case 'ck': // commonKey
     case 'dk': // dataKey
     case 'ak': // attachmentKey
-        return importRawKey(key.sym);
+        return getSymKeyFromString(key.sym);
     case 'privU': // userPrivateKey
     case 'privA': // appPrivateKey
-        return getKeyFromPKCS8(key.priv);
+        return getPrivateKeyFromPKCS8(key.priv);
     case 'pubU': // userPublicKey
     case 'pubA': // appPublicKey
-        return getKeyFromSPKI(key.pub);
+        return getPublicKeyFromSPKI(key.pub);
     default:
-        throw new Error('Not the right keyformat');
+        throw new Error('invalid key type');
     }
 };
 
@@ -147,7 +147,7 @@ const exportKey = (key, type) => {
     case 'ck': // commonKey
     case 'dk': // dataKey
     case 'ak': // attachmentKey
-        return exportRawKey(key)
+        return getStringFromSymKey(key)
             .then(keyString => ({
                 t: type,
                 v: 1,
@@ -155,7 +155,7 @@ const exportKey = (key, type) => {
             }));
     case 'privU': // userPrivateKey
     case 'privA': // appPrivateKey
-        return getPKCS8FromKey(key)
+        return getPKCS8FromPrivateKey(key)
             .then(keyString => ({
                 t: type,
                 v: 1,
@@ -163,14 +163,14 @@ const exportKey = (key, type) => {
             }));
     case 'pubU': // userPublicKey
     case 'pubA': // appPublicKey
-        return getSPKIFromKey(key)
+        return getSPKIFromPublicKey(key)
             .then(keyString => ({
                 t: type,
                 v: 1,
                 pub: keyString,
             }));
     default:
-        throw new Error('unknown keytype');
+        throw new Error('invalid key type');
     }
 };
 
@@ -353,14 +353,14 @@ const hcCrypto = {
     importKey,
     exportKey,
 
-    importRawKey,
-    exportRawKey,
+    getSymKeyFromString,
+    getStringFromSymKey,
 
-    getKeyFromPKCS8,
-    getPKCS8FromKey,
+    getPrivateKeyFromPKCS8,
+    getPKCS8FromPrivateKey,
 
-    getKeyFromSPKI,
-    getSPKIFromKey,
+    getPublicKeyFromSPKI,
+    getSPKIFromPublicKey,
 
     symEncrypt,
     symEncryptString,
