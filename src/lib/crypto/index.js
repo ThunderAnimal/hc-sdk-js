@@ -22,11 +22,6 @@ const PBKDF2 = {
     hash: 'SHA-256',
 };
 
-const jwkToWebCrypto = {
-    A256CBC: AES_CBC,
-    'RSA-OAEP-256': RSA_OAEP,
-};
-
 const convertStringToArrayBufferView = (str) => {
     const bytes = new Uint8Array(str.length);
 
@@ -66,32 +61,34 @@ const convertBlobToArrayBufferView = blob =>
     });
 
 /**
- * Transformation from jwk to key.
+ * Transformation from base64 encoded key to CryptoKey.
  *
- * @param {Object} jwk - The jwk representation of the key
+ * @param {String} key - base64 encoded key
  * @returns {Promise} Resolves to the key as a CryptoKey.
  */
-const getKeyFromJWK = (jwk) => {
-    const alg = jwkToWebCrypto[jwk.alg];
+const importRawKey = (key) => {
+    const alg = AES_CBC;
 
     return crypto.subtle.importKey(
-        'jwk',
-        jwk,
+        'raw',
+        convertBase64ToArrayBufferView(key),
         alg,
         true,
-        jwk.key_ops,
+        ['encrypt', 'decrypt'],
     );
 };
 
 
 /**
- * Transformation from jwk to key.
+ * Transformation from CryptoKey to base64 encoded String.
  *
- * @param {CryptoKey} key - the key that should be exported
- * @returns {Promise} Resolves to the key as an jwk object.
+ * @param {Object} key - the key that should be exported
+ * @returns {Promise} Resolves to the key as an base64 encoded String.
  */
-const getJWKFromKey = key =>
-    crypto.subtle.exportKey('jwk', key);
+const exportRawKey = key =>
+    crypto.subtle.exportKey('raw', key)
+        .then(byteKey => new Uint8Array(byteKey))
+        .then(convertArrayBufferViewToBase64);
 
 
 const getKeyFromPKCS8 = (PKCS8) => {
@@ -128,15 +125,64 @@ const getSPKIFromKey = key =>
         .then(SPKI => new Uint8Array(SPKI))
         .then(convertArrayBufferViewToBase64);
 
+const importKey = (key) => {
+    switch (key.t) {
+    case 'ck': // commonKey
+    case 'dk': // dataKey
+    case 'ak': // attachmentKey
+        return importRawKey(key.sym);
+    case 'privU': // userPrivateKey
+    case 'privA': // appPrivateKey
+        return getKeyFromPKCS8(key.priv);
+    case 'pubU': // userPublicKey
+    case 'pubA': // appPublicKey
+        return getKeyFromSPKI(key.pub);
+    default:
+        throw new Error('Not the right keyformat');
+    }
+};
+
+const exportKey = (key, type) => {
+    switch (type) {
+    case 'ck': // commonKey
+    case 'dk': // dataKey
+    case 'ak': // attachmentKey
+        return exportRawKey(key)
+            .then(keyString => ({
+                t: type,
+                v: 1,
+                sym: keyString,
+            }));
+    case 'privU': // userPrivateKey
+    case 'privA': // appPrivateKey
+        return getPKCS8FromKey(key)
+            .then(keyString => ({
+                t: type,
+                v: 1,
+                priv: keyString,
+            }));
+    case 'pubU': // userPublicKey
+    case 'pubA': // appPublicKey
+        return getSPKIFromKey(key)
+            .then(keyString => ({
+                t: type,
+                v: 1,
+                pub: keyString,
+            }));
+    default:
+        throw new Error('unknown keytype');
+    }
+};
+
 /**
- * Symmetric encryption of data with JWK
+ * Symmetric encryption of data with hcKey
  *
- * @param {Object} jwk - The jwk representation of the key
+ * @param {Object} hcKey - The hcKey representation of the key
  * @param {ArrayBufferView} data that should be encrypted
  * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
-const symEncrypt = (jwk, data) =>
-    getKeyFromJWK(jwk)
+const symEncrypt = (hcKey, data) =>
+    importKey(hcKey)
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
@@ -146,27 +192,27 @@ const symEncrypt = (jwk, data) =>
         .then(result => new Uint8Array(result));
 
 
-const symEncryptString = (jwk, string) =>
-    symEncrypt(jwk, convertStringToArrayBufferView(string))
+const symEncryptString = (hcKey, string) =>
+    symEncrypt(hcKey, convertStringToArrayBufferView(string))
         .then(convertArrayBufferViewToBase64);
 
-const symEncryptObject = (jwk, object) =>
-    symEncryptString(jwk, JSON.stringify(object));
+const symEncryptObject = (hcKey, object) =>
+    symEncryptString(hcKey, JSON.stringify(object));
 
-const symEncryptBlob = (jwk, blob) =>
+const symEncryptBlob = (hcKey, blob) =>
     convertBlobToArrayBufferView(blob)
-        .then(arrayBufferString => symEncrypt(jwk, arrayBufferString));
+        .then(arrayBufferString => symEncrypt(hcKey, arrayBufferString));
 
 
 /**
- * Symmetric decryption of data with JWK
+ * Symmetric decryption of data with hcKey
  *
- * @param {Object} jwk that specifies the crypto primitives
+ * @param {Object} hcKey that specifies the crypto primitives
  * @param {ArrayBufferView} encrypted data that should be decrypted
  * @returns {Promise} Resolves to plain data as an ArrayBufferView
  */
-const symDecrypt = (jwk, data) =>
-    getKeyFromJWK(jwk)
+const symDecrypt = (hcKey, data) =>
+    importKey(hcKey)
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
@@ -174,12 +220,12 @@ const symDecrypt = (jwk, data) =>
             }, key, data))
         .then(result => new Uint8Array(result));
 
-const symDecryptString = (jwk, base64String) =>
-    symDecrypt(jwk, convertBase64ToArrayBufferView(base64String))
+const symDecryptString = (hcKey, base64String) =>
+    symDecrypt(hcKey, convertBase64ToArrayBufferView(base64String))
         .then(convertArrayBufferViewToString);
 
-const symDecryptObject = (jwk, base64String) =>
-    symDecryptString(jwk, base64String).then(JSON.parse);
+const symDecryptObject = (hcKey, base64String) =>
+    symDecryptString(hcKey, base64String).then(JSON.parse);
 
 /**
  * Creates key out of given String (aka password)
@@ -202,17 +248,17 @@ const deriveKey = masterKey =>
             true,
             ['encrypt', 'decrypt'],
         ))
-        .then(getJWKFromKey);
+        .then(exportKey);
 
 /**
- * Asymmetric encryption of data with JWK
+ * Asymmetric encryption of data with hcKey
  *
- * @param {Object} publicKeyJWK - jwk representation of the a public key
+ * @param {Object} hcPublicKey - hcKey representation of the a public key
  * @param {ArrayBufferView} data that will be encrypted
  * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
-const asymEncrypt = (publicKeySPKI, data) =>
-    getKeyFromSPKI(publicKeySPKI)
+const asymEncrypt = (hcPublicKey, data) =>
+    importKey(hcPublicKey)
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
@@ -226,14 +272,14 @@ const asymEncryptString = (publicKeySPKI, string) =>
         .then(convertArrayBufferViewToBase64);
 
 /**
- * Asymmetric decryption of data with JWK
+ * Asymmetric decryption of data with hcKey
  *
- * @param {PKCS8} privateKeyPKCS8
+ * @param {Object} hcPrivateKey
  * @param {ArrayBufferView} data
  * @returns {Promise} Resolves to decrypted data as an ArrayBufferView
  */
-const asymDecrypt = (privateKeyPKCS8, data) =>
-    getKeyFromPKCS8(privateKeyPKCS8)
+const asymDecrypt = (hcPrivateKey, data) =>
+    importKey(hcPrivateKey)
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
@@ -241,16 +287,17 @@ const asymDecrypt = (privateKeyPKCS8, data) =>
             }, key, data))
         .then(result => new Uint8Array(result));
 
-const asymDecryptString = (privateKeyPKCS8, base64String) =>
-    asymDecrypt(privateKeyPKCS8, convertBase64ToArrayBufferView(base64String))
+const asymDecryptString = (hcPrivateKey, base64String) =>
+    asymDecrypt(hcPrivateKey, convertBase64ToArrayBufferView(base64String))
         .then(convertArrayBufferViewToString);
 
 /**
  * Creates a random symmetric key.
  *
- * @returns {Promise} Resolves to a symmetric key as a jwk object
+ * @param {String} type of the key
+ * @returns {Promise} Resolves to a symmetric key as a hcKey object
  */
-const generateSymKey = () =>
+const generateSymKey = type =>
     // Parameters:
     // 1. Symmetric Encryption algorithm name and its requirements
     // 2. Boolean indicating extractable. which indicates whether or not the raw keying
@@ -265,14 +312,14 @@ const generateSymKey = () =>
         true,
         ['encrypt', 'decrypt'],
     )
-        .then(getJWKFromKey);
+        .then(key => exportKey(key, type));
 
 /**
  * Creates a random public-private key pair
- *
- * @returns {Promise} Resolves to an object containing a public and a private key as jwk objects
+ * @param {String} type - type of the keypair 'A' for App, 'U' for User
+ * @returns {Promise} Resolves to an object containing a public and a private key as hcKey objects
  */
-const generateAsymKeyPair = () =>
+const generateAsymKeyPair = type =>
     // Parameters:
     // 1. Asymmetric Encryption algorithm name and its requirements
     // 2. Boolean indicating extractable which indicates whether or not the raw keying
@@ -290,12 +337,12 @@ const generateAsymKeyPair = () =>
         ['encrypt', 'decrypt'],
     )
         .then(keyPair => Promise.all([
-            getSPKIFromKey(keyPair.publicKey),
-            getPKCS8FromKey(keyPair.privateKey),
+            exportKey(keyPair.publicKey, `pub${type}`),
+            exportKey(keyPair.privateKey, `priv${type}`),
         ]))
-        .then(jwks => ({
-            publicKey: jwks[0],
-            privateKey: jwks[1],
+        .then(hcKeys => ({
+            publicKey: hcKeys[0],
+            privateKey: hcKeys[1],
         }));
 
 const hcCrypto = {
@@ -303,8 +350,11 @@ const hcCrypto = {
     generateSymKey,
     generateAsymKeyPair,
 
-    getKeyFromJWK,
-    getJWKFromKey,
+    importKey,
+    exportKey,
+
+    importRawKey,
+    exportRawKey,
 
     getKeyFromPKCS8,
     getPKCS8FromKey,

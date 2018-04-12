@@ -15,7 +15,7 @@ const createEncryptData = encryptionMethod => commonKeyPromise =>
                 if (encryptedDataKey) {
                     return cryptoLib.symDecryptObject(commonKey, encryptedDataKey);
                 }
-                return cryptoLib.generateSymKey();
+                return cryptoLib.generateSymKey('dk');
             });
         return Promise.all([commonKeyPromise, dataKeyPromise])
             .then(([commonKey, dataKey]) => {
