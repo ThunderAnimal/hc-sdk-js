@@ -1,5 +1,5 @@
 # GesundheitsCloud Web SDK
-This is the Javascript web SDK of GesundheitsCloud, which encapsulates the backend functionality of the platform and enables end-to-end encryption of patient data. It allows users to store sensitive health data on the secure GesundheitsCloud platform and share it to authorized people and applications.
+The GesundheitsCloud Javascript web SDK allows users to store health data on the GesundheitsCloud platform and share it to authorized people and applications.
 
 For more information about the platform please see our [website](https://www.gesundheitscloud.de/).
 
@@ -7,7 +7,7 @@ For more information about the platform please see our [website](https://www.ges
 To use the SDK, you need to create a client id from GesundheitsCloud. Please get in touch with us at info@gesundheitscloud.de.
 
 ## Usage
-The SDK allows you to register a user with GesundheitsCloud, log in the user, upload or download your sensitive documents and share your data with another user, all with end-to-end encryption. It internally does all the work needed to prove the identity to the server without leaking the password.
+The SDK allows to upload and download the user's health-related data and documents and share them with other users.
 
 The SDK compiles into a bundle, which can then be imported into the project.
 
@@ -22,16 +22,19 @@ It inserts a healthcloud_sdk object into the global namespace.
  <script src="${url}/healthcloud_sdk.js"></script>
 ```
 
-2. Initialise the SDK, providing your client id:
+2. ** TODO LOGIN **
+
+3. Initialise the SDK, providing your client id:
 ```javascript
-    var HC = new healthcloud_sdk({
-        "clientId":"my_client_id"
-    });
+    var HC = new healthcloud_sdk(
+        clientId,               // clientId of the application that uses the sdk
+        userId,                 // userId of the logged in user
+        privateKey,             // privateKey of the user logged in
+        accessToken,            // accessToken of the user logged in
+        requestAccessToken);    // callback for requesting a valid accessToken
 ```
 
-3. Use the functions exposed by the SDK. Currently the functions exposed are:
-    - getLoginForm
-    - getRegistrationForm
+4. The following functions are available:
     - downloadDocument
     - uploadDocument
     - updateDocument
@@ -41,119 +44,35 @@ It inserts a healthcloud_sdk object into the global namespace.
     - getCurrentUser
     - getUser
     - updateUser
-    - grantPermission
     - logout
 
-### Register
-To register a user, append the registration form to a node and call ``HC.register``.
-This registration form contains name and password field, a submit button needs to be supplied by SDK user.
-Therefore you need to call  ``HC.getRegistrationForm(parent_node)``. Hence the form is then appended to ``parent_node`` element.
-You will also need a ``<button/>`` tag that has a click event listener. This listener should call ``HC.register`` to perform registration.
-Both ``HC.getRegistrationForm`` and ``HC.register`` returns promises.
-For having the user logged in after registration automatically you can set the autoLogin flag to ``true``(as in the example).
-By default the autoLogin flag ``false``
 
-```html
-<div id="gesundheitsregister"></div>
-<button id="submitRegister">Register</button>
-```
-```javascript
-HC.getRegistrationForm(document.getElementById("gesundheitsregister"))
-.then((response) => {
-  // Login form was loaded successfully
-})
-.catch((error) => {
-  // Error loading login form
-});
-
-document.getElementById("submitRegister").addEventListener("click", () => {
-  let autoLogin = true;
-  HC.register(autoLogin)
-  .then((response) => {
-    // User successfully registered
-  })
-  .catch((error) => {
-    // Error during registration
-  });
-});
-```
-
-In the case of a successful registration, ``error`` is contains a message, and ``response`` contains the user alias as below.
-```json
-    {
-        "alias": "hcUserAlias"
-    }
-```
-In the case of a successful login after the registration you will get back a ``response`` containing the users alias and id.
-
-The user will need to login after registration.
-```json
-    {
-        "alias": "hcUserAlias",
-        "id": "hcUserId"
-    }
-```
-
-### Login
-The login step is similar to registering.
-Call ``HC.getLoginForm(parentNode, callback)`` to get the login form appended to ``parentNode``.
-After user tries to login the request result will be processed as a promise.
-
-```javascript
-HC.getLoginForm(document.getElementById("gesundheitslogin"))
-.then((response) => {
-  // User successfully logged in
-})
-.catch((error) => {
-  // Error on login
-});
-```
-
-The SDK automatically performs the required authentication steps during the login.
-In the case of a successful login you will get back a ``response`` containing the users alias and id.
-
-The user will need to login after registration.
-```json
-    {
-        "alias": "hcUserAlias",
-        "id": "hcUserId"
-    }
-```
-
-### Get the Current UserId and Alias
+### Get the current UserId
 You can get the currently active user synchronously by calling getUserIdAndAlias.
 
 ```javascript
  HC.getCurrentUser();
 ```
-In case of a logged in user getUserIdAndAlias returns a basic user object.
-```json
-{   
-    "alias": "user_alias",
-    "id": "user_id"
-}
-```
-### Get the Current User
+Once logged in, getCurrentUser returns the userId.
+
+### Get User
 
 You can get the detailed user by calling ``getUser`` function, which returns a promise.
 
 To get the user
 ```javascript
- HC.getUser()
+ HC.getUser(userId) // userId is optional: If unset, the currently logged in user is being used.
     .then((response) => {
     })
     .catch((error) => {
     });
 ```
 where response is:
+** TODO: what else **
 ```json
           {
                 id: '93725dda-13e0-4105-bffb-fdcfd73d1db5',
                 alias: 'user_email',
-                userData: {
-                    name: 'user_name',
-                    ...
-                }
           }
 ```
 
@@ -201,7 +120,7 @@ The resulting object has the following attributes:
 - creationDate: date
 - title: string
 - author: Author
-- additionalIds: string Array
+- additionalIds: Object containing a mapping between clientId and a documentId provided by the client
 - id: string, created by platform on upload, do not change
 
 #### Author
@@ -221,7 +140,7 @@ where options is an object containing the following attributes:
 - telephone: string
 - website: string
 - specialty: int (standard set of codes are allowed in specialty value.
-  Refer https://www.hl7.org/fhir/valueset-c80-practice-codes.html. You can also use 
+  Refer https://www.hl7.org/fhir/valueset-c80-practice-codes.html. You can also use
   the Specialty enum defined below.)
 
 #### Specialty
@@ -244,7 +163,6 @@ The resulting object has the following attributes:
 - creationDate: date, by default extracted from the file object;
 
 #### Upload Document
-Uploading a document requires a logged in user.
 The SDK encrypts the data before uploading it to the GesundheitsCloud.
 Only the owner of the documents and those who have explicit permission from the owner are able to download the documents.
 
@@ -260,13 +178,7 @@ To upload the document:
 ```
 
 #### Download Document
-To download the document multiple requirements need to be fulfilled:
-  - A user is logged in.
-  - The logged in user has the right to access the document.
-    - The user is the owner of the document
-    - The user has the owners permission to access the document.
-
-To download the document call downloadDocument providing the owners user id and the document id
+To download the document call downloadDocument providing the owners user id and a document id the logged in user has permission to access for.
 ```javascript
   HC.downloadDocument('user_id','document_id').then((hcDocument) => {
     // the requested hcDocument
@@ -276,17 +188,10 @@ To download the document call downloadDocument providing the owners user id and 
   })
 ```
 
-The response is a hcDocument with the js file-object
+The response is a hcDocument containing the js file-objects.
 
 In case the user does not have the right to access the document an error will be thrown.
 
-In the case of any error in uploading and downloading documents, the format is:
-```json
-    {
-        "status": 403,
-        "error": {}
-    }
-```
 
 #### Update a Document
 For changing a Document you simply change the hcDocument Object.
@@ -310,7 +215,7 @@ It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to 
            // the updated hcDocument
        })
        .catch((error) => {
-           // error contains the status and error message
+           // error containing an error message
        });
 ```
 
@@ -327,7 +232,7 @@ It is important to call ``updateDocument('user_id', hcDocument)`` afterwards to 
            // the updated hcDocument
        })
        .catch((error) => {
-           // error contains the status and error message
+           // error containing an error message
        });
 ```
 
@@ -379,15 +284,6 @@ The response will be an object with the totalCount parameter.
    {
         totalCount: 10
    }
-```
-
-
-### Share data with another user
-
-In order to share all data of the current user with another Gesundheitscloud's user, namely *grantee*, call:
-
-```javascript
-    HC.grantPermission('granteeEmailAddress')
 ```
 
 ### Logout

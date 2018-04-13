@@ -75,6 +75,8 @@ npm run lint
 ```
 
 ## Local server
+** Currently not available **
+
 To start a local test server, execute:
 
 ```
