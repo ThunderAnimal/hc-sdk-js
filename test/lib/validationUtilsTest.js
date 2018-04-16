@@ -2,14 +2,14 @@
 import 'babel-polyfill';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import validationUtils from '../../src/lib/validationUtils';
+import { validateEmail, ensureArrayIfExists, ensureDateIfExists } from '../../src/lib/validationUtils';
 
 chai.use(sinonChai);
 
 const expect = chai.expect;
 
 describe('validationUtils', () => {
-    [{
+    it('should validate email', () => [{
         data: 'email@domain.com',
         expectedResult: true,
     }, {
@@ -85,10 +85,38 @@ describe('validationUtils', () => {
         data: 'email@domain..com',
         expectedResult: false,
     }].forEach(({ data, expectedResult }) => {
-        it(`should validate email "${data}" as ${expectedResult}`, (done) => {
-            const isValid = validationUtils.validateEmail(data);
+        it(`should validate email "${data}" as ${expectedResult}`, (done) => { // eslint-disable-line
+            const isValid = validateEmail(data);
             expect(isValid).to.equal(expectedResult);
             done();
         });
+    }));
+
+    it('should ignore array validation when is undefined', () => {
+        expect(ensureArrayIfExists(undefined)).to.equal(undefined);
+    });
+
+    it('should validate array when is array', () => {
+        const arr = [];
+        expect(ensureArrayIfExists(arr)).to.equal(arr);
+    });
+
+    it('should throw when not array', () => {
+        const arr = {};
+        expect(() => ensureArrayIfExists(arr)).to.throw();
+    });
+
+    it('should ignore date validation when is undefined', () => {
+        expect(ensureDateIfExists(undefined)).to.equal(undefined);
+    });
+
+    it('should validate date when is date', () => {
+        const date = new Date();
+        expect(ensureDateIfExists(date)).to.equal(date);
+    });
+
+    it('should throw when not date', () => {
+        const date = 1;
+        expect(() => ensureDateIfExists(date)).to.throw();
     });
 });
