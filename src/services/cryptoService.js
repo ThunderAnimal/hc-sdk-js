@@ -1,4 +1,4 @@
-import cryptoLib from '../lib/crypto';
+import cryptoLib, { keyTypes } from '../lib/crypto';
 import cryptoRoutes from '../routes/cryptoRoutes';
 
 // decryptCommonKey :: JWK -> ArrayBuffer -> Promise(JWK)
@@ -15,7 +15,7 @@ const createEncryptData = encryptionMethod => commonKeyPromise =>
                 if (encryptedDataKey) {
                     return cryptoLib.symDecryptObject(commonKey, encryptedDataKey);
                 }
-                return cryptoLib.generateSymKey('dk');
+                return cryptoLib.generateSymKey(keyTypes.DATA_KEY);
             });
         return Promise.all([commonKeyPromise, dataKeyPromise])
             .then(([commonKey, dataKey]) => {

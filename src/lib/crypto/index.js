@@ -1,5 +1,20 @@
 const crypto = window.crypto || window.msCrypto;
 
+const keyTypes = {
+    COMMON_KEY: 'ck',
+    DATA_KEY: 'dk',
+    ATTACHMENT_KEY: 'ak',
+    TAG_ENCRYPTION_KEY: 'tek',
+    APP: {
+        PRIVATE_KEY: 'privA',
+        PUBLIC_KEY: 'pubA',
+    },
+    USER: {
+        PRIVATE_KEY: 'privU',
+        PUBLIC_KEY: 'pubU',
+    },
+};
+
 const iv = new Uint8Array([124, 217, 143, 93, 158, 16, 65, 155, 218, 47, 56, 37, 231, 77, 126, 88]);
 
 // ALGORITHMS
@@ -127,15 +142,16 @@ const getSPKIFromPublicKey = key =>
 
 const importKey = (key) => {
     switch (key.t) {
-    case 'ck': // commonKey
-    case 'dk': // dataKey
-    case 'ak': // attachmentKey
+    case keyTypes.COMMON_KEY:
+    case keyTypes.DATA_KEY:
+    case keyTypes.ATTACHMENT_KEY:
+    case keyTypes.TAG_ENCRYPTION_KEY:
         return getSymKeyFromString(key.sym);
-    case 'privU': // userPrivateKey
-    case 'privA': // appPrivateKey
+    case keyTypes.USER.PRIVATE_KEY:
+    case keyTypes.APP.PRIVATE_KEY:
         return getPrivateKeyFromPKCS8(key.priv);
-    case 'pubU': // userPublicKey
-    case 'pubA': // appPublicKey
+    case keyTypes.USER.PUBLIC_KEY:
+    case keyTypes.APP.PUBLIC_KEY:
         return getPublicKeyFromSPKI(key.pub);
     default:
         throw new Error('invalid key type');
@@ -144,25 +160,26 @@ const importKey = (key) => {
 
 const exportKey = (key, type) => {
     switch (type) {
-    case 'ck': // commonKey
-    case 'dk': // dataKey
-    case 'ak': // attachmentKey
+    case keyTypes.COMMON_KEY:
+    case keyTypes.DATA_KEY:
+    case keyTypes.ATTACHMENT_KEY:
+    case keyTypes.TAG_ENCRYPTION_KEY:
         return getStringFromSymKey(key)
             .then(keyString => ({
                 t: type,
                 v: 1,
                 sym: keyString,
             }));
-    case 'privU': // userPrivateKey
-    case 'privA': // appPrivateKey
+    case keyTypes.USER_PRIVATE_KEY:
+    case keyTypes.APP_PRIVATE_KEY:
         return getPKCS8FromPrivateKey(key)
             .then(keyString => ({
                 t: type,
                 v: 1,
                 priv: keyString,
             }));
-    case 'pubU': // userPublicKey
-    case 'pubA': // appPublicKey
+    case keyTypes.USER_PUBLIC_KEY:
+    case keyTypes.APP_PUBLIC_KEY:
         return getSPKIFromPublicKey(key)
             .then(keyString => ({
                 t: type,
@@ -337,13 +354,10 @@ const generateAsymKeyPair = type =>
         ['encrypt', 'decrypt'],
     )
         .then(keyPair => Promise.all([
-            exportKey(keyPair.publicKey, `pub${type}`),
-            exportKey(keyPair.privateKey, `priv${type}`),
+            exportKey(keyPair.publicKey, keyTypes[type].PUBLIC_KEY),
+            exportKey(keyPair.privateKey, keyTypes[type].PRIVATE_KEY),
         ]))
-        .then(hcKeys => ({
-            publicKey: hcKeys[0],
-            privateKey: hcKeys[1],
-        }));
+        .then(([publicKey, privateKey]) => ({ publicKey, privateKey }));
 
 const hcCrypto = {
     deriveKey,
@@ -382,5 +396,5 @@ const hcCrypto = {
     convertArrayBufferViewToString,
     convertArrayBufferViewToBase64,
 };
-
+export { keyTypes };
 export default hcCrypto;
