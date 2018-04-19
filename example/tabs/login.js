@@ -2,10 +2,9 @@
 if (typeof loginResultElement === 'undefined')
     var loginResultElement = document.getElementById('loginResults');
 
-HC.getLoginForm(document.getElementById('gesundheitsLogin'))
-    .then((success) => {
-        loginResultElement.innerHTML = `Successfully logged in: ${JSON.stringify(success)}`;
-    })
-    .catch((error) => {
-        loginResultElement.innerHTML = `An error occurred: ${JSON.stringify(error)}`;
-    });
+async function login() {
+    console.log('login started');
+    let clientId = 'example';
+    let CAP = await HC.healthCloud.createCAP();
+    HC.authCloud.login(clientId, CAP);
+};

@@ -22,25 +22,6 @@ class HCAttachment {
         this.creationDate = creationDate || (file ? file.lastModifiedDate : undefined);
         this.id = id;
     }
-
-    static fromFhirObject(fhirObject) {
-        const attachment = new HCAttachment({
-            title: fhirObject.title,
-            type: fhirObject.contentType,
-            creationDate: new Date(fhirObject.creation),
-        });
-        attachment.id = fhirObject.id;
-        return attachment;
-    }
-
-    toFhirObject() {
-        return {
-            id: this.id,
-            title: this.title,
-            contentType: this.type,
-            creation: this.creationDate.toISOString(),
-        };
-    }
 }
 
 export default HCAttachment;

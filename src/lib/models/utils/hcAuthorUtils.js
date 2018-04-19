@@ -1,7 +1,6 @@
 import HCAuthor from '../HCAuthor';
 import hcSpecialtyUtils from './hcSpecialtyUtils';
 
-
 export const schema = {
     type: 'object',
     properties: {

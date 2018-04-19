@@ -5,7 +5,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import HealthCloud from '../src/HealthCloud';
+import { healthCloud } from '../src/healthCloud';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -16,13 +16,7 @@ describe('HealthCloud', () => {
     beforeEach(() => {
     });
 
-    it('sdk is callable', (done) => {
-        expect(typeof HealthCloud).to.equal('function');
-        done();
-    });
-
     it('the healthcloud object is initiated correctly', (done) => {
-        const healthCloud = new HealthCloud('1');
         expect(typeof healthCloud).to.equal('object');
         expect(typeof healthCloud.downloadDocument).to.equal('function');
         expect(typeof healthCloud.uploadDocument).to.equal('function');
