@@ -16,7 +16,7 @@ const keyTypes = {
     },
 };
 
-const iv = new Uint8Array([124, 217, 143, 93, 158, 16, 65, 155, 218, 47, 56, 37, 231, 77, 126, 88]);
+const IV = new Uint8Array([124, 217, 143, 93, 158, 16, 65, 155, 218, 47, 56, 37, 231, 77, 126, 88]);
 
 // ALGORITHMS
 const AES_CBC = {
@@ -224,6 +224,13 @@ const exportKey = (key, type) => {
     }
 };
 
+const mergeUint8Arrays = (arr1, arr2) => {
+    const merge = new Uint8Array(arr1.length + arr2.length);
+    merge.set(arr1);
+    merge.set(arr2, arr1.length);
+    return merge;
+};
+
 /**
  * Symmetric encryption of data with hcKey
  *
@@ -231,16 +238,19 @@ const exportKey = (key, type) => {
  * @param {ArrayBufferView} data that should be encrypted
  * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
-const symEncrypt = (hcKey, data) =>
-    importKey(hcKey)
+const symEncrypt = (hcKey, data) => {
+    const iv = hcKey.t === keyTypes.TAG_ENCRYPTION_KEY ?
+        IV :
+        crypto.getRandomValues(new Uint8Array(16));
+    return importKey(hcKey)
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
                 iv,
             }, key, data,
         ))
-        .then(result => new Uint8Array(result));
-
+        .then(result => mergeUint8Arrays(iv, new Uint8Array(result)));
+};
 
 const symEncryptString = (hcKey, string) =>
     symEncrypt(hcKey, convertStringToArrayBufferView(string))
@@ -261,14 +271,17 @@ const symEncryptBlob = (hcKey, blob) =>
  * @param {ArrayBufferView} encrypted data that should be decrypted
  * @returns {Promise} Resolves to plain data as an ArrayBufferView
  */
-const symDecrypt = (hcKey, data) =>
-    importKey(hcKey)
+const symDecrypt = (hcKey, ivData) => {
+    const iv = ivData.slice(0, 16);
+    const data = ivData.slice(16, ivData.length);
+    return importKey(hcKey)
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
                 iv,
             }, key, data))
         .then(result => new Uint8Array(result));
+};
 
 const symDecryptString = (hcKey, base64String) =>
     symDecrypt(hcKey, convertBase64ToArrayBufferView(base64String))
@@ -312,7 +325,7 @@ const asymEncrypt = (hcPublicKey, data) =>
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
-                iv,
+                IV,
             }, key, data,
         ))
         .then(result => new Uint8Array(result));
@@ -333,7 +346,7 @@ const asymDecrypt = (hcPrivateKey, data) =>
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
-                iv,
+                IV,
             }, key, data))
         .then(result => new Uint8Array(result));
 

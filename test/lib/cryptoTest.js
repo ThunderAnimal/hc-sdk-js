@@ -8,6 +8,7 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import hcCrypto from '../../src/lib/crypto';
+import encryptionResources from '../testUtils/encryptionResources';
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -112,20 +113,15 @@ describe('crypto', () => {
     });
 
     describe('symmetric encryption', () => {
-        const rawKey = 'UZVKqVMELZIkMyzO1DpjaZulpZZ02p9o5RHIVP7kY24=';
         let symKey;
-        const symHCKey = {
-            t: 'dk',
-            v: 1,
-            sym: rawKey,
-        };
-        const cipherText = '7bGQMjFLVAdVD1ENQD83iQ==';
         const plainText = 'Hello Martians!';
+        const cipherText = 'xUzWAW9X4M3y5dDjqIupffk14w0hMD0ZvhGMfAm/HKw=';
+        let cipherText1;
+        let cipherText2;
 
-
-        describe('getSymKeyFromString', () => {
+        describe('importSymKeyFromBase64', () => {
             it('should import a raw key correctly', (done) => {
-                hcCrypto.importSymKeyFromBase64(rawKey)
+                hcCrypto.importSymKeyFromBase64(encryptionResources.rawSymKey)
                     .then((key) => {
                         symKey = key;
                         done();
@@ -134,11 +130,11 @@ describe('crypto', () => {
             });
         });
 
-        describe('getSPKIFromPublicKey', () => {
+        describe('exportSymKeyToBase64', () => {
             it('should export key to raw key correctly', (done) => {
                 hcCrypto.exportSymKeyToBase64(symKey)
                     .then((key) => {
-                        expect(key).to.equal(rawKey);
+                        expect(key).to.equal(encryptionResources.rawSymKey);
                         done();
                     })
                     .catch(done);
@@ -146,10 +142,14 @@ describe('crypto', () => {
         });
 
         describe('symEncryptString', () => {
-            it(`should encrypt ${plainText} to ${cipherText}`, (done) => {
-                hcCrypto.symEncryptString(symHCKey, plainText)
-                    .then((ct) => {
-                        expect(cipherText).to.equal(ct);
+            it(`should encrypt ${plainText} different each time`, (done) => {
+                Promise.all([
+                    hcCrypto.symEncryptString(encryptionResources.symHCKey, plainText),
+                    hcCrypto.symEncryptString(encryptionResources.symHCKey, plainText),
+                ])
+                    .then(([ct1, ct2]) => {
+                        [cipherText1, cipherText2] = [ct1, ct2];
+                        expect(ct1).to.not.equal(ct2);
                         done();
                     })
                     .catch(done);
@@ -158,7 +158,17 @@ describe('crypto', () => {
 
         describe('asymDecryptString', () => {
             it(`should decrypt ${cipherText} to ${plainText}`, (done) => {
-                hcCrypto.symDecryptString(symHCKey, cipherText)
+                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText)
+                    .then((result) => {
+                        expect(result).to.equal(plainText);
+                        done();
+                    })
+                    .catch(done);
+            });
+
+            it(`should decrypt previously encrypted texts to ${plainText}`, (done) => {
+                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText1);
+                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText1)
                     .then((result) => {
                         expect(result).to.equal(plainText);
                         done();

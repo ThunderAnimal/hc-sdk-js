@@ -18,6 +18,12 @@ const string = 'string';
 const encryptedString = 'encrypted_string';
 const object = {};
 const encryptedObject = 'encrypted_object';
+const rawSymKey = '30iAFtkLLRFjuZKPvX6JOAwZaQbt+WlGusZfcNAWnXQ=';
+const symHCKey = {
+    t: 'dk',
+    v: 1,
+    sym: rawSymKey,
+};
 
 export default {
     clientID,
@@ -37,4 +43,6 @@ export default {
     encryptedString,
     object,
     encryptedObject,
+    symHCKey,
+    rawSymKey,
 };
