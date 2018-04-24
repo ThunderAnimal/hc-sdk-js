@@ -3,7 +3,8 @@ import documentRoutes from '../routes/documentRoutes';
 import userService from './userService';
 import taggingUtils from '../lib/taggingUtils';
 import dateUtils from '../lib/dateUtils';
-import crypto from '../lib/crypto';
+import hcCrypto from '../lib/crypto';
+
 
 const FHIRService = {
     updateFhirRecord(ownerId, recordId, fhirObject, attachmentKey = null) {
@@ -39,7 +40,7 @@ const FHIRService = {
                 owner = user;
                 return Promise.all([
                     this.encryptionService(owner.id).encryptObject(resource),
-                    Promise.all(tags.map(tag => crypto.symEncryptString(owner.tek, tag))),
+                    Promise.all(tags.map(tag => hcCrypto.symEncryptString(owner.tek, tag))),
                 ]);
             })
             .then((results) => {
@@ -86,7 +87,7 @@ const FHIRService = {
 
                 if (params.tags) {
                     return Promise.all(params.tags
-                        .map(tag => crypto.symEncryptString(user.tek, tag)))
+                        .map(tag => hcCrypto.symEncryptString(user.tek, tag)))
                         .then(encryptedTags => encryptedTags.join(','))
                         .then((tags) => {
                             params.tags = tags;
@@ -121,13 +122,13 @@ const FHIRService = {
 
     decryptRecordAndTags(record, tek) {
         const tagsPromise = Promise.all(record.encrypted_tags.map(tag =>
-            crypto.symDecryptString(tek, tag)));
+            hcCrypto.symDecryptString(tek, tag)));
 
         const recordPromise = this.encryptionService(record.userId)
             .decryptData(
                 record.encrypted_key,
-                crypto.convertBase64ToArrayBufferView(record.encrypted_body))
-            .then(crypto.convertArrayBufferViewToString)
+                hcCrypto.convertBase64ToArrayBufferView(record.encrypted_body))
+            .then(hcCrypto.convertArrayBufferViewToString)
             .then(JSON.parse);
         return Promise.all([
             recordPromise,

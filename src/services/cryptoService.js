@@ -1,9 +1,9 @@
-import cryptoLib, { keyTypes } from '../lib/crypto';
+import hcCrypto from '../lib/crypto';
 import cryptoRoutes from '../routes/cryptoRoutes';
 
 // decryptCommonKey :: JWK -> ArrayBuffer -> Promise(JWK)
 const decryptCommonKey = privateKey => encryptedCommonKey =>
-    cryptoLib.asymDecryptString(privateKey, encryptedCommonKey)
+    hcCrypto.asymDecryptString(privateKey, encryptedCommonKey)
         .then(JSON.parse);
 
 // createEncryptData :: encrypt<Data> => Promise(JWK) -> Data ->
@@ -13,13 +13,13 @@ const createEncryptData = encryptionMethod => commonKeyPromise =>
         const dataKeyPromise = Promise.all([commonKeyPromise, givenEncryptedDataKeyPromise])
             .then(([commonKey, encryptedDataKey]) => {
                 if (encryptedDataKey) {
-                    return cryptoLib.symDecryptObject(commonKey, encryptedDataKey);
+                    return hcCrypto.symDecryptObject(commonKey, encryptedDataKey);
                 }
-                return cryptoLib.generateSymKey(keyTypes.DATA_KEY);
+                return hcCrypto.generateSymKey(hcCrypto.keyTypes.DATA_KEY);
             });
         return Promise.all([commonKeyPromise, dataKeyPromise])
             .then(([commonKey, dataKey]) => {
-                const encryptedDataKeyPromise = cryptoLib.symEncryptObject(commonKey, dataKey);
+                const encryptedDataKeyPromise = hcCrypto.symEncryptObject(commonKey, dataKey);
                 const encryptedDataPromise = encryptionMethod(dataKey, data);
 
                 return Promise.all([
@@ -29,21 +29,21 @@ const createEncryptData = encryptionMethod => commonKeyPromise =>
             });
     };
 
-const createEncryptArrayBufferView = createEncryptData(cryptoLib.symEncrypt);
+const createEncryptArrayBufferView = createEncryptData(hcCrypto.symEncrypt);
 
 const createEncryptBlobs = createEncryptData((dataKey, blobArray) =>
-    Promise.all(blobArray.map(blob => cryptoLib.symEncryptBlob(dataKey, blob))));
+    Promise.all(blobArray.map(blob => hcCrypto.symEncryptBlob(dataKey, blob))));
 
-const createEncryptString = createEncryptData(cryptoLib.symEncryptString);
+const createEncryptString = createEncryptData(hcCrypto.symEncryptString);
 
-const createEncryptObject = createEncryptData(cryptoLib.symEncryptObject);
+const createEncryptObject = createEncryptData(hcCrypto.symEncryptObject);
 
 // createDecryptData :: Promise(JWK) -> String, ArrayBuffer -> Promise(ArrayBuffer)
 const createDecryptData = commonKeyPromise => (encryptedDataKey, encryptedData) =>
     commonKeyPromise
-        .then(commonKey => cryptoLib.symDecryptString(commonKey, encryptedDataKey))
+        .then(commonKey => hcCrypto.symDecryptString(commonKey, encryptedDataKey))
         .then(JSON.parse)
-        .then(dataKey => cryptoLib.symDecrypt(dataKey, encryptedData));
+        .then(dataKey => hcCrypto.symDecrypt(dataKey, encryptedData));
 
 // createCryptoService :: String -> JWK -> String -> Object
 const createCryptoService = clientID => privateKey => (userID) => {

@@ -72,6 +72,7 @@ describe('cryptoService', () => {
                     symEncryptObject: symEncryptObjectStub,
                     symDecrypt: symDecryptStub,
                     symDecryptString: symDecryptStringStub,
+                    keyTypes: cryptoLib.keyTypes,
                 },
             },
             '../routes/cryptoRoutes': {

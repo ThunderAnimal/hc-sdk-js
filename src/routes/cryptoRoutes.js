@@ -1,11 +1,11 @@
 // TODO remove eslint ignore
 /* eslint-disable no-unused-vars */
 import userService from '../services/userService';
-import crypto from '../lib/crypto';
+import hcCrypto from '../lib/crypto';
 
 // String -> String -> Promise(String)
 const getCommonKey = (clientID, userID) =>
-    crypto.asymEncryptString(
+    hcCrypto.asymEncryptString(
         userService.user.CUP.publicKey,
         JSON.stringify(userService.user.commonKey));
 

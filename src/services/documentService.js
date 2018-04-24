@@ -4,7 +4,7 @@ import fhirService from './fhirService';
 import taggingUtils, { tagKeys } from '../lib/taggingUtils';
 import hcDocumentUtils from '../lib/models/utils/hcDocumentUtils';
 import ValidationError from '../lib/errors/ValidationError';
-import crypto from '../lib/crypto';
+import hcCrypto from '../lib/crypto';
 
 const documentService = {
     fhirService,
@@ -29,7 +29,7 @@ const documentService = {
             })
             .then(sasUrls => Promise.all(
                 sasUrls.map(sasUrl => fileRoutes.downloadFile(sasUrl.sas_token)
-                    .then(crypto.convertBlobToArrayBufferView))))
+                    .then(hcCrypto.convertBlobToArrayBufferView))))
             .then(encryptedData => Promise.all(
                 encryptedData.map(data =>
                     this.encryptionService(ownerId)

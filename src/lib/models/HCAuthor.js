@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import ValidationError from '../errors/ValidationError';
 
 class HCAuthor {

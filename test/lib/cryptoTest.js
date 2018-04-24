@@ -7,8 +7,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
-import crypto from '../../src/lib/crypto';
-
+import hcCrypto from '../../src/lib/crypto';
 
 chai.use(sinonChai);
 const expect = chai.expect;
@@ -36,7 +35,7 @@ describe('crypto', () => {
 
         describe('getPublicKeyFromSPKI', () => {
             it('should import a SPKI key correctly', (done) => {
-                crypto.getPublicKeyFromSPKI(SPKIKey)
+                hcCrypto.importPublicKeyFromSPKI(SPKIKey)
                     .then((pk) => {
                         publicKey = pk;
                         done();
@@ -47,7 +46,7 @@ describe('crypto', () => {
 
         describe('getSPKIFromPublicKey', () => {
             it('should export key to SPKIKey correctly', (done) => {
-                crypto.getSPKIFromPublicKey(publicKey)
+                hcCrypto.exportPublicKeyToSPKI(publicKey)
                     .then((SPKI) => {
                         expect(SPKI).to.equal(SPKIKey);
                         done();
@@ -58,7 +57,7 @@ describe('crypto', () => {
 
         describe('getPrivateKeyFromPKCS8', () => {
             it('should import PKCS8 key correctly', (done) => {
-                crypto.getPrivateKeyFromPKCS8(PKCS8Key)
+                hcCrypto.importPrivateKeyFromPKCS8(PKCS8Key)
                     .then((pk) => {
                         privateKey = pk;
                         done();
@@ -69,7 +68,7 @@ describe('crypto', () => {
 
         describe('getPKCS8FromPrivateKey', () => {
             it('should export key to PKCS8 correctly', (done) => {
-                crypto.getPKCS8FromPrivateKey(privateKey)
+                hcCrypto.exportPrivateKeyToPKCS8(privateKey)
                     .then((PKCS8) => {
                         expect(PKCS8).to.equal(PKCS8Key);
                         done();
@@ -80,7 +79,7 @@ describe('crypto', () => {
 
         describe('asymEncryptString', () => {
             it(`should encrypt ${plainText} to ${cipherText}`, (done) => {
-                crypto.asymEncryptString(pubHCKey, plainText)
+                hcCrypto.asymEncryptString(pubHCKey, plainText)
                     .then((ct) => {
                         cipherResult = ct;
                         expect(cipherResult).to.not.equal(plainText);
@@ -93,8 +92,8 @@ describe('crypto', () => {
         describe('asymDecryptString', () => {
             it(`should decrypt ${cipherText} and ${cipherResult} to ${plainText}`, (done) => {
                 Promise.all([
-                    crypto.asymDecryptString(privHCKey, cipherText),
-                    crypto.asymDecryptString(privHCKey, cipherResult),
+                    hcCrypto.asymDecryptString(privHCKey, cipherText),
+                    hcCrypto.asymDecryptString(privHCKey, cipherResult),
                 ])
                     .then((result) => {
                         // tests if the cipherText from above is decrypted correctly
@@ -126,7 +125,7 @@ describe('crypto', () => {
 
         describe('getSymKeyFromString', () => {
             it('should import a raw key correctly', (done) => {
-                crypto.getSymKeyFromString(rawKey)
+                hcCrypto.importSymKeyFromBase64(rawKey)
                     .then((key) => {
                         symKey = key;
                         done();
@@ -137,7 +136,7 @@ describe('crypto', () => {
 
         describe('getSPKIFromPublicKey', () => {
             it('should export key to raw key correctly', (done) => {
-                crypto.getStringFromSymKey(symKey)
+                hcCrypto.exportSymKeyToBase64(symKey)
                     .then((key) => {
                         expect(key).to.equal(rawKey);
                         done();
@@ -148,7 +147,7 @@ describe('crypto', () => {
 
         describe('symEncryptString', () => {
             it(`should encrypt ${plainText} to ${cipherText}`, (done) => {
-                crypto.symEncryptString(symHCKey, plainText)
+                hcCrypto.symEncryptString(symHCKey, plainText)
                     .then((ct) => {
                         expect(cipherText).to.equal(ct);
                         done();
@@ -159,7 +158,7 @@ describe('crypto', () => {
 
         describe('asymDecryptString', () => {
             it(`should decrypt ${cipherText} to ${plainText}`, (done) => {
-                crypto.symDecryptString(symHCKey, cipherText)
+                hcCrypto.symDecryptString(symHCKey, cipherText)
                     .then((result) => {
                         expect(result).to.equal(plainText);
                         done();

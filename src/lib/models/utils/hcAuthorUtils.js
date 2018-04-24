@@ -23,33 +23,59 @@ export const schema = {
     required: [],
 };
 
+const getIdentifier = (authorFhirObject) => {
+    if (authorFhirObject.identifier && authorFhirObject.identifier[0]) {
+        return authorFhirObject.identifier[0].value;
+    }
+    return undefined;
+};
+
+const hasName = authorFhirObject => authorFhirObject.name && authorFhirObject.name[0];
+const getName = (authorFhirObject) => {
+    if (hasName(authorFhirObject)) {
+        return {
+            firstName: name.given && name.given[0] ? name.given[0] : undefined,
+            lastName: name.family,
+            prefix: name.prefix && name.prefix[0] ? name.prefix[0] : undefined,
+            suffix: name.suffix && name.suffix[0] ? name.suffix[0] : undefined,
+        };
+    }
+    return {};
+};
+const hasAddress = authorFhirObject =>
+    authorFhirObject.address && authorFhirObject.address.length > 0;
+const getAddress = (authorFhirObject) => {
+    if (hasAddress(authorFhirObject)) {
+        const address = authorFhirObject.address[0];
+        return {
+            street: address.line && address.line[0] ? address.line[0] : undefined,
+            city: address.city,
+            postalCode: address.postalCode,
+        };
+    }
+    return {};
+};
+
+const getTelecom = (authorFhirObject) => {
+    if (authorFhirObject.telecom) {
+        const phone = authorFhirObject.telecom.find(el => el.system === 'phone');
+        const website = authorFhirObject.telecom.find(el => el.value === 'url');
+        return {
+            telephone: phone ? phone.value : undefined,
+            website: website ? website.value : undefined,
+        };
+    }
+    return {};
+};
+
 const hcAuthorUtils = {
     fromFhirObject(fhirObject) {
-        const options = {
-            identifier: fhirObject.identifier && fhirObject.identifier[0] ?
-                fhirObject.identifier[0].value : undefined,
-        };
-
-        if (fhirObject.name && fhirObject.name[0]) {
-            const name = fhirObject.name[0];
-            options.firstName = name.given && name.given[0] ? name.given[0] : undefined;
-            options.lastName = name.family;
-            options.prefix = name.prefix && name.prefix[0] ? name.prefix[0] : undefined;
-            options.suffix = name.suffix && name.suffix[0] ? name.suffix[0] : undefined;
-        }
-        if (fhirObject.address && fhirObject.address.length > 0) {
-            const address = fhirObject.address[0];
-            options.street = address.line && address.line[0] ? address.line[0] : undefined;
-            options.city = address.city;
-            options.postalCode = address.postalCode;
-        }
-        if (fhirObject.telecom) {
-            const telephone = fhirObject.telecom.find(el => el.value === 'phone');
-            options.telephone = telephone ? telephone.value : undefined;
-            const website = fhirObject.telecom.find(el => el.value === 'url');
-            options.website = website ? website.value : undefined;
-        }
-        return new HCAuthor(options);
+        return new HCAuthor({
+            identifier: getIdentifier(fhirObject),
+            ...getName(fhirObject),
+            ...getAddress(fhirObject),
+            ...getTelecom(fhirObject),
+        });
     },
 
     toFhirObject(hcAuthor, clientId) {

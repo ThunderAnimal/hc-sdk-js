@@ -13,7 +13,7 @@ import testVariables from '../../test/testUtils/testVariables';
 import recordResources from '../../test/testUtils/recordResources';
 import taggingUtils from '../../src/lib/taggingUtils';
 import encryptionResources from '../testUtils/encryptionResources';
-import crypto from '../../src/lib/crypto';
+import hcCrypto from '../../src/lib/crypto';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -134,7 +134,7 @@ describe('documentService', () => {
 
         updateRecordStatusStub = sinon.stub(documentRoutes, 'updateRecordStatus').returnsPromise();
 
-        convertBlobToArrayBufferViewStub = sinon.stub(crypto, 'convertBlobToArrayBufferView')
+        convertBlobToArrayBufferViewStub = sinon.stub(hcCrypto, 'convertBlobToArrayBufferView')
             .returnsPromise().resolves(encryptionResources.file);
 
         decryptDataStub = sinon.stub().returnsPromise().resolves();
