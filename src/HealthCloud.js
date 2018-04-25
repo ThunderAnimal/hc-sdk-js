@@ -10,6 +10,7 @@ import HCDocument from './lib/models/HCDocument';
 import HCAttachment from './lib/models/HCAttachment';
 import HCAuthor from './lib/models/HCAuthor';
 import HCSpecialty from './lib/models/HCSpecialty';
+import userRoutes from './routes/userRoutes';
 
 
 const healthCloud = {
@@ -25,7 +26,12 @@ const healthCloud = {
     updateUser: userService.updateUser.bind(userService),
     logout: userService.resetUser.bind(userService),
     updateAccessToken: hcRequest.setAccessToken.bind(hcRequest),
-    createCAP: () => crypto.generateAsymKeyPair(),
+    getReceivedPermissions: userRoutes.getReceivedPermissions,
+    createCAP: () =>
+        crypto.generateAsymKeyPair(crypto.keyTypes.APP).then(({ publicKey, privateKey }) => ({
+            publicKey: btoa(JSON.stringify(publicKey)),
+            privateKey: btoa(JSON.stringify(privateKey)),
+        })),
 
     models: {
         HCDocument,
@@ -62,7 +68,7 @@ const authCloud = {
         // going to be stored in Icarus
         localStorage.setItem('CAP', JSON.stringify(CAP));
 
-        window.location.replace(`${authorizationUri}?response_type=${oauthResponseType}&client_id=${clientId}&scope=${scope}`);
+        window.location.replace(`${authorizationUri}?response_type=${oauthResponseType}&client_id=${clientId}&public_key=${CAP.publicKey}&scope=${scope}`);
     },
 
     continue_login() {

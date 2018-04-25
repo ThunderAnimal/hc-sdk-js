@@ -8,7 +8,7 @@ module.exports = (env) => {
         devtool: 'source-map',
         target: env.TARGET,
         output: {
-            path: `${__dirname}/dest`,
+            path: `${__dirname}/example/assets`,
             filename: 'healthcloud_sdk.js',
             library: 'healthcloud_sdk',
             libraryTarget: 'umd',
