@@ -7,16 +7,14 @@ const keyTypes = {
     ATTACHMENT_KEY: 'ak',
     TAG_ENCRYPTION_KEY: 'tek',
     APP: {
-        PRIVATE_KEY: 'privA',
-        PUBLIC_KEY: 'pubA',
+        PRIVATE_KEY: 'apriv',
+        PUBLIC_KEY: 'apub',
     },
     USER: {
-        PRIVATE_KEY: 'privU',
-        PUBLIC_KEY: 'pubU',
+        PRIVATE_KEY: 'upriv',
+        PUBLIC_KEY: 'upub',
     },
 };
-
-const IV = new Uint8Array([124, 217, 143, 93, 158, 16, 65, 155, 218, 47, 56, 37, 231, 77, 126, 88]);
 
 // ALGORITHMS
 const AES_CBC = {
@@ -38,6 +36,7 @@ const PBKDF2 = {
     hash: 'SHA-256',
 };
 
+const TEK_IV = new Uint8Array(16).fill(0);
 
 const convertStringToArrayBufferView = (str) => {
     const bytes = new Uint8Array(str.length);
@@ -240,7 +239,7 @@ const mergeUint8Arrays = (arr1, arr2) => {
  */
 const symEncrypt = (hcKey, data) => {
     const iv = hcKey.t === keyTypes.TAG_ENCRYPTION_KEY ?
-        IV :
+        TEK_IV :
         crypto.getRandomValues(new Uint8Array(16));
     return importKey(hcKey)
         .then(key => crypto.subtle.encrypt(
@@ -325,7 +324,6 @@ const asymEncrypt = (hcPublicKey, data) =>
         .then(key => crypto.subtle.encrypt(
             {
                 name: key.algorithm.name,
-                IV,
             }, key, data,
         ))
         .then(result => new Uint8Array(result));
@@ -346,7 +344,6 @@ const asymDecrypt = (hcPrivateKey, data) =>
         .then(key => crypto.subtle.decrypt(
             {
                 name: key.algorithm.name,
-                IV,
             }, key, data))
         .then(result => new Uint8Array(result));
 
