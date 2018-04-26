@@ -7,7 +7,7 @@ function cleanUp() {
 
 function getDocuments() {
     cleanUp();
-    HC.getDocuments(HC.getCurrentUser().id).then((hcDocuments) => {
+    GC.SDK.getDocuments(GC.SDK.getCurrentUser().id).then((hcDocuments) => {
         hcDocuments.records.forEach((hcDocument) => {
             let documentElement = document.createElement('div');
             documentElement.hcDocument = hcDocument
@@ -41,8 +41,8 @@ function createUpdateForm(userId, hcDocument, display) {
         hcDocument.title = titleInput.value;
         hcDocument.author.firstName = authorInput.value;
         hcDocument.attachments.push(
-            ...[...fileInput.files].map(file => new HC.models.HCAttachment({ file })));
-        HC.updateDocument(userId, hcDocument)
+            ...[...fileInput.files].map(file => new GC.SDK.models.HCAttachment({ file })));
+        GC.SDK.updateDocument(userId, hcDocument)
             .then(() => {
                 display(hcDocument);
             });
@@ -52,7 +52,7 @@ function createUpdateForm(userId, hcDocument, display) {
     let deleteButton = document.createElement('button');
     deleteButton.textContent = 'Press me to delete this document.';
     deleteButton.addEventListener('click', () => {
-        HC.deleteDocument(userId, hcDocument)
+        GC.SDK.deleteDocument(userId, hcDocument)
             .then(() => {
                 resultElement.innerHTML =
                     `Document '${hcDocument.id}' has successfully been deleted.`;
@@ -65,7 +65,7 @@ function createUpdateForm(userId, hcDocument, display) {
 function displayDocument(hcDocument) {
     cleanUp();
 
-    let currentUserId = HC.getCurrentUser().id;
+    let currentUserId = GC.SDK.getCurrentUser().id;
     resultElement.appendChild(createUpdateForm(currentUserId, hcDocument, displayDocument));
 
     hcDocument.attachments.forEach((attachment) => {
@@ -87,7 +87,7 @@ function displayDocument(hcDocument) {
         deleteFile.innerHTML = 'Press me to delete this file.';
         deleteFile.addEventListener('click', () => {
             hcDocument.attachments = hcDocument.attachments.filter(att => att.id === attachment.id);
-            HC.updateDocument(currentUserId, hcDocument);
+            GC.SDK.updateDocument(currentUserId, hcDocument);
             resultElement.removeChild(fileWrapper);
         });
         fileWrapper.appendChild(deleteFile);
@@ -97,14 +97,14 @@ function displayDocument(hcDocument) {
 }
 
 function getDocument(documentId) {
-    HC.downloadDocument(HC.getCurrentUser().id, documentId)
+    GC.SDK.downloadDocument(GC.SDK.getCurrentUser().id, documentId)
         .then(displayDocument);
 }
 
 function uploadDocument(files, title, authorName) {
-    let hcAuthor = new HC.models.HCAuthor({ firstName: authorName });
-    let hcDocument = new HC.models.HCDocument({ files, title, author: hcAuthor });
+    let hcAuthor = new GC.SDK.models.HCAuthor({ firstName: authorName });
+    let hcDocument = new GC.SDK.models.HCDocument({ files, title, author: hcAuthor });
 
-    HC.uploadDocument(HC.getCurrentUser().id, hcDocument)
+    GC.SDK.uploadDocument(GC.SDK.getCurrentUser().id, hcDocument)
         .then(displayDocument);
 }

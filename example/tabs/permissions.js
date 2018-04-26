@@ -4,8 +4,8 @@ if (typeof grantedPermissionsElement === 'undefined')
     var grantedPermissionsElement = document.getElementById('grantedPermissions');
 
 function grantPermissions(granteeAlias) {
-    HC.grantPermission(granteeAlias)
-        .then(() => HC.getUserIdByAlias(granteeAlias))
+    GC.SDK.grantPermission(granteeAlias)
+        .then(() => GC.SDK.getUserIdByAlias(granteeAlias))
         .then((id) => {
             let granteeElement = document.createElement('li');
             granteeElement.innerText = id;
@@ -17,7 +17,7 @@ function grantPermissions(granteeAlias) {
 }
 
 function getGrantedPermissions() {
-    HC.getGrantedPermissions()
+    GC.SDK.getGrantedPermissions()
         .then((grantedPermissions) => {
             grantedPermissions.forEach((grantee) => {
                 let granteeElement = document.createElement('li');

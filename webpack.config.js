@@ -4,13 +4,13 @@ const packageJson = require('./package.json');
 
 module.exports = (env) => {
     const config = {
-        entry: `${__dirname}/src/HealthCloud.js`,
+        entry: `${__dirname}/src/healthCloud.js`,
         devtool: 'source-map',
         target: env.TARGET,
         output: {
             path: `${__dirname}/dest`,
             filename: 'healthcloud_sdk.js',
-            library: 'healthcloud_sdk',
+            library: 'GC',
             libraryTarget: 'umd',
             umdNamedDefine: true,
         },

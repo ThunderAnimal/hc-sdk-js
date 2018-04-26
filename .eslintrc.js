@@ -9,7 +9,7 @@ module.exports = {
         'import',
     ],
     rules: {
-        indent: ['error', 4],
+        'indent': ['error', 4],
         'func-names': 'warn',
         'class-methods-use-this': 'error',
         'arrow-body-style': ['error', 'as-needed'],
@@ -18,10 +18,10 @@ module.exports = {
         'newline-per-chained-call': ['error', { ignoreChainWithDepth: 3 }],
         'max-len': ['error', { code: 100, ignoreTemplateLiterals: true, ignoreStrings: true }],
 
-        semi: 'error',
+        'semi': 'error',
         'key-spacing': ['error', { beforeColon: false }],
 
-        complexity: ['error', 15], // push down to 10
+        'complexity': ['error', 15], // push down to 10
         'max-depth': ['error', 4],
         'max-nested-callbacks': ['error', 3],
         'no-console': 'warn',

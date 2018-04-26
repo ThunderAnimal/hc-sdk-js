@@ -44,6 +44,8 @@ describe('taggingUtils', () => {
         },
     };
 
+    taggingUtils.clientId = testVariables.clientId;
+
     it('generateTags succeeds', (done) => {
         const tags = taggingUtils.generateTags(fhirObject);
         expect(tags.length).to.equal(2);

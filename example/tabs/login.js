@@ -2,10 +2,9 @@
 if (typeof loginResultElement === 'undefined')
     var loginResultElement = document.getElementById('loginResults');
 
-HC.getLoginForm(document.getElementById('gesundheitsLogin'))
-    .then((success) => {
-        loginResultElement.innerHTML = `Successfully logged in: ${JSON.stringify(success)}`;
-    })
-    .catch((error) => {
-        loginResultElement.innerHTML = `An error occurred: ${JSON.stringify(error)}`;
-    });
+async function login() {
+    console.log('login started');
+    const clientId = 'example';
+    const CAP = await GC.SDK.createCAP();
+    GC.AUTH.login(clientId, CAP);
+}
