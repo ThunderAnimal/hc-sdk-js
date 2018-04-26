@@ -115,9 +115,7 @@ const FHIRService = {
     },
 
     deleteRecord(ownerId, recordID) {
-        const id = ownerId || userService.getCurrentUser().id;
-
-        return documentRoutes.deleteRecord(id, recordID);
+        return documentRoutes.deleteRecord(ownerId, recordID);
     },
 
     decryptRecordAndTags(record, tek) {

@@ -14,6 +14,10 @@ const userRoutes = {
         return hcRequest.submit('GET', `${apiUrl}/users/${userId}`, { authorize: true });
     },
 
+    fetchUserInfo() {
+        return hcRequest.submit('GET', `${apiUrl}/userinfo`, { authorize: true });
+    },
+
     updateUser(userId, userData) {
         return hcRequest.submit('PUT', `${apiUrl}/users/${userId}`, { body: userData, authorize: true });
     },

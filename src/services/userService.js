@@ -1,18 +1,20 @@
 import userRoutes from '../routes/userRoutes';
+import crypto from '../lib/crypto';
 import SetUpError, { NOT_SETUP } from '../lib/errors/SetupError';
-// import crypto from '../lib/crypto';
 import ValidationError, {
     MISSING_PARAMETERS,
     INVALID_PARAMETERS,
 } from '../lib/errors/ValidationError';
 
 const userService = {
-    currentUser: null,
+    currentUserId: null,
     user: null,
+    privateKey: null,
 
     resetUser() {
         this.user = null;
-        this.currentUser = null;
+        this.currentUserId = null;
+        this.privateKey = null;
     },
 
     resolveUser(alias) {
@@ -24,29 +26,53 @@ const userService = {
         return this.resolveUser(alias).then(user => user.id);
     },
 
+    setPrivateKey(base64privateKey) {
+        this.privateKey = JSON.parse(atob(base64privateKey));
+    },
+
     getCurrentUser() {
-        // TODO throw error
-        // if (!this.currentUser) throw new SetUpError(NOT_SETUP);
-        if (!this.currentUser) console.warn(new SetUpError(NOT_SETUP));
-
-
-        return this.currentUser;
+        return this.user ? Promise.resolve(this.user) : this.pullCurrentUser();
     },
 
     isCurrentUser(userId) {
-        return userId === this.getCurrentUser();
+        return userId === this.currentUserId;
+    },
+
+    pullCurrentUser() {
+        if (!this.privateKey) {
+            throw new SetUpError(NOT_SETUP);
+        }
+        let commonKey;
+        return userRoutes.fetchUserInfo()
+            .then(res => crypto.asymDecryptString(this.privateKey, res.common_key)
+                .then(JSON.parse)
+                .then((key) => {
+                    commonKey = key;
+                    return crypto.symDecryptObject(commonKey, res.tag_encryption_key);
+                })
+                .then((tek) => {
+                    this.currentUserId = res.sub;
+
+                    this.user = {
+                        id: res.sub,
+                        commonKey,
+                        tek,
+                    };
+                    return this.user;
+                }),
+            );
     },
 
     getInternalUser(userId, partial = false) {
+        const hasUserIds = userId && this.currentUserId;
+        if (!(hasUserIds) || this.isCurrentUser(userId)) {
+            return this.getCurrentUser();
+        }
+
+        // TODO handle in case of other user once api is in place
         return new Promise((resolve, reject) => {
-            const id = userId || this.getCurrentUser();
-            if (this.isCurrentUser(id) && this.user) {
-                return resolve(this.user);
-            }
-
             const user = {};
-
-            return userRoutes.getUserDetails(id)
+            return userRoutes.getUserDetails(userId)
                 .then((userDetails) => {
                     user.id = userDetails.user.id;
                     user.alias = userDetails.user.email;
@@ -69,7 +95,6 @@ const userService = {
                     user.userData = JSON.parse(decryptedResults[0]);
                     user.tek = decryptedResults[1];
 
-                    if (this.isCurrentUser(id)) this.user = user;
                     return resolve(user);
                 })
                 .catch(reject);

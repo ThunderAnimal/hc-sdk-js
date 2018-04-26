@@ -28,7 +28,6 @@ It inserts a healthcloud_sdk object into the global namespace.
 ```javascript
     var HC = new healthcloud_sdk(
         clientId,               // clientId of the application that uses the sdk
-        userId,                 // userId of the logged in user
         privateKey,             // privateKey of the user logged in
         accessToken,            // accessToken of the user logged in
         requestAccessToken);    // callback for requesting a valid accessToken

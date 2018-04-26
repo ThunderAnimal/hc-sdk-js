@@ -6,11 +6,13 @@ import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import HealthCloud from '../src/HealthCloud';
+import encryptionResources from './testUtils/encryptionResources';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
 const expect = chai.expect;
+const base64privateKey = btoa(JSON.stringify(encryptionResources.privateKeyClientUser));
 
 describe('HealthCloud', () => {
     beforeEach(() => {
@@ -22,7 +24,7 @@ describe('HealthCloud', () => {
     });
 
     it('the healthcloud object is initiated correctly', (done) => {
-        const healthCloud = new HealthCloud('1');
+        const healthCloud = new HealthCloud('1', base64privateKey);
         expect(typeof healthCloud).to.equal('object');
         expect(typeof healthCloud.downloadDocument).to.equal('function');
         expect(typeof healthCloud.uploadDocument).to.equal('function');

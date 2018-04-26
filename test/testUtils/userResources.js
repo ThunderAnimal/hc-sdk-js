@@ -1,4 +1,5 @@
 import testVariables from './testVariables';
+import encryptionResources from './encryptionResources';
 
 const userResources = {
     resolvedUser: {
@@ -17,6 +18,11 @@ const userResources = {
         state: testVariables.state,
         tek: testVariables.tek,
         userData: testVariables.userData,
+    },
+    fetchUserInfo: {
+        sub: testVariables.userId,
+        common_key: encryptionResources.encryptedCommonKey,
+        tag_encryption_key: encryptionResources.encryptedTagEncryptionKey,
     },
     userDetails: {
         user: {
