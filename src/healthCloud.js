@@ -9,9 +9,10 @@ import HCAuthor from './lib/models/HCAuthor';
 import HCSpecialty from './lib/models/HCSpecialty';
 
 const healthCloud = {
+    getCurrentUserId: userService.getCurrentUserId.bind(userService),
+    getReceivedPermissions: userService.getReceivedPermissions.bind(userService),
     downloadDocument: documentService.downloadDocument.bind(documentService),
     deleteDocument: documentService.deleteDocument.bind(documentService),
-    getCurrentUserId: userService.getCurrentUserId.bind(userService),
     getDocuments: documentService.getDocuments.bind(documentService),
     getDocumentsCount: documentService.getDocumentsCount.bind(documentService),
     uploadDocument: documentService.uploadDocument.bind(documentService),

@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
+/* eslint-disable max-nested-callbacks */
 import 'babel-polyfill';
 import chai from 'chai';
 import sinon from 'sinon';
@@ -7,6 +8,8 @@ import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import userRoutes from '../../src/routes/userRoutes';
 import hcRequest from '../../src/lib/hcRequest';
+import testVariables from '../testUtils/testVariables';
+import encryptionResources from '../testUtils/encryptionResources';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -60,6 +63,20 @@ describe('userRoutes', () => {
             expect(requestStub).to.be.calledOnce;
             expect(requestStub).to.be.calledWith('PUT');
             done();
+        });
+    });
+
+    describe('getReceivedPermissions', () => {
+        it('passes', (done) => {
+            requestStub.resolves([encryptionResources.permissionResponse]);
+            userRoutes.getReceivedPermissions(testVariables.userId)
+                .then((permissions) => {
+                    expect(requestStub).to.be.calledOnce;
+                    expect(requestStub).to.be.calledWith('GET');
+                    expect(permissions[0]).to.equal(encryptionResources.permissionResponse);
+                    done();
+                })
+                .catch(done);
         });
     });
 

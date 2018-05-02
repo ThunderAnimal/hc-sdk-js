@@ -1,7 +1,9 @@
+import testVariables from './testVariables';
+
 const clientID = '1123581321';
 const granteeID = '31415926';
 const privateKeyClientUser = { alg: 'RSA-OAEP-256', key: '0x6f98b5d235160fecc2e25ee936b72baa' };
-const publicKeyGrantee = { alg: 'RSA-OAEP-256', key: '0x1a04c9d235160fecc2e25ee936b72bad', type: 'public' };
+const publicKey = { alg: 'RSA-OAEP-256', key: '0x1a04c9d235160fecc2e25ee936b72bad', type: 'public' };
 const encryptedCommonKey = 'encrypted_common_key';
 const symKey = {
     alg: 'A256CBC', ext: true, k: 'quGuIIdEdy_S1Cd1Wy2eEsHSL_dfpkwcKssH9k6fPtY', key_ops: ['encrypt', 'decrypt'], kty: 'oct',
@@ -28,12 +30,21 @@ const symHCKey = {
     v: 1,
     sym: rawSymKey,
 };
+const permissionResponse = {
+    app_id: testVariables.app_id,
+    common_key: commonKey,
+    grantee: testVariables.userId,
+    grantee_public_key: publicKey,
+    id: testVariables,
+    owner: testVariables.userId,
+    scope: 'exc perm:r perm:w rec:r rec:w attachment:r attachment:w user:r user:w user:q',
+};
 
 export default {
     clientID,
     granteeID,
     privateKeyClientUser,
-    publicKeyGrantee,
+    publicKey,
     encryptedCommonKey,
     commonKey,
     dataKey,
@@ -51,4 +62,5 @@ export default {
     symHCKey,
     rawSymKey,
     hcPrivateKey,
+    permissionResponse,
 };

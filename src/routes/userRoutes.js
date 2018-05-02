@@ -21,6 +21,10 @@ const userRoutes = {
     updateUser(userId, userData) {
         return hcRequest.submit('PUT', `${apiUrl}/users/${userId}`, { body: userData, authorize: true });
     },
+
+    getReceivedPermissions(userId) {
+        return hcRequest.submit('GET', `${apiUrl}/users/${userId}/permissions`, { authorize: true });
+    },
 };
 
 export default userRoutes;

@@ -38,7 +38,7 @@ const userService = {
      */
     pullUser(userId) {
         if (!this.privateKey) {
-            throw new SetUpError(NOT_SETUP);
+            return Promise.reject(new SetUpError(NOT_SETUP));
         }
         let commonKey;
         return userRoutes.fetchUserInfo(userId)
@@ -64,6 +64,39 @@ const userService = {
             );
     },
 
+    /**
+     *  @returns {Promise} Resolves to an array of received permissions.
+     *      A permission contains:
+     *          - permissionId: the id of the permission
+     *          - appId: the id of the user-client combination that is allowed to access data
+     *          - owner: the id of the user that owns the data
+     *          - grantee: the id of the user that received the permission
+     *          - granteePublicKey: the publicKey of the grantee (base64 encoded)
+     *          - commonKey: the common key of the owner, encrypted with the grantee's
+     *              public key (base64 encoded)
+     *          - scope: the scope of the permission (array of strings)
+     *
+     * TODO: decide on which data should be exposed
+     */
+    getReceivedPermissions() {
+        const currentUserId = this.getCurrentUserId();
+        if (!currentUserId) {
+            return Promise.reject(new SetUpError(NOT_SETUP));
+        }
+        return userRoutes.getReceivedPermissions(currentUserId)
+            .then(permissions =>
+                permissions.map(({
+                    app_id: appId,
+                    common_key: commonKey,
+                    grantee,
+                    grantee_public_key: granteePublicKey,
+                    id,
+                    owner,
+                    scope,
+                }) => ({
+                    appId, commonKey, grantee, granteePublicKey, id, owner, scope: scope.split(' '),
+                })));
+    },
 };
 
 export default userService;

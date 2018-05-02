@@ -29,6 +29,7 @@ describe('services/userService', () => {
     let userInfoStub;
     let resolveUserIdStub;
     let updateUserStub;
+    let getReceivedPermissionsStub;
 
     beforeEach(() => {
         asymDecryptStub = sinon.stub(crypto, 'asymDecryptString');
@@ -56,6 +57,8 @@ describe('services/userService', () => {
             });
         updateUserStub = sinon.stub(userRoutes, 'updateUser')
             .returnsPromise().resolves();
+        getReceivedPermissionsStub = sinon.stub(userRoutes, 'getReceivedPermissions')
+            .returnsPromise().resolves([encryptionResources.permissionResponse]);
     });
 
     describe('pullUser', () => {
@@ -72,12 +75,11 @@ describe('services/userService', () => {
         });
 
         it('should fail when private key is not set', (done) => {
-            try {
-                userService.pullUser();
-            } catch (error) {
-                expect(error.message).to.equal(NOT_SETUP);
-                done();
-            }
+            userService.pullUser()
+                .catch((error) => {
+                    expect(error.message).to.equal(NOT_SETUP);
+                    done();
+                });
         });
     });
 
@@ -124,6 +126,30 @@ describe('services/userService', () => {
         });
     });
 
+    describe('getReceivedPermissions', () => {
+        it('maps permissions as expected', (done) => {
+            userService.currentUserId = testVariables.userId;
+            userService.getReceivedPermissions()
+                .then((permissions) => {
+                    expect(getReceivedPermissionsStub).to.be.calledOnce;
+                    expect(getReceivedPermissionsStub).to.be.calledWith(testVariables.userId);
+                    expect(Object.keys(permissions[0])).to.deep.equal(['appId', 'commonKey', 'grantee', 'granteePublicKey', 'id', 'owner', 'scope']);
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should throw not setup error when currentUserId is null', (done) => {
+            userService.getReceivedPermissions()
+                .catch((err) => {
+                    expect(getReceivedPermissionsStub).not.to.be.called;
+                    expect(err.message).to.equal(NOT_SETUP);
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
     afterEach(() => {
         getGrantedPermissionsStub.restore();
         getUserDetailsStub.restore();
@@ -133,5 +159,6 @@ describe('services/userService', () => {
         symDecryptStub.restore();
         userInfoStub.restore();
         userService.resetUser();
+        getReceivedPermissionsStub.restore();
     });
 });
