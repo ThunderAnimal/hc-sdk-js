@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
+/* eslint-disable max-nested-callbacks */
 import 'babel-polyfill';
 import chai from 'chai';
 import sinon from 'sinon';
@@ -24,104 +25,130 @@ describe('documentRoutes', () => {
         requestStub = sinon.stub(hcRequest, 'submit').returnsPromise();
     });
 
-    it('getFileDownloadUrl passes', (done) => {
-        requestStub.resolves('pass');
-        documentRoutes.getFileDownloadUrl('fakeUserAlias',
-            'fakeDocumentId').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('GET');
-            done();
+    describe('getFileDownloadUrl', () => {
+        it('passes', (done) => {
+            requestStub.resolves('pass');
+            documentRoutes.getFileDownloadUrl('fakeUserAlias',
+                'fakeDocumentId').then((res) => {
+                expect(res).to.equal('pass');
+                expect(requestStub).to.be.calledOnce;
+                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+                expect(requestStub).to.be.calledWith('GET');
+                done();
+            });
         });
     });
 
-    it('getFileUploadUrls passes', (done) => {
-        requestStub.resolves('pass');
+    describe('getFileUploadUrls', () => {
+        it('passes', (done) => {
+            requestStub.resolves('pass');
 
-        documentRoutes.getFileUploadUrls('fakeUserAlias', 'fakeRecordId', '42').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('POST');
-            done();
-        });
-        requestStub.reset();
-    });
-
-    it('createRecord passes', (done) => {
-        requestStub.resolves('pass');
-
-        const params = {
-            record_id: 'fakeRecordId',
-            date: '2017-08-01',
-            user_id: 'fakeUserIId',
-            encrypted_body: 'fakeEncryptedBody',
-            encrypted_tags: [
-                'uzydrHX/3gGWZdZ69LizEA==',
-                '+AJ9MhikiHxSX8sD3qdurw==',
-            ],
-            version: 1,
-            status: 'Active',
-            createdAt: '2017-09-01T13:51:53.741',
-        };
-
-        documentRoutes.createRecord('fakeUserId', params).then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('POST');
-            done();
+            documentRoutes.getFileUploadUrls('fakeUserAlias', 'fakeRecordId', '42').then((res) => {
+                expect(res).to.equal('pass');
+                expect(requestStub).to.be.calledOnce;
+                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+                expect(requestStub).to.be.calledWith('POST');
+                done();
+            });
+            requestStub.reset();
         });
     });
 
-    it('downloadRecord passes', (done) => {
-        requestStub.resolves('pass');
+    describe('createRecord', () => {
+        it('passes', (done) => {
+            requestStub.resolves('pass');
 
-        documentRoutes.downloadRecord('fakeUserId', 'fakeRecordId').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('GET');
-            done();
+            const params = {
+                record_id: 'fakeRecordId',
+                date: '2017-08-01',
+                user_id: 'fakeUserIId',
+                encrypted_body: 'fakeEncryptedBody',
+                encrypted_tags: [
+                    'uzydrHX/3gGWZdZ69LizEA==',
+                    '+AJ9MhikiHxSX8sD3qdurw==',
+                ],
+                version: 1,
+                status: 'Active',
+                createdAt: '2017-09-01T13:51:53.741',
+            };
+
+            documentRoutes.createRecord('fakeUserId', params).then((res) => {
+                expect(res).to.equal('pass');
+                expect(requestStub).to.be.calledOnce;
+                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+                expect(requestStub).to.be.calledWith('POST');
+                done();
+            });
         });
     });
 
-    it('updateRecordStatus passes', (done) => {
-        requestStub.resolves('pass');
+    describe('downloadRecord', () => {
+        it('passes', (done) => {
+            requestStub.resolves('pass');
 
-        documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
-            expect(res).to.equal('pass');
-            expect(requestStub).to.be.calledOnce;
-            expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-            expect(requestStub).to.be.calledWith('PUT',
-                `${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
-            done();
+            documentRoutes.downloadRecord('fakeUserId', 'fakeRecordId').then((res) => {
+                expect(res).to.equal('pass');
+                expect(requestStub).to.be.calledOnce;
+                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+                expect(requestStub).to.be.calledWith('GET');
+                done();
+            });
         });
     });
 
-    it('searchRecord passes', (done) => {
-        const searchParmas = { tags: [testVariables.tag] };
-        requestStub.withArgs('GET', `${config.api}/users/${testVariables.userId}/records`, { query: searchParmas, authorize: true, includeResponseHeaders: true })
-            .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
+    describe('updateRecordStatus', () => {
+        it('passes', (done) => {
+            requestStub.resolves('pass');
 
-        documentRoutes.searchRecords(testVariables.userId, searchParmas).then((res) => {
-            expect(requestStub).to.be.calledOnce;
-            expect(res.totalCount).to.equal(recordResources.count);
-            done();
-        }).catch(done);
+            documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
+                expect(res).to.equal('pass');
+                expect(requestStub).to.be.calledOnce;
+                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
+                expect(requestStub).to.be.calledWith('PUT',
+                    `${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
+                done();
+            });
+        });
     });
 
-    it('getRecordCount passes', (done) => {
-        const searchParmas = { tags: [testVariables.tag] };
-        requestStub.withArgs('HEAD', `${config.api}/users/${testVariables.userId}/records`, { query: searchParmas, authorize: true, includeResponseHeaders: true })
-            .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
+    describe('searchRecord', () => {
+        it('passes', (done) => {
+            const searchParmas = { tags: [testVariables.tag] };
+            requestStub.withArgs('GET', `${config.api}/users/${testVariables.userId}/records`, {
+                query: searchParmas,
+                authorize: true,
+                includeResponseHeaders: true,
+                ownerId: testVariables.userId,
+            })
+                .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
 
-        documentRoutes.getRecordsCount(testVariables.userId, searchParmas).then((res) => {
-            expect(requestStub).to.be.calledOnce;
-            expect(res.totalCount).to.equal(recordResources.count);
-            done();
-        }).catch(done);
+            documentRoutes.searchRecords(testVariables.userId, searchParmas)
+                .then((res) => {
+                    expect(requestStub).to.be.calledOnce;
+                    expect(res.totalCount).to.equal(recordResources.count);
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
+    describe('getRecordCount', () => {
+        it('passes', (done) => {
+            const searchParmas = { tags: [testVariables.tag] };
+            requestStub.withArgs('HEAD', `${config.api}/users/${testVariables.userId}/records`, {
+                query: searchParmas,
+                authorize: true,
+                includeResponseHeaders: true,
+                ownerId: testVariables.userId,
+            })
+                .resolves({ body: [], headers: { 'x-total-count': recordResources.count } });
+
+            documentRoutes.getRecordsCount(testVariables.userId, searchParmas).then((res) => {
+                expect(requestStub).to.be.calledOnce;
+                expect(res.totalCount).to.equal(recordResources.count);
+                done();
+            }).catch(done);
+        });
     });
 
     afterEach(() => {

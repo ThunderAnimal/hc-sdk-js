@@ -5,14 +5,10 @@ import taggingUtils, { tagKeys } from '../lib/taggingUtils';
 import hcDocumentUtils from '../lib/models/utils/hcDocumentUtils';
 import ValidationError from '../lib/errors/ValidationError';
 import hcCrypto from '../lib/crypto';
+import createCryptoService from './cryptoService';
 
 const documentService = {
     fhirService,
-
-    setEncryptionService(encryptionService) {
-        this.encryptionService = encryptionService;
-        this.fhirService.encryptionService = encryptionService;
-    },
 
     downloadDocument(ownerId, documentId) {
         let hcDocument;
@@ -32,7 +28,7 @@ const documentService = {
                     .then(hcCrypto.convertBlobToArrayBufferView))))
             .then(encryptedData => Promise.all(
                 encryptedData.map(data =>
-                    this.encryptionService(ownerId)
+                    createCryptoService(ownerId)
                         .decryptData(encryptedAttachmentKey, data))))
             .then((dataArray) => {
                 let attachment;
@@ -90,7 +86,7 @@ const documentService = {
 
         const encryptedFilesPromise = encryptedAttachmentKeyPromise
             .then(encryptedAttachmentKey =>
-                this.encryptionService(ownerId).encryptBlobs(
+                createCryptoService(ownerId).encryptBlobs(
                     newAttachments.map(attachment => attachment.file),
                     encryptedAttachmentKey,
                 ));

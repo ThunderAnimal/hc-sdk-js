@@ -5,6 +5,7 @@ if (typeof loginResultElement === 'undefined')
 async function login() {
     console.log('login started');
     const clientId = 'example';
-    const CAP = await GC.SDK.createCAP();
-    GC.AUTH.login(clientId, CAP);
+    GC.SDK.createCAP().then((CAP) => {
+        GC.AUTH.login(clientId, CAP);
+    });
 }

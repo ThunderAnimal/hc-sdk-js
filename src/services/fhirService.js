@@ -4,9 +4,9 @@ import userService from './userService';
 import taggingUtils from '../lib/taggingUtils';
 import dateUtils from '../lib/dateUtils';
 import hcCrypto from '../lib/crypto';
+import createCryptoService from './cryptoService';
 
-
-const FHIRService = {
+const fhirService = {
     updateFhirRecord(ownerId, recordId, fhirObject, attachmentKey = null) {
         const updateRequest =
             (userId, params) => documentRoutes.updateRecord(userId, recordId, params);
@@ -35,11 +35,11 @@ const FHIRService = {
 
     uploadRecord(ownerId, resource, tags, uploadRequest, attachmentKey) {
         let owner;
-        return userService.getInternalUser(ownerId)
+        return userService.getUser(ownerId)
             .then((user) => {
                 owner = user;
                 return Promise.all([
-                    this.encryptionService(owner.id).encryptObject(resource),
+                    createCryptoService(owner.id).encryptObject(resource),
                     Promise.all(tags.map(tag => hcCrypto.symEncryptString(owner.tek, tag))),
                 ]);
             })
@@ -66,7 +66,7 @@ const FHIRService = {
 
     downloadFhirRecord(ownerId, recordId) {
         return documentRoutes.downloadRecord(ownerId, recordId)
-            .then(result => userService.getInternalUser()
+            .then(result => userService.getUser(ownerId)
                 .then(user => this.decryptRecordAndTags(result, user.tek)));
     },
 
@@ -74,7 +74,7 @@ const FHIRService = {
         let user;
         let totalCount;
 
-        return userService.getInternalUser()
+        return userService.getUser(ownerId)
             .then((userObject) => {
                 user = userObject;
                 if (params.client_id) {
@@ -122,7 +122,7 @@ const FHIRService = {
         const tagsPromise = Promise.all(record.encrypted_tags.map(tag =>
             hcCrypto.symDecryptString(tek, tag)));
 
-        const recordPromise = this.encryptionService(record.userId)
+        const recordPromise = createCryptoService(record.userId)
             .decryptData(
                 record.encrypted_key,
                 hcCrypto.convertBase64ToArrayBufferView(record.encrypted_body))
@@ -140,4 +140,4 @@ const FHIRService = {
     },
 };
 
-export default FHIRService;
+export default fhirService;

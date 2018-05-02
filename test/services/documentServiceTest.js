@@ -4,23 +4,27 @@ import 'babel-polyfill';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
+import proxy from 'proxyquireify';
 import sinonChai from 'sinon-chai';
-import documentRoutes from '../../src/routes/documentRoutes';
-import fileRoutes from '../../src/routes/fileRoutes';
-import documentService from '../../src/services/documentService';
-import hcDocumentUtils from '../../src/lib/models/utils/hcDocumentUtils';
+import '../../src/routes/documentRoutes';
+import '../../src/routes/fileRoutes';
+import '../../src/services/documentService';
+import '../../src/lib/models/utils/hcDocumentUtils';
 import testVariables from '../../test/testUtils/testVariables';
 import recordResources from '../../test/testUtils/recordResources';
 import taggingUtils from '../../src/lib/taggingUtils';
 import encryptionResources from '../testUtils/encryptionResources';
-import hcCrypto from '../../src/lib/crypto';
+import '../../src/lib/crypto';
+import '../../src/services/cryptoService';
 
+const proxyquire = proxy(require);
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
 const expect = chai.expect;
 
 describe('documentService', () => {
+    let documentService;
     let getFileUploadUrlsStub;
     let getFileDownloadUrlStub;
     let fetchAttachmentKeyStub;
@@ -119,24 +123,6 @@ describe('documentService', () => {
 
 
     beforeEach(() => {
-        // stubs
-        getFileUploadUrlsStub = sinon.stub(documentRoutes, 'getFileUploadUrls').returnsPromise();
-        getFileDownloadUrlStub = sinon.stub(documentRoutes, 'getFileDownloadUrl').returnsPromise();
-        fetchAttachmentKeyStub = sinon.stub(documentRoutes, 'fetchAttachmentKey')
-            .returnsPromise().resolves(encryptionResources.encryptedAttachmentKey);
-
-        fromFhirObjectStub = sinon.stub(hcDocumentUtils, 'fromFhirObject');
-        toFhirObjectStub = sinon.stub(hcDocumentUtils, 'toFhirObject');
-        isValidStub = sinon.stub(hcDocumentUtils, 'isValid').returns(true);
-
-        uploadFileStub = sinon.stub(fileRoutes, 'uploadFile').returnsPromise();
-        downloadFileStub = sinon.stub(fileRoutes, 'downloadFile').returnsPromise();
-
-        updateRecordStatusStub = sinon.stub(documentRoutes, 'updateRecordStatus').returnsPromise();
-
-        convertBlobToArrayBufferViewStub = sinon.stub(hcCrypto, 'convertBlobToArrayBufferView')
-            .returnsPromise().resolves(encryptionResources.file);
-
         decryptDataStub = sinon.stub().returnsPromise().resolves();
         encryptBlobsStub = sinon.stub().returnsPromise().withArgs(file)
             .resolves([[encryptedFile]], encryptionResources.encryptedDataKey);
@@ -146,7 +132,57 @@ describe('documentService', () => {
             encryptBlobs: encryptBlobsStub,
         });
 
-        documentService.encryptionService = encryptionServiceStub;
+        getFileUploadUrlsStub = sinon.stub().returnsPromise();
+        getFileDownloadUrlStub = sinon.stub().returnsPromise();
+        fetchAttachmentKeyStub = sinon.stub().returnsPromise()
+            .resolves(encryptionResources.encryptedAttachmentKey);
+        updateRecordStatusStub = sinon.stub().returnsPromise();
+
+        uploadFileStub = sinon.stub().returnsPromise();
+        downloadFileStub = sinon.stub().returnsPromise();
+
+        convertBlobToArrayBufferViewStub = sinon.stub()
+            .returnsPromise().resolves(encryptionResources.file);
+
+
+        fromFhirObjectStub = sinon.stub();
+        toFhirObjectStub = sinon.stub();
+        isValidStub = sinon.stub().returns(true);
+
+        documentService = proxyquire('../../src/services/documentService', {
+            './cryptoService': {
+                default: encryptionServiceStub,
+            },
+            '../routes/documentRoutes': {
+                default: {
+                    getFileUploadUrls: getFileUploadUrlsStub,
+                    getFileDownloadUrl: getFileDownloadUrlStub,
+                    fetchAttachmentKey: fetchAttachmentKeyStub,
+                    updateRecordStatus: updateRecordStatusStub,
+                },
+            },
+            '../routes/fileRoutes': {
+                default: {
+                    uploadFile: uploadFileStub,
+                    downloadFile: downloadFileStub,
+                },
+            },
+            '../lib/crypto': {
+                default: {
+                    convertBlobToArrayBufferView: convertBlobToArrayBufferViewStub,
+                },
+            },
+            '../lib/models/utils/hcDocumentUtils': {
+                default: {
+                    fromFhirObject: fromFhirObjectStub,
+                    toFhirObject: toFhirObjectStub,
+                    isValid: isValidStub,
+                },
+            },
+        }).default;
+
+        // stubs
+
 
         createFhirRecordStub = sinon.stub()
             .returnsPromise().resolves(documentReferenceRecord);
@@ -326,21 +362,5 @@ describe('documentService', () => {
     });
 
 
-    afterEach(() => {
-        getFileDownloadUrlStub.restore();
-        downloadFileStub.restore();
-        getFileUploadUrlsStub.restore();
-        fromFhirObjectStub.restore();
-        toFhirObjectStub.restore();
-        isValidStub.restore();
-        uploadFileStub.restore();
-        updateRecordStatusStub.restore();
-        encryptBlobsStub.resetHistory();
-        convertBlobToArrayBufferViewStub.restore();
-        fetchAttachmentKeyStub.restore();
-        searchRecordsStub.resetHistory();
-        createFhirRecordStub.resetHistory();
-        downloadFhirRecordStub.resetHistory();
-        updateFhirRecordStub.resetHistory();
-    });
+    afterEach(() => {});
 });

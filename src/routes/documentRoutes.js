@@ -5,47 +5,57 @@ const apiUrl = config.api;
 
 const documentRoutes = {
 
-    getFileDownloadUrl(userId, recordId, fileId) {
-        return hcRequest.submit('GET', `${apiUrl}/users/${userId}/documents/${recordId}/files/${fileId}/download_access_token`, { authorize: true });
+    getFileDownloadUrl(ownerId, recordId, fileId) {
+        return hcRequest.submit('GET', `${apiUrl}/users/${ownerId}/documents/${recordId}/files/${fileId}/download_access_token`, { authorize: true, ownerId });
     },
 
-    getFileUploadUrls(userId, recordId, fileNumber) {
+    getFileUploadUrls(ownerId, recordId, fileNumber) {
         const body = { file_number: fileNumber };
-        return hcRequest.submit('POST', `${apiUrl}/users/${userId}/documents/${recordId}/tokens`, { body, authorize: true });
+        return hcRequest.submit('POST', `${apiUrl}/users/${ownerId}/documents/${recordId}/tokens`, { body, authorize: true, ownerId });
     },
 
-    createRecord(userId, data) {
-        return hcRequest.submit('POST', `${apiUrl}/users/${userId}/records`, { body: data, authorize: true });
+    createRecord(ownerId, data) {
+        return hcRequest.submit('POST', `${apiUrl}/users/${ownerId}/records`, { body: data, authorize: true, ownerId });
     },
 
-    updateRecord(userId, recordId, data) {
-        return hcRequest.submit('PUT', `${apiUrl}/users/${userId}/records/${recordId}`, { body: data, authorize: true });
+    updateRecord(ownerId, recordId, data) {
+        return hcRequest.submit('PUT', `${apiUrl}/users/${ownerId}/records/${recordId}`, { body: data, authorize: true, ownerId });
     },
 
-    searchRecords(userId, queryParams) {
-        return hcRequest.submit('GET', `${apiUrl}/users/${userId}/records`, { query: queryParams, authorize: true, includeResponseHeaders: true })
+    searchRecords(ownerId, queryParams) {
+        return hcRequest.submit('GET', `${apiUrl}/users/${ownerId}/records`, {
+            query: queryParams,
+            authorize: true,
+            includeResponseHeaders: true,
+            ownerId,
+        })
             .then(({ body, headers }) => ({ records: body, totalCount: headers['x-total-count'] }));
     },
 
-    getRecordsCount(userId, queryParams) {
-        return hcRequest.submit('HEAD', `${apiUrl}/users/${userId}/records`, { query: queryParams, authorize: true, includeResponseHeaders: true })
+    getRecordsCount(ownerId, queryParams) {
+        return hcRequest.submit('HEAD', `${apiUrl}/users/${ownerId}/records`, {
+            query: queryParams,
+            authorize: true,
+            includeResponseHeaders: true,
+            ownerId,
+        })
             .then(({ headers }) => ({ totalCount: headers['x-total-count'] }));
     },
 
-    downloadRecord(userId, recordId) {
-        return hcRequest.submit('GET', `${apiUrl}/users/${userId}/records/${recordId}`, { authorize: true });
+    downloadRecord(ownerId, recordId) {
+        return hcRequest.submit('GET', `${apiUrl}/users/${ownerId}/records/${recordId}`, { authorize: true, ownerId });
     },
 
-    updateRecordStatus(userId, recordId, status) {
-        return hcRequest.submit('PUT', `${apiUrl}/users/${userId}/records/${recordId}/status/${status}`, { authorize: true });
+    updateRecordStatus(ownerId, recordId, status) {
+        return hcRequest.submit('PUT', `${apiUrl}/users/${ownerId}/records/${recordId}/status/${status}`, { authorize: true, ownerId });
     },
 
-    deleteRecord(userId, recordId) {
-        return hcRequest.submit('DELETE', `${apiUrl}/users/${userId}/records/${recordId}`, { authorize: true });
+    deleteRecord(ownerId, recordId) {
+        return hcRequest.submit('DELETE', `${apiUrl}/users/${ownerId}/records/${recordId}`, { authorize: true, ownerId });
     },
 
-    fetchAttachmentKey(userId, recordId) {
-        return hcRequest('GET', `${apiUrl}/users/${userId}/records/${recordId}/attachment_key`, { authorize: true });
+    fetchAttachmentKey(ownerId, recordId) {
+        return hcRequest('GET', `${apiUrl}/users/${ownerId}/records/${recordId}/attachment_key`, { authorize: true, ownerId });
     },
 };
 

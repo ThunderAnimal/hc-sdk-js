@@ -37,6 +37,11 @@ const userResources = {
             user_data: { encrypted_data: JSON.stringify(testVariables.userData) },
         },
     },
+    cryptoUser: {
+        id: testVariables.userId,
+        commonKey: encryptionResources.commonKey,
+        tek: encryptionResources.symHCKey,
+    },
 };
 
 export default userResources;

@@ -7,7 +7,7 @@ function cleanUp() {
 
 function getDocuments() {
     cleanUp();
-    GC.SDK.getDocuments(GC.SDK.getCurrentUser().id).then((hcDocuments) => {
+    GC.SDK.getDocuments(GC.SDK.getCurrentUserId()).then((hcDocuments) => {
         hcDocuments.records.forEach((hcDocument) => {
             let documentElement = document.createElement('div');
             documentElement.hcDocument = hcDocument
@@ -65,7 +65,7 @@ function createUpdateForm(userId, hcDocument, display) {
 function displayDocument(hcDocument) {
     cleanUp();
 
-    let currentUserId = GC.SDK.getCurrentUser().id;
+    let currentUserId = GC.SDK.getCurrentUserId();
     resultElement.appendChild(createUpdateForm(currentUserId, hcDocument, displayDocument));
 
     hcDocument.attachments.forEach((attachment) => {
@@ -97,7 +97,7 @@ function displayDocument(hcDocument) {
 }
 
 function getDocument(documentId) {
-    GC.SDK.downloadDocument(GC.SDK.getCurrentUser().id, documentId)
+    GC.SDK.downloadDocument(GC.SDK.getCurrentUserId(), documentId)
         .then(displayDocument);
 }
 
@@ -105,6 +105,6 @@ function uploadDocument(files, title, authorName) {
     let hcAuthor = new GC.SDK.models.HCAuthor({ firstName: authorName });
     let hcDocument = new GC.SDK.models.HCDocument({ files, title, author: hcAuthor });
 
-    GC.SDK.uploadDocument(GC.SDK.getCurrentUser().id, hcDocument)
+    GC.SDK.uploadDocument(GC.SDK.getCurrentUserId(), hcDocument)
         .then(displayDocument);
 }

@@ -19,6 +19,7 @@ const expect = chai.expect;
 
 describe('hcRequest', () => {
     let requestSetStub;
+    let requestSetSetStub;
     let requestSendStub;
     let requestResponseTypeStub;
     let requestQueryStub;
@@ -40,8 +41,12 @@ describe('hcRequest', () => {
             query: requestQueryStub,
         });
 
-        requestStub = sinon.stub().returns({
+        requestSetSetStub = sinon.stub().returns({
             set: requestSetStub,
+        });
+
+        requestStub = sinon.stub().returns({
+            set: requestSetSetStub,
         });
 
 

@@ -17,8 +17,8 @@ const keyTypes = {
 };
 
 // ALGORITHMS
-const AES_CBC = {
-    name: 'AES-CBC',
+const AES_GCM = {
+    name: 'AES-GCM',
     length: 256,
 };
 
@@ -84,7 +84,7 @@ const convertBlobToArrayBufferView = blob =>
  * @returns {Promise} Resolves to the key as a CryptoKey.
  */
 const importSymKeyFromBase64 = (base64Key) => {
-    const alg = AES_CBC;
+    const alg = AES_GCM;
 
     return crypto.subtle.importKey(
         'raw',
@@ -306,7 +306,7 @@ const deriveKey = masterKey =>
         .then(key => crypto.subtle.deriveKey(
             PBKDF2,
             key,
-            AES_CBC,
+            AES_GCM,
             true,
             ['encrypt', 'decrypt'],
         ))
@@ -365,10 +365,7 @@ const generateSymKey = type =>
     //    (http://www.w3.org/TR/WebCryptoAPI/#dfn-CryptoKey-slot-extractable)
     // 3. Usage of the key. (http://www.w3.org/TR/WebCryptoAPI/#cryptokey-interface-types)
     crypto.subtle.generateKey(
-        {
-            name: 'AES-CBC',
-            length: 256,
-        },
+        AES_GCM,
         true,
         ['encrypt', 'decrypt'],
     )

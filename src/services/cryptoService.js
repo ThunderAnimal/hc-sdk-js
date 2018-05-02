@@ -1,10 +1,5 @@
 import hcCrypto from '../lib/crypto';
-import cryptoRoutes from '../routes/cryptoRoutes';
-
-// decryptCommonKey :: JWK -> ArrayBuffer -> Promise(JWK)
-const decryptCommonKey = privateKey => encryptedCommonKey =>
-    hcCrypto.asymDecryptString(privateKey, encryptedCommonKey)
-        .then(JSON.parse);
+import userService from './userService';
 
 // createEncryptData :: encrypt<Data> => Promise(JWK) -> Data ->
 //      Promise([ String/ArrayBufferView, String ])
@@ -45,11 +40,10 @@ const createDecryptData = commonKeyPromise => (encryptedDataKey, encryptedData) 
         .then(JSON.parse)
         .then(dataKey => hcCrypto.symDecrypt(dataKey, encryptedData));
 
-// createCryptoService :: String -> JWK -> String -> Object
-const createCryptoService = clientID => privateKey => (userID) => {
-    const commonKeyPromise = cryptoRoutes
-        .getCommonKey(clientID, userID)
-        .then(decryptCommonKey(privateKey));
+// createCryptoService :: String -> Object
+const createCryptoService = (userId) => {
+    const commonKeyPromise = userService.getUser(userId)
+        .then(user => user.commonKey);
 
     // encryptData :: ArrayBufferView -> Promise([ArrayBufferView, String(base64)])
     const encryptArrayBufferView = createEncryptArrayBufferView(commonKeyPromise);

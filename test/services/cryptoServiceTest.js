@@ -14,6 +14,9 @@ import encryptionResources from '../testUtils/encryptionResources';
 
 import cryptoLib from '../../src/lib/crypto';
 import cryptoRoutes from '../../src/routes/cryptoRoutes';
+import userService from '../../src/services/userService';
+import userResources from '../testUtils/userResources';
+import testVariables from '../testUtils/testVariables';
 
 const proxyquire = proxy(require);
 sinonStubPromise(sinon);
@@ -22,7 +25,7 @@ chai.use(sinonChai);
 describe('cryptoService', () => {
     let createCryptoService;
 
-    let getCommonKeyStub;
+    let getUserStub;
     let getUserPublicKey;
     let asymDecryptStringStub;
     let asymEncrypt;
@@ -35,9 +38,9 @@ describe('cryptoService', () => {
     let symDecryptData;
 
     beforeEach(() => {
-        getCommonKeyStub = sinon.stub()
+        getUserStub = sinon.stub()
             .returnsPromise()
-            .resolves(encryptionResources.encryptedCommonKeyJWK);
+            .resolves(userResources.cryptoUser);
 
         asymDecryptStringStub = sinon.stub()
             .returnsPromise()
@@ -75,9 +78,9 @@ describe('cryptoService', () => {
                     keyTypes: cryptoLib.keyTypes,
                 },
             },
-            '../routes/cryptoRoutes': {
+            './userService': {
                 default: {
-                    getCommonKey: getCommonKeyStub,
+                    getUser: getUserStub,
                 },
             },
         }).default;
@@ -87,9 +90,7 @@ describe('cryptoService', () => {
         let encryptArrayBufferView;
         beforeEach(() => {
             encryptArrayBufferView = createCryptoService(
-                encryptionResources.clientID)(
-                encryptionResources.privateClientUserJWK)(
-                encryptionResources.userID)
+                testVariables.userId)
                 .encryptArrayBufferView;
         });
 
@@ -101,13 +102,9 @@ describe('cryptoService', () => {
                         .to.equal(encryptionResources.encryptedDataKey);
 
                     // common key
-                    expect(getCommonKeyStub).to.be.calledOnce;
-                    expect(getCommonKeyStub)
-                        .to.be.calledWith(encryptionResources.clientID, encryptionResources.userID);
-                    expect(asymDecryptStringStub).to.be.calledOnce;
-                    expect(asymDecryptStringStub).to.be.calledWith(
-                        encryptionResources.privateClientUserJWK,
-                        encryptionResources.encryptedCommonKeyJWK);
+                    expect(getUserStub).to.be.calledOnce;
+                    expect(getUserStub)
+                        .to.be.calledWith(testVariables.userId);
                     // encryption
                     expect(symEncryptStub).to.be.calledOnce;
                     expect(symEncryptStub)
@@ -128,9 +125,7 @@ describe('cryptoService', () => {
         let decryptData;
         beforeEach(() => {
             decryptData = createCryptoService(
-                encryptionResources.clientID)(
-                encryptionResources.privateClientUserJWK)(
-                encryptionResources.userID)
+                testVariables.userId)
                 .decryptData;
         });
 
@@ -140,13 +135,9 @@ describe('cryptoService', () => {
                     expect(receivedData).to.be.equal(encryptionResources.data);
 
                     // common key
-                    expect(getCommonKeyStub).to.be.calledOnce;
-                    expect(getCommonKeyStub)
-                        .to.be.calledWith(encryptionResources.clientID, encryptionResources.userID);
-                    expect(asymDecryptStringStub).to.be.calledOnce;
-                    expect(asymDecryptStringStub).to.be.calledWith(
-                        encryptionResources.privateClientUserJWK,
-                        encryptionResources.encryptedCommonKeyJWK);
+                    expect(getUserStub).to.be.calledOnce;
+                    expect(getUserStub)
+                        .to.be.calledWith(testVariables.userId);
                     // decryption
                     expect(symDecryptStringStub).to.be.calledOnce;
                     expect(symDecryptStringStub)

@@ -1,5 +1,7 @@
 import config from 'config';
 import request from 'superagent-bluebird-promise';
+import authRoutes from '../routes/authRoutes';
+
 
 const maxRetries = 2;
 
@@ -9,33 +11,54 @@ const isExpired = error =>
     error.status === 401 && error.body && error.body.error && error.body.error.includes('expired');
 
 const hcRequest = {
-    accessToken: null,
+    currentUserId: null,
+    masterAccessToken: null,
+    accessTokens: {},
 
     requestAccessToken: null,
 
-    setAccessToken(accessToken) {
-        this.accessToken = `Bearer ${accessToken}`;
+    setMasterAccessToken(accessToken) {
+        this.masterAccessToken = `Bearer ${accessToken}`;
+    },
+
+    setAccessToken(userId, accessToken) {
+        this.accessTokens[userId] = `Bearer ${accessToken}`;
+    },
+
+    getAccessToken(ownerId) {
+        if (!ownerId || ownerId === this.currentUserId) {
+            return Promise.resolve(this.masterAccessToken);
+        }
+        if (this.accessTokens[ownerId]) {
+            return Promise.resolve(this.accessTokens[ownerId]);
+        }
+        return authRoutes.fetchAccessToken(ownerId)
+            .then((response) => {
+                this.setAccessToken(ownerId, response.access_token);
+                return this.accessTokens[ownerId];
+            });
     },
 
     submit(type, path, {
         body,
         query = {},
-        headers = {},
+        givenHeaders = {},
         responseType = '',
         authorize = false,
+        ownerId = null,
         includeResponseHeaders = false,
     } = {}) {
         let retries = 0;
+        const headers = givenHeaders;
 
-        const h = headers;
-        if (authorize) {
-            h.Authorization = this.accessToken;
-        }
+        const accessTokenPromise = authorize ? this.getAccessToken(ownerId) : Promise.resolve(null);
+
         if (isHealthCloudPath(path)) {
-            h['GC-SDK-Version'] = `JS ${VERSION}`;
+            headers['GC-SDK-Version'] = `JS ${VERSION}`;
         }
-        const submitRequest = () => request(type, path)
+        const submitRequest = accessToken => request(type, path)
             .set(headers)
+            .set('Authorization', accessToken)
             .query(query)
             .responseType(responseType)
             .send(body)
@@ -48,13 +71,21 @@ const hcRequest = {
             .catch((err) => {
                 if (isExpired(err) && this.requestAccessToken && retries < maxRetries) {
                     retries += 1;
-                    return this.requestAccessToken()
+                    let refreshPromise;
+                    if (ownerId) {
+                        this.accessTokens[ownerId] = null;
+                        refreshPromise = this.getAccessToken(ownerId);
+                    } else {
+                        refreshPromise = this.requestAccessToken();
+                    }
+
+                    return refreshPromise
                         .then(() => submitRequest());
                 }
                 throw err;
             });
 
-        return submitRequest();
+        return accessTokenPromise.then(submitRequest);
     },
 };
 

@@ -6,11 +6,13 @@ import chai from 'chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
+import proxy from 'proxyquireify';
 
-import documentRoutes from '../../src/routes/documentRoutes';
-import fhirService from '../../src/services/fhirService';
-import userService from '../../src/services/userService';
-import fhirValidator from '../../src/lib/fhirValidator';
+import '../../src/routes/documentRoutes';
+import '../../src/services/fhirService';
+import '../../src/services/userService';
+import '../../src/lib/fhirValidator';
+import '../../src/lib/crypto';
 import taggingUtils from '../../src/lib/taggingUtils';
 
 
@@ -19,21 +21,22 @@ import userResources from '../testUtils/userResources';
 import fhirResources from '../testUtils/fhirResources';
 import recordResources from '../testUtils/recordResources';
 import encryptionResources from '../testUtils/encryptionResources';
-import crypto from '../../src/lib/crypto';
 
 
+const proxyquire = proxy(require);
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
 const expect = chai.expect;
 
 describe('services/fhirService', () => {
+    let fhirService;
     let encryptionServiceStub;
 
     let encryptObjectStub;
-
     let symEncryptStringStub;
     let symDecryptStringStub;
+    let symEncryptObjectStub;
     let convertBase64ToArrayBufferViewStub;
     let convertArrayBufferViewToStringStub;
 
@@ -41,8 +44,10 @@ describe('services/fhirService', () => {
     let decryptDataStub;
     let deleteRecordStub;
     let downloadRecordStub;
+
     let generateTagsFromFhirObjectStub;
-    let getInternalUserStub;
+
+    let getUserStub;
     let searchRecordsStub;
     let getRecordsCountStub;
     let updateRecordStub;
@@ -51,45 +56,90 @@ describe('services/fhirService', () => {
     beforeEach(() => {
         encryptObjectStub = sinon.stub()
             .returnsPromise().resolves(encryptionResources.encryptedObject);
+
         decryptDataStub = sinon.stub().returnsPromise().resolves(encryptionResources.data);
-        symEncryptStringStub = sinon.stub(crypto, 'symEncryptString')
+        symEncryptStringStub = sinon.stub()
             .returnsPromise().resolves(encryptionResources.encryptedString);
-        symDecryptStringStub = sinon.stub(crypto, 'symDecryptString')
+        symDecryptStringStub = sinon.stub()
             .returnsPromise().resolves(encryptionResources.string);
-        convertBase64ToArrayBufferViewStub = sinon.stub(crypto, 'convertBase64ToArrayBufferView')
+        symEncryptObjectStub = sinon.stub()
+            .returnsPromise().resolves(encryptionResources.string);
+        convertBase64ToArrayBufferViewStub = sinon.stub()
             .returns(encryptionResources.data);
-        convertArrayBufferViewToStringStub = sinon.stub(crypto, 'convertArrayBufferViewToString')
+        convertArrayBufferViewToStringStub = sinon.stub()
             .returns(JSON.stringify(fhirResources.documentReference));
-        createRecordStub = sinon.stub(documentRoutes, 'createRecord')
+
+        generateTagsFromFhirObjectStub = sinon.stub()
+            .returns([testVariables.tag]);
+
+        getUserStub = sinon.stub()
+            .returnsPromise().resolves(userResources.cryptoUser);
+
+        createRecordStub = sinon.stub()
             .returnsPromise().resolves(Object.assign({}, recordResources.documentReference));
-        deleteRecordStub = sinon.stub(documentRoutes, 'deleteRecord')
+        deleteRecordStub = sinon.stub()
             .returnsPromise().resolves();
-        downloadRecordStub = sinon.stub(documentRoutes, 'downloadRecord')
+        downloadRecordStub = sinon.stub()
             .returnsPromise().resolves(
                 Object.assign({}, recordResources.documentReferenceEncrypted));
-        generateTagsFromFhirObjectStub = sinon.stub(taggingUtils, 'generateTagsFromFhirObject')
-            .returns([testVariables.tag]);
-        getInternalUserStub = sinon.stub(userService, 'getInternalUser')
-            .returnsPromise().resolves(userResources.internalUser);
-        getRecordsCountStub = sinon.stub(documentRoutes, 'getRecordsCount')
+        getRecordsCountStub = sinon.stub()
             .returnsPromise().resolves({
                 totalCount: recordResources.count,
             });
-        searchRecordsStub = sinon.stub(documentRoutes, 'searchRecords')
+        searchRecordsStub = sinon.stub()
             .returnsPromise().resolves({
                 totalCount: recordResources.count,
                 records: [Object.assign({}, recordResources.documentReferenceEncrypted)],
             });
-        updateRecordStub = sinon.stub(documentRoutes, 'updateRecord')
+        updateRecordStub = sinon.stub()
             .returnsPromise().resolves(Object.assign({}, recordResources.documentReference));
-        validateStub = sinon.stub(fhirValidator, 'validate')
+
+        validateStub = sinon.stub()
             .returnsPromise().resolves();
 
         encryptionServiceStub = sinon.stub().returns({
             decryptData: decryptDataStub,
             encryptObject: encryptObjectStub,
         });
-        fhirService.encryptionService = encryptionServiceStub;
+        fhirService = proxyquire('../../src/services/fhirService', {
+            './cryptoService': {
+                default: encryptionServiceStub,
+            },
+            './userService': {
+                default: {
+                    getUser: getUserStub,
+                },
+            },
+            '../routes/documentRoutes': {
+                default: {
+                    updateRecord: updateRecordStub,
+                    searchRecords: searchRecordsStub,
+                    getRecordsCount: getRecordsCountStub,
+                    createRecord: createRecordStub,
+                    deleteRecord: deleteRecordStub,
+                    downloadRecord: downloadRecordStub,
+                },
+            },
+            '../lib/fhirValidator': {
+                default: { validate: validateStub },
+            },
+            '../lib/crypto': {
+                default: {
+                    symEncryptString: symEncryptStringStub,
+                    symEncryptObject: symEncryptObjectStub,
+                    symDecryptString: symDecryptStringStub,
+                    convertBase64ToArrayBufferView: convertBase64ToArrayBufferViewStub,
+                    convertArrayBufferViewToString: convertArrayBufferViewToStringStub,
+                    generateTagsFromFhirObject: generateTagsFromFhirObjectStub,
+                },
+            },
+            '../lib/taggingUtils': {
+                default: {
+                    generateTags: generateTagsFromFhirObjectStub,
+                    buildTag: taggingUtils.buildTag,
+                },
+            },
+        }).default;
     });
 
     describe('createFhirRecord', () => {
@@ -100,8 +150,8 @@ describe('services/fhirService', () => {
                     expect(createRecordStub).to.be.calledWith(testVariables.userId);
                     expect(validateStub).to.be.calledOnce;
                     expect(validateStub).to.be.calledWith(fhirResources.documentReference);
-                    expect(getInternalUserStub).to.be.calledOnce;
-                    expect(getInternalUserStub).to.be.calledWith(testVariables.userId);
+                    expect(getUserStub).to.be.calledOnce;
+                    expect(getUserStub).to.be.calledWith(testVariables.userId);
                     done();
                 })
                 .catch(done);
@@ -129,8 +179,8 @@ describe('services/fhirService', () => {
                 .then((res) => {
                     expect(res.id).to.deep.equal(testVariables.id);
                     expect(updateRecordStub).to.be.calledOnce;
-                    expect(getInternalUserStub).to.be.calledTwice;
-                    expect(getInternalUserStub).to.be.calledWith(testVariables.userId);
+                    expect(getUserStub).to.be.calledTwice;
+                    expect(getUserStub).to.be.calledWith(testVariables.userId);
                     done();
                 })
                 .catch(done);
@@ -144,7 +194,7 @@ describe('services/fhirService', () => {
                     expect(res.body).to.deep.equal(fhirResources.documentReference);
                     expect(downloadRecordStub).to.be.calledOnce;
                     expect(downloadRecordStub).to.be.calledWith(testVariables.userId);
-                    expect(getInternalUserStub).to.be.calledOnce;
+                    expect(getUserStub).to.be.calledOnce;
                     done();
                 })
                 .catch(done);
@@ -178,7 +228,7 @@ describe('services/fhirService', () => {
                     expect(searchRecordsStub).to.be.calledOnce;
                     expect(searchRecordsStub).to.be.calledWith(testVariables.userId,
                         expectedParamsForRoute);
-                    expect(getInternalUserStub).to.be.calledOnce;
+                    expect(getUserStub).to.be.calledOnce;
                     done();
                 })
                 .catch(done);
@@ -199,7 +249,7 @@ describe('services/fhirService', () => {
                     expect(getRecordsCountStub).to.be.calledOnce;
                     expect(getRecordsCountStub).to.be.calledWith(testVariables.userId,
                         expectedParamsForRoute);
-                    expect(getInternalUserStub).to.be.calledOnce;
+                    expect(getUserStub).to.be.calledOnce;
                     done();
                 })
                 .catch(done);
@@ -221,7 +271,7 @@ describe('services/fhirService', () => {
                     expect(searchRecordsStub).to.be.calledOnce;
                     expect(searchRecordsStub).to.be.calledWith(testVariables.userId,
                         expectedParamsForRoute);
-                    expect(getInternalUserStub).to.be.calledOnce;
+                    expect(getUserStub).to.be.calledOnce;
                     done();
                 })
                 .catch(done);
@@ -241,19 +291,5 @@ describe('services/fhirService', () => {
         });
     });
 
-    afterEach(() => {
-        createRecordStub.restore();
-        deleteRecordStub.restore();
-        downloadRecordStub.restore();
-        symEncryptStringStub.restore();
-        symDecryptStringStub.restore();
-        convertBase64ToArrayBufferViewStub.restore();
-        convertArrayBufferViewToStringStub.restore();
-        generateTagsFromFhirObjectStub.restore();
-        getInternalUserStub.restore();
-        searchRecordsStub.restore();
-        getRecordsCountStub.restore();
-        updateRecordStub.restore();
-        validateStub.restore();
-    });
+    afterEach(() => {});
 });

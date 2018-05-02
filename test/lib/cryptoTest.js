@@ -115,7 +115,7 @@ describe('crypto', () => {
     describe('symmetric encryption', () => {
         let symKey;
         const plainText = 'Hello Martians!';
-        const cipherText = 'xUzWAW9X4M3y5dDjqIupffk14w0hMD0ZvhGMfAm/HKw=';
+        const cipherText = 'CLauEB1h72xTLpONZC218tmo+wWxBKdgAG+6XpzAsh/oaS03pv4R26w2NRw5toA=';
         let cipherText1;
         let cipherText2;
 

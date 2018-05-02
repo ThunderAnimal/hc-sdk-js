@@ -1,5 +1,4 @@
 const clientID = '1123581321';
-const userID = '12624120';
 const granteeID = '31415926';
 const privateKeyClientUser = { alg: 'RSA-OAEP-256', key: '0x6f98b5d235160fecc2e25ee936b72baa' };
 const publicKeyGrantee = { alg: 'RSA-OAEP-256', key: '0x1a04c9d235160fecc2e25ee936b72bad', type: 'public' };
@@ -32,7 +31,6 @@ const symHCKey = {
 
 export default {
     clientID,
-    userID,
     granteeID,
     privateKeyClientUser,
     publicKeyGrantee,
