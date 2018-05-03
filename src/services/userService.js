@@ -1,5 +1,6 @@
 import userRoutes from '../routes/userRoutes';
 import crypto from '../lib/crypto';
+import taggingUtils from '../lib/taggingUtils';
 import SetUpError, { NOT_SETUP } from '../lib/errors/SetupError';
 
 const userService = {
@@ -97,6 +98,45 @@ const userService = {
                     appId, commonKey, grantee, granteePublicKey, id, owner, scope: scope.split(' '),
                 })));
     },
+
+    /**
+     * @param {String} appId - the id of the user-client tuple the permission shall be granted to
+     * @param {Array} annotations - the annotations that shall be shared.
+     * @returns {Promise}
+     */
+    grantPermission(appId, annotations = []) {
+        const scope = ['rec:r', 'rec:w', 'attachment:r', 'attachment:w', 'user:r', 'user:w', 'user:q'];
+        let ownerId;
+        let granteeId;
+
+        return Promise.all([
+            userRoutes.getCAP(appId),
+            this.getUser(),
+        ])
+            .then(([CAP, user]) => {
+                ownerId = user.id;
+                granteeId = CAP.owner;
+                const publicKey = JSON.parse(atob(CAP.grantee_public_key));
+                const commonKeyString = JSON.stringify(user.commonKey);
+                const commonKeyPromise = crypto.asymEncryptString(publicKey, commonKeyString);
+
+                const annotationsPromise = Promise.all(annotations.map(annotation =>
+                    crypto.symEncryptString(user.tek, taggingUtils.buildTag('custom', annotation))));
+
+                return Promise.all([commonKeyPromise, annotationsPromise]);
+            })
+            .then(([commonKey, cipherAnnotations]) => {
+                const annotationScope = cipherAnnotations.map(annotation => `tag:${annotation}`);
+                return userRoutes.grantPermission(
+                    ownerId,
+                    granteeId,
+                    appId,
+                    commonKey,
+                    [...scope, ...annotationScope]);
+            })
+            .then(() => Promise.resolve());
+    },
+
 };
 
 export default userService;

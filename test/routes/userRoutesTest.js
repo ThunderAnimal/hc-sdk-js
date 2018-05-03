@@ -10,6 +10,7 @@ import userRoutes from '../../src/routes/userRoutes';
 import hcRequest from '../../src/lib/hcRequest';
 import testVariables from '../testUtils/testVariables';
 import encryptionResources from '../testUtils/encryptionResources';
+import userResources from '../testUtils/userResources';
 
 sinonStubPromise(sinon);
 chai.use(sinonChai);
@@ -74,6 +75,36 @@ describe('userRoutes', () => {
                     expect(requestStub).to.be.calledOnce;
                     expect(requestStub).to.be.calledWith('GET');
                     expect(permissions[0]).to.equal(encryptionResources.permissionResponse);
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
+    describe('grantPermissions', () => {
+        it('passes when request resolves', (done) => {
+            requestStub.resolves();
+            userRoutes.grantPermission(
+                testVariables.userId,
+                testVariables.userId,
+                testVariables.appId,
+                encryptionResources.commonKey,
+                userResources.scopeArray)
+                .then(() => {
+                    expect(requestStub).to.be.calledOnce;
+                    expect(requestStub.firstCall.args[2].body.scope).to.equal(userResources.scopeArray.join(' '));
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
+    describe('getCAP', () => {
+        it('passes when request resolves', (done) => {
+            requestStub.resolves();
+            userRoutes.getCAP(testVariables.appId)
+                .then(() => {
+                    expect(requestStub).to.be.calledOnce;
                     done();
                 })
                 .catch(done);

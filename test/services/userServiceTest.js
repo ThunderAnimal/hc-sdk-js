@@ -30,6 +30,8 @@ describe('services/userService', () => {
     let resolveUserIdStub;
     let updateUserStub;
     let getReceivedPermissionsStub;
+    let getCAPStub;
+    let grantPermissionStub;
 
     beforeEach(() => {
         asymDecryptStub = sinon.stub(crypto, 'asymDecryptString');
@@ -59,6 +61,10 @@ describe('services/userService', () => {
             .returnsPromise().resolves();
         getReceivedPermissionsStub = sinon.stub(userRoutes, 'getReceivedPermissions')
             .returnsPromise().resolves([encryptionResources.permissionResponse]);
+        getCAPStub = sinon.stub(userRoutes, 'getCAP')
+            .returnsPromise().resolves(encryptionResources.permissionResponse);
+        grantPermissionStub = sinon.stub(userRoutes, 'grantPermission')
+            .returnsPromise().resolves();
     });
 
     describe('pullUser', () => {
@@ -139,10 +145,44 @@ describe('services/userService', () => {
                 .catch(done);
         });
 
-        it('should throw not setup error when currentUserId is null', (done) => {
+        it('should reject with not setup error when currentUserId is null', (done) => {
             userService.getReceivedPermissions()
                 .catch((err) => {
                     expect(getReceivedPermissionsStub).not.to.be.called;
+                    expect(err.message).to.equal(NOT_SETUP);
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
+    describe('grantPermission', () => {
+        it('should resolve, when all works as expected', (done) => {
+            userService.currentUserId = testVariables.userId;
+            userService.users[testVariables.userId] = userResources.cryptoUser;
+            userService.grantPermission(
+                testVariables.appId,
+                [testVariables.annotation, testVariables.annotation])
+                .then(() => {
+                    expect(getCAPStub).to.be.calledOnce;
+                    expect(getCAPStub).to.be.calledWith(testVariables.appId);
+                    expect(grantPermissionStub).to.be.calledWith(
+                        testVariables.userId,
+                        testVariables.userId,
+                        testVariables.appId);
+                    expect(grantPermissionStub.firstCall.args[4].length).to.equal(9);
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should reject with not setup error when currentUserId is null', (done) => {
+            userService.grantPermission(
+                testVariables.appId,
+                [testVariables.annotation, testVariables.annotation])
+                .catch((err) => {
+                    expect(grantPermissionStub).not.to.be.called;
                     expect(err.message).to.equal(NOT_SETUP);
                     done();
                 })
@@ -158,7 +198,9 @@ describe('services/userService', () => {
         asymDecryptStub.restore();
         symDecryptStub.restore();
         userInfoStub.restore();
+        getCAPStub.restore();
         userService.resetUser();
         getReceivedPermissionsStub.restore();
+        grantPermissionStub.restore();
     });
 });

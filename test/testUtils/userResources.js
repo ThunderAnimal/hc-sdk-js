@@ -42,6 +42,7 @@ const userResources = {
         commonKey: encryptionResources.commonKey,
         tek: encryptionResources.symHCKey,
     },
+    scopeArray: ['rec:r', 'rec:w', 'attachment:r', 'attachment:w', 'user:r', 'user:w', 'user:q'],
 };
 
 export default userResources;

@@ -25,6 +25,21 @@ const userRoutes = {
     getReceivedPermissions(userId) {
         return hcRequest.submit('GET', `${apiUrl}/users/${userId}/permissions`, { authorize: true });
     },
+
+    getCAP(appId) {
+        return hcRequest.submit('GET', `${apiUrl}/permissions`, { query: { app_id: appId } });
+    },
+
+    grantPermission(ownerId, granteeId, appId, commonKey, scope) {
+        const scopeString = scope.join(' ');
+        const body = {
+            grantee: granteeId,
+            common_key: commonKey,
+            app_id: appId,
+            scope: scopeString,
+        };
+        return hcRequest.submit('POST', `${apiUrl}/users/${ownerId}/permissions`, { body, authorize: true });
+    },
 };
 
 export default userRoutes;

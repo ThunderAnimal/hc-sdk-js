@@ -27,6 +27,8 @@ const testVariables = {
     state: 'state',
     userData: {},
     refreshToken: 'refresh_token',
+    appId: 'app_id',
+    annotation: 'annotation',
 };
 
 export default testVariables;
