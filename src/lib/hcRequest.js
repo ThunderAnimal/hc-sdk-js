@@ -42,23 +42,26 @@ const hcRequest = {
     submit(type, path, {
         body,
         query = {},
-        givenHeaders = {},
+        headers = {},
         responseType = '',
         authorize = false,
         ownerId = null,
         includeResponseHeaders = false,
     } = {}) {
         let retries = 0;
-        const headers = givenHeaders;
+        const httpHeaders = headers;
 
         const accessTokenPromise = authorize ? this.getAccessToken(ownerId) : Promise.resolve(null);
 
         if (isHealthCloudPath(path)) {
-            headers['GC-SDK-Version'] = `JS ${VERSION}`;
+            // TODO uncomment whenever vega allows the version Header
+            // httpHeaders['GC-SDK-Version'] = `JS ${VERSION}`;
         }
         const submitRequest = accessToken => request(type, path)
-            .set(headers)
-            .set('Authorization', accessToken)
+            .set({
+                ...httpHeaders,
+                authorization: accessToken,
+            })
             .query(query)
             .responseType(responseType)
             .send(body)

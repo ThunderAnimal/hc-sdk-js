@@ -91,12 +91,12 @@ const hcAuthorUtils = {
             ],
             name: [{
                 family: hcAuthor.lastName,
-                given: [hcAuthor.firstName],
-                prefix: [hcAuthor.prefix],
-                suffix: [hcAuthor.suffix],
+                given: hcAuthor.firstName ? [hcAuthor.firstName] : [],
+                prefix: hcAuthor.prefix ? [hcAuthor.prefix] : [],
+                suffix: hcAuthor.suffix ? [hcAuthor.suffix] : [],
             }],
             address: [{
-                line: [hcAuthor.street],
+                line: hcAuthor.street ? [hcAuthor.street] : [],
                 city: hcAuthor.city,
                 postalCode: hcAuthor.postalCode,
             }],

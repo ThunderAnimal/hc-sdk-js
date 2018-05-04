@@ -26,8 +26,8 @@ const userRoutes = {
         return hcRequest.submit('GET', `${apiUrl}/users/${userId}/permissions`, { authorize: true });
     },
 
-    getCAP(appId) {
-        return hcRequest.submit('GET', `${apiUrl}/permissions`, { query: { app_id: appId } });
+    getCAPs(appId) {
+        return hcRequest.submit('GET', `${apiUrl}/permissions`, { authorize: true, query: { app_id: appId } });
     },
 
     grantPermission(ownerId, granteeId, appId, commonKey, scope) {

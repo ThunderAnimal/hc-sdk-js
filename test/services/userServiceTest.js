@@ -30,7 +30,7 @@ describe('services/userService', () => {
     let resolveUserIdStub;
     let updateUserStub;
     let getReceivedPermissionsStub;
-    let getCAPStub;
+    let getCAPsStub;
     let grantPermissionStub;
 
     beforeEach(() => {
@@ -61,8 +61,8 @@ describe('services/userService', () => {
             .returnsPromise().resolves();
         getReceivedPermissionsStub = sinon.stub(userRoutes, 'getReceivedPermissions')
             .returnsPromise().resolves([encryptionResources.permissionResponse]);
-        getCAPStub = sinon.stub(userRoutes, 'getCAP')
-            .returnsPromise().resolves(encryptionResources.permissionResponse);
+        getCAPsStub = sinon.stub(userRoutes, 'getCAPs')
+            .returnsPromise().resolves([encryptionResources.permissionResponse]);
         grantPermissionStub = sinon.stub(userRoutes, 'grantPermission')
             .returnsPromise().resolves();
     });
@@ -164,8 +164,8 @@ describe('services/userService', () => {
                 testVariables.appId,
                 [testVariables.annotation, testVariables.annotation])
                 .then(() => {
-                    expect(getCAPStub).to.be.calledOnce;
-                    expect(getCAPStub).to.be.calledWith(testVariables.appId);
+                    expect(getCAPsStub).to.be.calledOnce;
+                    expect(getCAPsStub).to.be.calledWith(testVariables.appId);
                     expect(grantPermissionStub).to.be.calledWith(
                         testVariables.userId,
                         testVariables.userId,
@@ -198,7 +198,7 @@ describe('services/userService', () => {
         asymDecryptStub.restore();
         symDecryptStub.restore();
         userInfoStub.restore();
-        getCAPStub.restore();
+        getCAPsStub.restore();
         userService.resetUser();
         getReceivedPermissionsStub.restore();
         grantPermissionStub.restore();

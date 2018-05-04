@@ -55,7 +55,7 @@ const documentRoutes = {
     },
 
     fetchAttachmentKey(ownerId, recordId) {
-        return hcRequest('GET', `${apiUrl}/users/${ownerId}/records/${recordId}/attachment_key`, { authorize: true, ownerId });
+        return hcRequest.submit('GET', `${apiUrl}/users/${ownerId}/records/${recordId}/attachment_key`, { authorize: true, ownerId });
     },
 };
 

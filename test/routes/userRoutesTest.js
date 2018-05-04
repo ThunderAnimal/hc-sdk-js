@@ -102,7 +102,7 @@ describe('userRoutes', () => {
     describe('getCAP', () => {
         it('passes when request resolves', (done) => {
             requestStub.resolves();
-            userRoutes.getCAP(testVariables.appId)
+            userRoutes.getCAPs(testVariables.appId)
                 .then(() => {
                     expect(requestStub).to.be.calledOnce;
                     done();

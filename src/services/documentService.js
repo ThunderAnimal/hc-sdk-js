@@ -80,16 +80,14 @@ const documentService = {
             }
         });
 
-        // will resolve to undefined if no attachmentKey is set
-        const encryptedAttachmentKeyPromise =
-            documentRoutes.fetchAttachmentKey(ownerId, hcDocument.id);
+        const recordPromise =
+            documentRoutes.downloadRecord(ownerId, hcDocument.id);
 
-        const encryptedFilesPromise = encryptedAttachmentKeyPromise
-            .then(encryptedAttachmentKey =>
-                createCryptoService(ownerId).encryptBlobs(
-                    newAttachments.map(attachment => attachment.file),
-                    encryptedAttachmentKey,
-                ));
+        const encryptedFilesPromise = recordPromise
+            .then(record => createCryptoService(ownerId).encryptBlobs(
+                newAttachments.map(attachment => attachment.file),
+                record.attachment_key,
+            ));
 
         return Promise.all([
             encryptedFilesPromise,

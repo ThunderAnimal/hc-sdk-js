@@ -11,7 +11,7 @@ function getDocuments() {
         hcDocuments.records.forEach((hcDocument) => {
             let documentElement = document.createElement('div');
             documentElement.hcDocument = hcDocument
-            documentElement.innerHTML = `${hcDocument.id}: ${hcDocument.title}`;
+            documentElement.innerHTML = JSON.stringify(hcDocument, 2);
             resultElement.appendChild(documentElement);
         });
     });
@@ -64,26 +64,25 @@ function createUpdateForm(userId, hcDocument, display) {
 
 function displayDocument(hcDocument) {
     cleanUp();
-
-    let currentUserId = GC.SDK.getCurrentUserId();
+    const currentUserId = GC.SDK.getCurrentUserId();
     resultElement.appendChild(createUpdateForm(currentUserId, hcDocument, displayDocument));
 
     hcDocument.attachments.forEach((attachment) => {
-        let fileWrapper = document.createElement('div');
+        const fileWrapper = document.createElement('div');
 
-        let fileElement = document.createElement('embed');
-        let reader = new FileReader();
+        const fileElement = document.createElement('embed');
+        const reader = new FileReader();
         reader.addEventListener('load', (event) => {
             fileElement.setAttribute('src', event.target.result);
         });
         reader.readAsDataURL(attachment.file);
         fileWrapper.appendChild(fileElement);
 
-        let fileTitle = document.createElement('div');
+        const fileTitle = document.createElement('div');
         fileTitle.innerHTML = attachment.title;
         fileWrapper.appendChild(fileTitle);
 
-        let deleteFile = document.createElement('button');
+        const deleteFile = document.createElement('button');
         deleteFile.innerHTML = 'Press me to delete this file.';
         deleteFile.addEventListener('click', () => {
             hcDocument.attachments = hcDocument.attachments.filter(att => att.id === attachment.id);
@@ -96,8 +95,9 @@ function displayDocument(hcDocument) {
     });
 }
 
-function getDocument(documentId) {
-    GC.SDK.downloadDocument(GC.SDK.getCurrentUserId(), documentId)
+function getDocument(ownerId, documentId) {
+    ownerId = ownerId || GC.SDK.getCurrentUserId();
+    GC.SDK.downloadDocument(ownerId, documentId)
         .then(displayDocument);
 }
 

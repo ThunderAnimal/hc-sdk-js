@@ -28,7 +28,7 @@ describe('documentService', () => {
     let documentService;
     let getFileUploadUrlsStub;
     let getFileDownloadUrlStub;
-    let fetchAttachmentKeyStub;
+    let downloadRecordStub;
 
     let fromFhirObjectStub;
     let toFhirObjectStub;
@@ -135,8 +135,8 @@ describe('documentService', () => {
 
         getFileUploadUrlsStub = sinon.stub().returnsPromise();
         getFileDownloadUrlStub = sinon.stub().returnsPromise();
-        fetchAttachmentKeyStub = sinon.stub().returnsPromise()
-            .resolves(encryptionResources.encryptedAttachmentKey);
+        downloadRecordStub = sinon.stub().returnsPromise()
+            .resolves({ attachment_key: encryptionResources.encryptedAttachmentKey });
         updateRecordStatusStub = sinon.stub().returnsPromise();
 
         uploadFileStub = sinon.stub().returnsPromise();
@@ -158,7 +158,7 @@ describe('documentService', () => {
                 default: {
                     getFileUploadUrls: getFileUploadUrlsStub,
                     getFileDownloadUrl: getFileDownloadUrlStub,
-                    fetchAttachmentKey: fetchAttachmentKeyStub,
+                    downloadRecord: downloadRecordStub,
                     updateRecordStatus: updateRecordStatusStub,
                 },
             },

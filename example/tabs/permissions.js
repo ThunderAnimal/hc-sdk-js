@@ -1,32 +1,26 @@
-if (typeof grantResultElement === 'undefined')
-    var grantResultElement = document.getElementById('grantResult');
-if (typeof grantedPermissionsElement === 'undefined')
-    var grantedPermissionsElement = document.getElementById('grantedPermissions');
+if (typeof permissionsResultElement === 'undefined')
+    var permissionsResultElement = document.getElementById('permissionsResult');
 
-function grantPermissions(granteeAlias) {
-    GC.SDK.grantPermission(granteeAlias)
-        .then(() => GC.SDK.getUserIdByAlias(granteeAlias))
-        .then((id) => {
-            let granteeElement = document.createElement('li');
-            granteeElement.innerText = id;
-            grantedPermissionsElement.appendChild(granteeElement);
+function grantPermission(appId) {
+    GC.SDK.grantPermission(appId)
+        .then((res) => {
+            console.log(res)
+            permissionsResultElement.innerText = `Successculffy granted permission to ${appId}.`;
         })
         .catch((error) => {
-            grantResultElement.innerHTML = JSON.stringify(error);
+            console.log(error)
+            permissionsResult.innerText = JSON.stringify(error);
         });
 }
 
-function getGrantedPermissions() {
-    GC.SDK.getGrantedPermissions()
-        .then((grantedPermissions) => {
-            grantedPermissions.forEach((grantee) => {
-                let granteeElement = document.createElement('li');
-                granteeElement.innerText = grantee.granteeId;
-                console.log(grantee);
-                grantedPermissionsElement.appendChild(granteeElement);
+function getReceivedPermissions() {
+    permissionsResultElement.innerText = '';
+    GC.SDK.getReceivedPermissions()
+        .then((receivedPermissions) => {
+            receivedPermissions.forEach((receipient) => {
+                let receipientElement = document.createElement('li');
+                receipientElement.innerText = JSON.stringify(receipient);
+                permissionsResultElement.appendChild(receipientElement);
             });
-        })
-        .catch(console.log);
+        });
 }
-
-getGrantedPermissions();

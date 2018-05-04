@@ -4,7 +4,7 @@
     if(typeof logoutElement === 'undefined')
         var logoutElement = document.getElementById("logoutResult");
 
-    HC.logout()
+    GC.SDK.logout()
         .then(() => {
             logoutElement.innerHTML = "You have been logged out successfully."
         })

@@ -110,10 +110,11 @@ const userService = {
         let granteeId;
 
         return Promise.all([
-            userRoutes.getCAP(appId),
+            userRoutes.getCAPs(appId),
             this.getUser(),
         ])
-            .then(([CAP, user]) => {
+            .then(([CAPs, user]) => {
+                const CAP = CAPs[0];
                 ownerId = user.id;
                 granteeId = CAP.owner;
                 const publicKey = JSON.parse(atob(CAP.grantee_public_key));
@@ -133,8 +134,7 @@ const userService = {
                     appId,
                     commonKey,
                     [...scope, ...annotationScope]);
-            })
-            .then(() => Promise.resolve());
+            });
     },
 
 };

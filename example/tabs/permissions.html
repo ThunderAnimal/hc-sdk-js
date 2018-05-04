@@ -1,12 +1,15 @@
 <div>
     <form enctype="multipart/form-data">
-        <input id="alias" type="text" placeholder="Grantee alias"/>
+        <input id="appId" type="text" placeholder="appId"/>
         <button type="button"
-                onclick="grantPermissions(document.getElementById('alias').value)">
+                onclick="grantPermission(document.getElementById('appId').value)">
             Press me to grant permissions.
         </button>
-        <div id="grantResult" ></div>
-        <ol id="grantedPermissions"></ol>
+        <button type="button"
+                onclick="getReceivedPermissions()">
+            Press me to display received permissions.
+        </button>
+        <ol id="permissionsResult"></ol>
     </form>
 </div>
 

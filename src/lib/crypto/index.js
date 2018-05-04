@@ -238,7 +238,8 @@ const mergeUint8Arrays = (arr1, arr2) => {
  * @returns {Promise} Resolves to encrypted data as an ArrayBufferView
  */
 const symEncrypt = (hcKey, data) => {
-    const iv = hcKey.t === keyTypes.TAG_ENCRYPTION_KEY ?
+    const isTagEncryption = hcKey.t === keyTypes.TAG_ENCRYPTION_KEY;
+    const iv = isTagEncryption ?
         TEK_IV :
         crypto.getRandomValues(new Uint8Array(16));
     return importKey(hcKey)
@@ -248,7 +249,12 @@ const symEncrypt = (hcKey, data) => {
                 iv,
             }, key, data,
         ))
-        .then(result => mergeUint8Arrays(iv, new Uint8Array(result)));
+        .then((result) => {
+            if (isTagEncryption) {
+                return new Uint8Array(result);
+            }
+            return mergeUint8Arrays(iv, new Uint8Array(result));
+        });
 };
 
 const symEncryptString = (hcKey, string) =>
@@ -271,8 +277,9 @@ const symEncryptBlob = (hcKey, blob) =>
  * @returns {Promise} Resolves to plain data as an ArrayBufferView
  */
 const symDecrypt = (hcKey, ivData) => {
-    const iv = ivData.slice(0, 16);
-    const data = ivData.slice(16, ivData.length);
+    const isTagDecryption = hcKey.t === keyTypes.TAG_ENCRYPTION_KEY;
+    const iv = isTagDecryption ? TEK_IV : ivData.slice(0, 16);
+    const data = isTagDecryption ? ivData : ivData.slice(16, ivData.length);
     return importKey(hcKey)
         .then(key => crypto.subtle.decrypt(
             {

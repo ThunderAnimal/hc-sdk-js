@@ -128,7 +128,7 @@ const fhirService = {
         const tagsPromise = Promise.all(record.encrypted_tags.map(tag =>
             hcCrypto.symDecryptString(tek, tag)));
 
-        const recordPromise = createCryptoService(record.userId)
+        const recordPromise = createCryptoService(record.user_id)
             .decryptData(
                 record.encrypted_key,
                 hcCrypto.convertBase64ToArrayBufferView(record.encrypted_body))
@@ -142,6 +142,7 @@ const fhirService = {
                 body: results[0],
                 tags: results[1],
                 record_id: record.record_id,
+                attachment_key: record.attachment_key,
             }));
     },
 };

@@ -16,8 +16,11 @@
     </button>
     <br><br>
     <form enctype="multipart/form-data">
-        <input type="text" id="docId" placeholder="Document id"/>
-        <button onclick="getDocument(document.getElementById('docId').value)">
+        <input type="text" id="ownerId" placeholder="owner-id"/>
+        <input type="text" id="docId" placeholder="document-id"/>
+        <button onclick="getDocument(
+            document.getElementById('ownerId').value,
+            document.getElementById('docId').value)">
             Press me to display the requested document.
         </button>
     </form>
