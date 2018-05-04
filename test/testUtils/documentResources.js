@@ -19,5 +19,6 @@ const documentResources = {
         website: 'http://johndoe.me',
         specialty: 419365004,
     },
+    annotations: ['annotation1', 'annotation2'],
 };
 export default documentResources;

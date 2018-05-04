@@ -12,6 +12,7 @@ import '../../src/services/documentService';
 import '../../src/lib/models/utils/hcDocumentUtils';
 import testVariables from '../../test/testUtils/testVariables';
 import recordResources from '../../test/testUtils/recordResources';
+import documentResources from '../../test/testUtils/documentResources';
 import taggingUtils from '../../src/lib/taggingUtils';
 import encryptionResources from '../testUtils/encryptionResources';
 import '../../src/lib/crypto';
@@ -68,7 +69,7 @@ describe('documentService', () => {
         title,
         type,
     };
-    const attachmentWithFile = JSON.parse(JSON.stringify(attachmentWithoutFile));
+    const attachmentWithFile = Object.assign({}, attachmentWithoutFile);
     attachmentWithFile.file = file;
 
     const hcDocumentWithoutFileData = {
@@ -203,17 +204,12 @@ describe('documentService', () => {
     });
 
     describe('uploadDocument', () => {
-        let doc;
-        beforeEach(() => {
-            doc = JSON.parse(JSON.stringify(hcDocumentWithFileData));
-        });
-
         it('rejects when getFileUploadUrls fails ', (done) => {
             getFileUploadUrlsStub.rejects('error');
             uploadFileStub.resolves();
             updateRecordStatusStub.resolves();
 
-            documentService.uploadDocument(userId, doc)
+            documentService.uploadDocument(userId, hcDocumentWithFileData)
                 .then(() => done(Error('uploadDocument rejection didn\'t work properly')))
                 .catch((err) => {
                     expect(err).to.equal('error');
@@ -272,7 +268,7 @@ describe('documentService', () => {
     });
 
     describe('updateDocument', () => {
-        it('should resolve, when document is not changed', (done) => {
+        it('should resolve, when document is not changed and no annotations are passed', (done) => {
             documentService.fhirService.updateFhirRecord = sinon.stub()
                 .returnsPromise().resolves(fhirObject);
             attachmentWithoutFile.id = fileId;
@@ -288,6 +284,39 @@ describe('documentService', () => {
                     expect(documentService.fhirService.updateFhirRecord)
                         .to.be.calledWith(userId, recordId, fhirObject);
 
+                    attachmentWithoutFile.id = undefined;
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should resolve, and pass annotations to updateFhirRecord when annotations are passed', (done) => {
+            documentService.fhirService.updateFhirRecord = sinon.stub()
+                .returnsPromise().resolves(fhirObject);
+            attachmentWithoutFile.id = fileId;
+            toFhirObjectStub.returns(fhirObject);
+            encryptBlobsStub.resolves([[], encryptionResources.encryptedAttachmentKey]);
+
+            documentService.updateDocument(
+                userId,
+                {
+                    ...hcDocumentWithoutFileData,
+                    annotations: documentResources.annotations,
+                },
+            )
+                .then(() => {
+                    expect(encryptBlobsStub).to.be.calledWith([]);
+                    expect(getFileUploadUrlsStub).to.be.not.called;
+                    expect(uploadFileStub).to.be.not.called;
+                    expect(documentService.fhirService.updateFhirRecord).to.be.calledOnce;
+                    expect(documentService.fhirService.updateFhirRecord)
+                        .to.be.calledWith(
+                            userId,
+                            recordId,
+                            fhirObject,
+                            taggingUtils.generateCustomTags(documentResources.annotations),
+                            encryptionResources.encryptedAttachmentKey,
+                        );
                     attachmentWithoutFile.id = undefined;
                     done();
                 })

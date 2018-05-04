@@ -29,6 +29,9 @@ const testVariables = {
     refreshToken: 'refresh_token',
     appId: 'app_id',
     annotation: 'annotation',
+    invalidAnnotation: 'khjghghghdgjfhdsgfhdgsfjsfsfgdufsdyfyyujjtgfyyyyfyuyyyryrygugydrdfgugrssfdcbterwddzczxczcxk' +
+    'khjghghghdgjfhdsgfhdgsfjsfsfgdufsdyfyyujjtgfyyyyfyuyyyryrygugydrdfgugrssfdcbterwddzczxczcxkigyfjhfdsfsdfsdfsd' +
+    'khjghghghdgjfhdsgfhdgsfjsfsfgdufsdyfyyujjtgfyyyyfyuyyyryrygug',
 };
 
 export default testVariables;

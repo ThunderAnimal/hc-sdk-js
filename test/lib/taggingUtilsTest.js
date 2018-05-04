@@ -5,6 +5,7 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import taggingUtils, { tagKeys } from '../../src/lib/taggingUtils';
 import testVariables from '../../test/testUtils/testVariables';
+import documentResources from '../../test/testUtils/documentResources';
 
 chai.use(sinonChai);
 
@@ -78,5 +79,15 @@ describe('taggingUtils', () => {
             [testVariables.tag, testVariables.secondTag], tagKeys.client,
         );
         expect(tagValue).to.equal('1');
+    });
+
+    it('returns correct annotaions when tagsList is passed', () => {
+        const annotations = taggingUtils.getAnnotations(
+            [
+                testVariables.tag,
+                testVariables.secondTag,
+                ...taggingUtils.generateCustomTags(documentResources.annotations)],
+        );
+        expect(annotations.toString()).to.equal(documentResources.annotations.toString());
     });
 });

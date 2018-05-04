@@ -2,6 +2,8 @@ import stringUtils from './stringUtils';
 
 const TAG_DELIMITER = '=';
 
+const ANNOTATION_LABEL = 'custom';
+
 export const tagKeys = {
     client: 'client',
     resourceType: 'resourceType',
@@ -17,6 +19,10 @@ const taggingUtils = {
             this.buildTag(tagKey, tagObject[tagKey]));
     },
 
+    generateCustomTags(annotationList) {
+        return annotationList.map(el => this.buildTag(ANNOTATION_LABEL, el));
+    },
+
     buildTag(key, value) {
         return `${stringUtils.prepareForUpload(key)}`
         + `${TAG_DELIMITER}`
@@ -30,6 +36,15 @@ const taggingUtils = {
 
     getValue(tag) {
         return tag.split(TAG_DELIMITER)[1];
+    },
+
+    getAnnotations(tagList) {
+        return tagList.reduce((annotations, el) => {
+            if (el.includes(`${ANNOTATION_LABEL}${TAG_DELIMITER}`)) {
+                annotations.push(this.getValue(el));
+            }
+            return annotations;
+        }, []);
     },
 };
 

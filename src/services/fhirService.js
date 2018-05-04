@@ -6,8 +6,9 @@ import dateUtils from '../lib/dateUtils';
 import hcCrypto from '../lib/crypto';
 import createCryptoService from './cryptoService';
 
+
 const fhirService = {
-    updateFhirRecord(ownerId, recordId, fhirObject, attachmentKey = null) {
+    updateFhirRecord(ownerId, recordId, fhirObject, customTags = [], attachmentKey = null) {
         const updateRequest =
             (userId, params) => documentRoutes.updateRecord(userId, recordId, params);
 
@@ -15,7 +16,7 @@ const fhirService = {
             .then((record) => {
                 const updatedFhirObject = Object.assign(record.body, fhirObject);
                 return this.uploadFhirRecord(
-                    ownerId, updatedFhirObject, updateRequest, attachmentKey);
+                    ownerId, updatedFhirObject, updateRequest, customTags, attachmentKey);
             });
     },
 
@@ -23,17 +24,23 @@ const fhirService = {
         return this.uploadFhirRecord(ownerId, fhirObject, documentRoutes.createRecord);
     },
 
-    uploadFhirRecord(ownerId, fhirResource, uploadRequest, attachmentKey) {
+    uploadFhirRecord(ownerId, fhirResource, uploadRequest, customTags = [], attachmentKey = null) {
         return fhirValidator.validate(fhirResource)
             .then(() => {
                 const tags = [
+                    ...customTags,
                     ...taggingUtils.generateTags(fhirResource),
                 ];
-                return this.uploadRecord(ownerId, fhirResource, tags, uploadRequest, attachmentKey);
+                return this.uploadRecord(
+                    ownerId,
+                    fhirResource,
+                    uploadRequest,
+                    tags,
+                    attachmentKey);
             });
     },
 
-    uploadRecord(ownerId, resource, tags, uploadRequest, attachmentKey) {
+    uploadRecord(ownerId, resource, uploadRequest, tags, attachmentKey) {
         let owner;
         return userService.getUser(ownerId)
             .then((user) => {
@@ -62,7 +69,6 @@ const fhirService = {
                 record_id: result.record_id,
             }));
     },
-
 
     downloadFhirRecord(ownerId, recordId) {
         return documentRoutes.downloadRecord(ownerId, recordId)

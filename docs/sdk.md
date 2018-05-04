@@ -120,6 +120,7 @@ The resulting object has the following attributes:
 - title: string
 - author: Author
 - additionalIds: Object containing a mapping between clientId and a documentId provided by the client
+- annotations: Array of strings to tag the document with, you can later search for documents based on them 
 - id: string, created by platform on upload, do not change
 
 #### Author
@@ -157,6 +158,7 @@ let hcAttachment = new HC.models.Attachment({file});
 ```
 The resulting object has the following attributes:
 - file: a js-file
+- file: a js-filereadme
 - title: string, by default extracted from the file object
 - type: string, by default extracted from the file object
 - creationDate: date, by default extracted from the file object;

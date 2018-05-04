@@ -9,11 +9,13 @@ class HCDocument {
         creationDate = new Date(),
         author,
         additionalIds,
+        annotations,
         id,
     } = {}) {
         if (!(Array.isArray(files)
                 && (!additionalIds || typeof additionalIds === 'object')
                 && typeof type === 'string'
+                && (!annotations || typeof annotations === 'object')
                 && typeof title === 'string'
                 && creationDate instanceof Date
                 && (!author || typeof author === 'object'))) {

@@ -18,6 +18,14 @@ const schema = {
             items: attachmentSchema,
         },
         id: { type: 'string' },
+        annotations: {
+            type: 'array',
+            items: {
+                type: 'string',
+                maxLength: 256,
+            },
+            maxLength: 16,
+        },
     },
     required: ['title', 'attachments', 'type'],
 };

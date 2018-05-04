@@ -20,6 +20,7 @@ import testVariables from '../testUtils/testVariables';
 import userResources from '../testUtils/userResources';
 import fhirResources from '../testUtils/fhirResources';
 import recordResources from '../testUtils/recordResources';
+import documentResources from '../testUtils/documentResources';
 import encryptionResources from '../testUtils/encryptionResources';
 
 
@@ -44,8 +45,7 @@ describe('services/fhirService', () => {
     let decryptDataStub;
     let deleteRecordStub;
     let downloadRecordStub;
-
-    let generateTagsFromFhirObjectStub;
+    let fhirServiceUploadRecordSpy;
 
     let getUserStub;
     let searchRecordsStub;
@@ -68,9 +68,6 @@ describe('services/fhirService', () => {
             .returns(encryptionResources.data);
         convertArrayBufferViewToStringStub = sinon.stub()
             .returns(JSON.stringify(fhirResources.documentReference));
-
-        generateTagsFromFhirObjectStub = sinon.stub()
-            .returns([testVariables.tag]);
 
         getUserStub = sinon.stub()
             .returnsPromise().resolves(userResources.cryptoUser);
@@ -130,16 +127,18 @@ describe('services/fhirService', () => {
                     symDecryptString: symDecryptStringStub,
                     convertBase64ToArrayBufferView: convertBase64ToArrayBufferViewStub,
                     convertArrayBufferViewToString: convertArrayBufferViewToStringStub,
-                    generateTagsFromFhirObject: generateTagsFromFhirObjectStub,
                 },
             },
             '../lib/taggingUtils': {
                 default: {
-                    generateTags: generateTagsFromFhirObjectStub,
+                    clientId: testVariables.clientId,
+                    generateTags: taggingUtils.generateTags,
                     buildTag: taggingUtils.buildTag,
                 },
             },
         }).default;
+
+        fhirServiceUploadRecordSpy = sinon.spy(fhirService, 'uploadRecord');
     });
 
     describe('createFhirRecord', () => {
@@ -181,6 +180,32 @@ describe('services/fhirService', () => {
                     expect(updateRecordStub).to.be.calledOnce;
                     expect(getUserStub).to.be.calledTwice;
                     expect(getUserStub).to.be.calledWith(testVariables.userId);
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should pass the right custom tags corresponding to the annotations passed', (done) => {
+            const tags = [
+                ...taggingUtils.generateCustomTags(documentResources.annotations),
+                ...taggingUtils.generateTags(fhirResources.documentReference),
+            ];
+            fhirService.updateFhirRecord(
+                testVariables.userId,
+                testVariables.recordId,
+                fhirResources.documentReference,
+                taggingUtils.generateCustomTags(documentResources.annotations),
+            )
+                .then((res) => {
+                    expect(res.id).to.deep.equal(testVariables.id);
+                    expect(updateRecordStub).to.be.calledOnce;
+                    expect(fhirServiceUploadRecordSpy).to.be.calledWith(
+                        testVariables.userId,
+                        fhirResources.documentReference,
+                    );
+                    expect(fhirServiceUploadRecordSpy.firstCall.args[3].toString())
+                        .to.equal(tags.toString());
+
                     done();
                 })
                 .catch(done);

@@ -111,12 +111,17 @@ const documentService = {
                 return uploadFilePromise;
             })
             .then(() => {
+                const customTags = hcDocument.annotations
+                    ? taggingUtils.generateCustomTags(hcDocument.annotations)
+                    : [];
                 hcDocument.attachments = [...oldAttachments, ...newAttachments];
                 return this.fhirService.updateFhirRecord(
                     ownerId,
                     hcDocument.id,
                     hcDocumentUtils.toFhirObject(hcDocument, this.clientId),
-                    attachmentKey);
+                    customTags,
+                    attachmentKey,
+                );
             })
             .then(() => hcDocument);
     },
@@ -124,6 +129,7 @@ const documentService = {
     deleteDocument(ownerId, hcDocument) {
         return this.fhirService.deleteRecord(ownerId, hcDocument.id);
     },
+
     getDocuments(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
         return this.fhirService.searchRecords(ownerId, params)
@@ -132,6 +138,7 @@ const documentService = {
                     const hcDocument = hcDocumentUtils.fromFhirObject(record.body);
                     hcDocument.client = taggingUtils.getTagValueFromList(record.tags,
                         tagKeys.client);
+                    hcDocument.annotations = taggingUtils.getAnnotations(record.tags);
                     hcDocument.id = record.record_id;
                     return hcDocument;
                 });

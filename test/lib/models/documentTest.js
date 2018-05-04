@@ -7,6 +7,7 @@ import HCDocument from '../../../src/lib/models/HCDocument';
 import HCAuthor from '../../../src/lib/models/HCAuthor';
 import hcDocumentUtils from '../../../src/lib/models/utils/hcDocumentUtils';
 import documentResources from '../../testUtils/documentResources';
+import testVariables from '../../testUtils/testVariables';
 
 chai.use(sinonChai);
 
@@ -52,6 +53,14 @@ describe('models/document', () => {
     it('fails validation when wrong specialty is entered for author in hcDocument', () => {
         const hcDocument = new HCDocument(documentResources);
         hcDocument.author.specialty = 1235;
+        expect(hcDocumentUtils.isValid(hcDocument)).to.equal(false);
+    });
+
+    it('fails validation when invalid annotation length is passed', () => {
+        const hcDocument = new HCDocument({
+            ...documentResources,
+            annotations: [testVariables.invalidAnnotation],
+        });
         expect(hcDocumentUtils.isValid(hcDocument)).to.equal(false);
     });
 
