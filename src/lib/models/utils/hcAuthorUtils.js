@@ -32,6 +32,7 @@ const getIdentifier = (authorFhirObject) => {
 const hasName = authorFhirObject => authorFhirObject.name && authorFhirObject.name[0];
 const getName = (authorFhirObject) => {
     if (hasName(authorFhirObject)) {
+        const name = authorFhirObject.name[0];
         return {
             firstName: name.given && name.given[0] ? name.given[0] : undefined,
             lastName: name.family,

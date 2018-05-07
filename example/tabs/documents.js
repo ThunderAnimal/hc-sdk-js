@@ -58,7 +58,7 @@ function createUpdateForm(userId, hcDocument, display) {
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Press me to delete this document.';
     deleteButton.addEventListener('click', () => {
-        GC.SDK.deleteDocument(userId, hcDocument)
+        GC.SDK.deleteDocument(userId, hcDocument.id)
             .then(() => {
                 resultElement.innerHTML =
                     `Document '${hcDocument.id}' has successfully been deleted.`;

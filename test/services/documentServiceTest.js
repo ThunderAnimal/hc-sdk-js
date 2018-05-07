@@ -370,8 +370,7 @@ describe('documentService', () => {
                 .resolves({ totalCount: 1 });
 
             documentService.getDocumentsCount(testVariables.userId).then((result) => {
-                expect(result.records).to.be.undefined;
-                expect(result.totalCount).to.equal(1);
+                expect(result).to.equal(1);
                 expect(fromFhirObjectStub).to.not.be.called;
                 done();
             }).catch(done);

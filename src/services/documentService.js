@@ -124,8 +124,8 @@ const documentService = {
             .then(() => hcDocument);
     },
 
-    deleteDocument(ownerId, hcDocument) {
-        return this.fhirService.deleteRecord(ownerId, hcDocument.id);
+    deleteDocument(ownerId, documentId) {
+        return this.fhirService.deleteRecord(ownerId, documentId);
     },
 
     getDocuments(ownerId, params = {}) {
@@ -146,7 +146,8 @@ const documentService = {
 
     getDocumentsCount(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
-        return this.fhirService.searchRecords(ownerId, params, true);
+        return this.fhirService.searchRecords(ownerId, params, true)
+            .then(res => res.totalCount);
     },
 };
 

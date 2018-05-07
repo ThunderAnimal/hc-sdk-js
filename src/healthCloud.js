@@ -18,7 +18,6 @@ const healthCloud = {
     getDocumentsCount: documentService.getDocumentsCount.bind(documentService),
     uploadDocument: documentService.uploadDocument.bind(documentService),
     updateDocument: documentService.updateDocument.bind(documentService),
-    logout: userService.resetUser.bind(userService),
     createCAP: () =>
         hcCrypto.generateAsymKeyPair(hcCrypto.keyTypes.APP).then(({ publicKey, privateKey }) => ({
             publicKey: btoa(JSON.stringify(publicKey)),
@@ -45,6 +44,12 @@ const healthCloud = {
                 hcRequest.currentUserId = id;
                 return id;
             });
+    },
+
+    reset() {
+        taggingUtils.clientId = null;
+        hcRequest.reset();
+        userService.resetUser();
     },
 };
 

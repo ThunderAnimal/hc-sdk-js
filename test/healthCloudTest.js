@@ -33,7 +33,7 @@ describe('HealthCloud', () => {
         expect(typeof GCSDK.getDocuments).to.equal('function');
         expect(typeof GCSDK.getDocumentsCount).to.equal('function');
         expect(typeof GCSDK.uploadDocument).to.equal('function');
-        expect(typeof GCSDK.logout).to.equal('function');
+        expect(typeof GCSDK.reset).to.equal('function');
         expect(typeof GCSDK.getReceivedPermissions).to.equal('function');
         expect(typeof GCSDK.grantPermission).to.equal('function');
         expect(typeof GCSDK.createCAP).to.equal('function');

@@ -17,6 +17,12 @@ const hcRequest = {
 
     requestAccessToken: null,
 
+    reset() {
+        this.currentUserId = null;
+        this.masterAccessToken = null;
+        this.accessTokens = {};
+    },
+
     setMasterAccessToken(accessToken) {
         this.masterAccessToken = `Bearer ${accessToken}`;
     },
