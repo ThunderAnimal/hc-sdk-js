@@ -21,6 +21,7 @@ describe('models/document', () => {
         expect(hcDocument.creationDate).to.equal(documentResources.creationDate);
         expect(hcDocument.author.toString()).to.equal(documentResources.author.toString());
         expect(hcDocument.title).to.equal(documentResources.title);
+        expect(hcDocument.annotations).to.equal(documentResources.annotations);
     });
 
     it('converting a document to fhir and back doesn\'t'

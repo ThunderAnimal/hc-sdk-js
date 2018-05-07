@@ -18,28 +18,34 @@ function getDocuments() {
 }
 
 function createUpdateForm(userId, hcDocument, display) {
-    let updateForm = document.createElement('form');
+    const updateForm = document.createElement('form');
 
-    let titleInput = document.createElement('input');
+    const titleInput = document.createElement('input');
     titleInput.type = 'text';
     titleInput.value = hcDocument.title;
     updateForm.appendChild(titleInput);
 
-    let authorInput = document.createElement('input');
+    const authorInput = document.createElement('input');
     authorInput.type = 'text';
     authorInput.value = hcDocument.author.firstName;
     updateForm.appendChild(authorInput);
 
-    let fileInput = document.createElement('input');
+    const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.multiple = true;
     updateForm.appendChild(fileInput);
 
-    let updateButton = document.createElement('button');
+    const annotationsInput = document.createElement('input');
+    annotationsInput.type = 'text';
+    annotationsInput.value = hcDocument.annotations.join(',');
+    updateForm.appendChild(annotationsInput);
+
+    const updateButton = document.createElement('button');
     updateButton.textContent = 'Press me to update this document.';
     updateButton.addEventListener('click', () => {
         hcDocument.title = titleInput.value;
         hcDocument.author.firstName = authorInput.value;
+        hcDocument.annotations = annotationsInput.value.split(',');
         hcDocument.attachments.push(
             ...[...fileInput.files].map(file => new GC.SDK.models.HCAttachment({ file })));
         GC.SDK.updateDocument(userId, hcDocument)
@@ -49,7 +55,7 @@ function createUpdateForm(userId, hcDocument, display) {
     });
     updateForm.appendChild(updateButton);
 
-    let deleteButton = document.createElement('button');
+    const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Press me to delete this document.';
     deleteButton.addEventListener('click', () => {
         GC.SDK.deleteDocument(userId, hcDocument)
@@ -101,9 +107,11 @@ function getDocument(ownerId, documentId) {
         .then(displayDocument);
 }
 
-function uploadDocument(files, title, authorName) {
-    let hcAuthor = new GC.SDK.models.HCAuthor({ firstName: authorName });
-    let hcDocument = new GC.SDK.models.HCDocument({ files, title, author: hcAuthor });
+function uploadDocument(files, title, authorName, annotations) {
+    const hcAuthor = new GC.SDK.models.HCAuthor({ firstName: authorName });
+    const hcDocument = new GC.SDK.models.HCDocument({
+        files, title, author: hcAuthor, annotations: annotations.split(','),
+    });
 
     GC.SDK.uploadDocument(GC.SDK.getCurrentUserId(), hcDocument)
         .then(displayDocument);

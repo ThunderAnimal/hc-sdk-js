@@ -28,6 +28,7 @@ class HCDocument {
         this.author = author;
         this.additionalIds = additionalIds;
         this.id = id;
+        this.annotations = annotations;
     }
 }
 

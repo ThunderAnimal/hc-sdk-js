@@ -3,11 +3,13 @@
         <input id="title" type="text" placeholder="Document title"/>
         <input id="author" type="text" placeholder="Documents author"/>
         <input id="files" type="file" name="files" size=30 multiple/>
+        <input id="annotations" type="text" placeholder="Document annotations separated by comma " />
         <button type="button"
                 onclick="uploadDocument(
                     [...document.getElementById('files').files],
                     document.getElementById('title').value,
-                    document.getElementById('author').value)">
+                    document.getElementById('author').value,
+                    document.getElementById('annotations').value)">
             Press me to upload your document.
         </button>
     </form>
