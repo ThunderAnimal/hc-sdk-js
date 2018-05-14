@@ -14,6 +14,7 @@ const hcRequest = {
     currentUserId: null,
     masterAccessToken: null,
     accessTokens: {},
+    unicornAccessToken: null,
 
     requestAccessToken: null,
 
@@ -31,13 +32,25 @@ const hcRequest = {
         this.accessTokens[userId] = `Bearer ${accessToken}`;
     },
 
+    /**
+     * getAccessToken returns the accessToken if known or
+     * fetches it for the given ownerId and stores it in a sneaky way
+     * of lazy loading. Surprise surprise.
+     *
+     * @param {String} ownerId=null - accessToken's ownerId, user's by default
+     * @returns {Promise<String>} should contain a string which is the accessToken
+     */
     getAccessToken(ownerId) {
+        // getAccessToken for current user's access token
         if (!ownerId || ownerId === this.currentUserId) {
             return Promise.resolve(this.masterAccessToken);
         }
+        // getAccessToken for other user's access token
         if (this.accessTokens[ownerId]) {
             return Promise.resolve(this.accessTokens[ownerId]);
         }
+
+        // fetch for accessToken for the given user
         return authRoutes.fetchAccessToken(ownerId)
             .then((response) => {
                 this.setAccessToken(ownerId, response.access_token);
@@ -57,12 +70,14 @@ const hcRequest = {
         let retries = 0;
         const httpHeaders = headers;
 
+        // noop promise if authorize is not set
         const accessTokenPromise = authorize ? this.getAccessToken(ownerId) : Promise.resolve(null);
 
         if (isHealthCloudPath(path)) {
             // TODO uncomment whenever vega allows the version Header
             // httpHeaders['GC-SDK-Version'] = `JS ${VERSION}`;
         }
+
         const submitRequest = accessToken => request(type, path)
             .set({
                 ...httpHeaders,
@@ -82,14 +97,20 @@ const hcRequest = {
                     retries += 1;
                     let refreshPromise;
                     if (ownerId) {
+                        // invalidate user's access token and get/set it,
+                        // by using sneaky getAccessToken
                         this.accessTokens[ownerId] = null;
                         refreshPromise = this.getAccessToken(ownerId);
                     } else {
-                        refreshPromise = this.requestAccessToken();
+                        // request accessToken for the user's own accessToken and set it to have
+                        // similar results like by using sneaky getAccessToken with its hidden
+                        // setter layer
+                        refreshPromise = this.requestAccessToken()
+                            .then(token => this.setMasterAccessToken(token));
                     }
 
                     return refreshPromise
-                        .then(() => submitRequest());
+                        .then(token => submitRequest(token));
                 }
                 throw err;
             });
