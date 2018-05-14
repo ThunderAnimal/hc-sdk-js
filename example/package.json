@@ -10,7 +10,9 @@
   "license": "ISC",
   "homepage": "https://github.com/gesundheitscloud/web-example#readme",
   "dependencies": {
-    "express": "^4.15.3"
+    "babel-core": "^6.26.3",
+    "express": "^4.15.3",
+    "http-proxy-middleware": "^0.18.0"
   },
   "devDependencies": {
     "fs": "0.0.1-security"

@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
-if (typeof loginResultElement === 'undefined')
+if (typeof loginResultElement === 'undefined') {
     var loginResultElement = document.getElementById('loginResults');
-
-async function login() {
-    console.log('login started');
-    const clientId = 'example';
-    GC.AUTH.login(clientId);
 }
+
+$('#gcLoginBtn').click(() => {
+    // login, if there is no token
+    GC.AUTH.loggedIn.then(has => !has && GC.AUTH.login());
+});
