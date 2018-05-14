@@ -7,6 +7,7 @@ import HCDocument from './lib/models/HCDocument';
 import HCAttachment from './lib/models/HCAttachment';
 import HCAuthor from './lib/models/HCAuthor';
 import HCSpecialty from './lib/models/HCSpecialty';
+import authCloud from './authCloud';
 
 const healthCloud = {
     getCurrentUserId: userService.getCurrentUserId.bind(userService),
@@ -53,4 +54,7 @@ const healthCloud = {
     },
 };
 
-module.exports = { SDK: healthCloud };
+module.exports = {
+    SDK: healthCloud,
+    AUTH: authCloud,
+};
