@@ -73,7 +73,9 @@ describe('services/userService', () => {
             userService.pullUser()
                 .then((res) => {
                     const userId = userService.currentUserId;
-                    expect(userId).to.deep.equal(testVariables.userId);
+                    const appId = userService.currentAppId;
+                    expect(userId).to.equal(testVariables.userId);
+                    expect(appId).to.equal(testVariables.appId);
                     expect(res).to.deep.equal(userResources.cryptoUser);
                     done();
                 })

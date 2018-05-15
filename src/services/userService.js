@@ -5,12 +5,14 @@ import SetUpError, { NOT_SETUP } from '../lib/errors/SetupError';
 
 const userService = {
     currentUserId: null,
+    currentAppId: null,
     users: {},
     privateKey: null,
 
     resetUser() {
         this.users = {};
         this.currentUserId = null;
+        this.currentAppId = null;
         this.privateKey = null;
     },
 
@@ -20,6 +22,10 @@ const userService = {
 
     getCurrentUserId() {
         return this.currentUserId;
+    },
+
+    getCurrentAppId() {
+        return this.currentAppId;
     },
 
     isCurrentUser(userId) {
@@ -52,6 +58,7 @@ const userService = {
                 .then((tek) => {
                     if (!userId) {
                         this.currentUserId = res.sub;
+                        this.currentAppId = res.app_id;
                         userId = this.currentUserId;
                     }
 

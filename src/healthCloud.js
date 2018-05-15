@@ -11,6 +11,7 @@ import authCloud from './authCloud';
 
 const healthCloud = {
     getCurrentUserId: userService.getCurrentUserId.bind(userService),
+    getCurrentAppId: userService.getCurrentAppId.bind(userService),
     grantPermission: userService.grantPermission.bind(userService),
     getReceivedPermissions: userService.getReceivedPermissions.bind(userService),
     downloadDocument: documentService.downloadDocument.bind(documentService),

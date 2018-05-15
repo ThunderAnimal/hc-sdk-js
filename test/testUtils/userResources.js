@@ -23,6 +23,7 @@ const userResources = {
         sub: testVariables.userId,
         common_key: encryptionResources.encryptedCommonKey,
         tag_encryption_key: encryptionResources.encryptedTagEncryptionKey,
+        app_id: testVariables.appId,
     },
     userDetails: {
         user: {
