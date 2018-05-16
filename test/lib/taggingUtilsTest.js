@@ -64,16 +64,6 @@ describe('taggingUtils', () => {
         done();
     });
 
-    it('returns correct tag value when getValue is called with tag', () => {
-        const tagValue = taggingUtils.getValue(testVariables.secondTag);
-        expect(tagValue).to.equal('1');
-    });
-
-    it('returns undefined when getValue is called with incorrect tag format', () => {
-        const tagValue = taggingUtils.getValue('client%2');
-        expect(tagValue).to.equal(undefined);
-    });
-
     it('returns correct tag value when getTagValueFromList is called with list and tag', () => {
         const tagValue = taggingUtils.getTagValueFromList(
             [testVariables.tag, testVariables.secondTag], tagKeys.client,
@@ -89,5 +79,22 @@ describe('taggingUtils', () => {
                 ...taggingUtils.generateCustomTags(documentResources.annotations)],
         );
         expect(annotations.toString()).to.equal(documentResources.annotations.toString());
+    });
+
+    describe('getValue', () => {
+        it('returns correct tag-value when  is called with tag', () => {
+            const tagValue = taggingUtils.getValue(testVariables.secondTag);
+            expect(tagValue).to.equal('1');
+        });
+
+        it('returns correct tag-value when  is called with encoded tag', () => {
+            const tagValue = taggingUtils.getValue(testVariables.encodedTag);
+            expect(tagValue).to.equal('ann_otation');
+        });
+
+        it('returns undefined whencalled with incorrect tag format', () => {
+            const tagValue = taggingUtils.getValue('client%2');
+            expect(tagValue).to.equal(undefined);
+        });
     });
 });
