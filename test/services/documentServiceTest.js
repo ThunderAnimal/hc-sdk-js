@@ -109,7 +109,7 @@ describe('documentService', () => {
         date: '2017-09-19',
         user_id: userId,
         body: emptyDocumentReference,
-        tags: ['tag1', 'tag2'],
+        tags: ['tag1', 'tag2', 'custom=annotation'],
         version: 1,
         status: 'Active',
         createdAt: '2017-09-19T09:29:48.278',
@@ -258,9 +258,7 @@ describe('documentService', () => {
                     expect(documentService.fhirService.downloadFhirRecord).to.be.calledOnce;
                     expect(downloadFileStub).to.be.calledOnce;
                     expect(hcDocument.id).to.equal(recordId);
-
-                    attachmentWithoutFile.id = undefined;
-                    attachmentWithFile.id = undefined;
+                    expect(hcDocument.annotations).to.deep.equal(['annotation']);
                     done();
                 })
                 .catch(done);
@@ -390,5 +388,8 @@ describe('documentService', () => {
     });
 
 
-    afterEach(() => {});
+    afterEach(() => {
+        attachmentWithoutFile.id = undefined;
+        attachmentWithFile.id = undefined;
+    });
 });
