@@ -6,10 +6,11 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "webpack --env.NODE_ENV=develop --env.TARGET=web",
+    "build:demo": "webpack --env.NODE_ENV=demo --env.TARGET=web",
     "build:staging": "webpack --env.NODE_ENV=staging --env.TARGET=web",
     "build:sandbox": "webpack --env.NODE_ENV=sandbox --env.TARGET=web",
     "build:node": "webpack --env.NODE_ENV=develop --env.TARGET=node",
-    "watch": "webpack --env.NODE_ENV=develop  --env.TARGET=web --watch",
+    "watch": "webpack --env.NODE_ENV=demo  --env.TARGET=web --watch",
     "watch:node": "webpack --env.NODE_ENV=develop --env.TARGET=node --watch",
     "lint": "eslint src test",
     "karma:web": "karma start karma.conf.js --node false",
