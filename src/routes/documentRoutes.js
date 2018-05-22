@@ -46,10 +46,6 @@ const documentRoutes = {
         return hcRequest.submit('GET', `${apiUrl}/users/${ownerId}/records/${recordId}`, { authorize: true, ownerId });
     },
 
-    updateRecordStatus(ownerId, recordId, status) {
-        return hcRequest.submit('PUT', `${apiUrl}/users/${ownerId}/records/${recordId}/status/${status}`, { authorize: true, ownerId });
-    },
-
     deleteRecord(ownerId, recordId) {
         return hcRequest.submit('DELETE', `${apiUrl}/users/${ownerId}/records/${recordId}`, { authorize: true, ownerId });
     },

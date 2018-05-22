@@ -37,8 +37,6 @@ describe('documentService', () => {
     let uploadFileStub;
     let downloadFileStub;
 
-    let updateRecordStatusStub;
-
     let convertBlobToArrayBufferViewStub;
 
     let decryptDataStub;
@@ -137,7 +135,6 @@ describe('documentService', () => {
         getFileDownloadUrlStub = sinon.stub().returnsPromise();
         downloadRecordStub = sinon.stub().returnsPromise()
             .resolves({ attachment_key: encryptionResources.encryptedAttachmentKey });
-        updateRecordStatusStub = sinon.stub().returnsPromise();
 
         uploadFileStub = sinon.stub().returnsPromise();
         downloadFileStub = sinon.stub().returnsPromise();
@@ -159,7 +156,6 @@ describe('documentService', () => {
                     getFileUploadUrls: getFileUploadUrlsStub,
                     getFileDownloadUrl: getFileDownloadUrlStub,
                     downloadRecord: downloadRecordStub,
-                    updateRecordStatus: updateRecordStatusStub,
                 },
             },
             '../routes/fileRoutes': {
@@ -207,7 +203,6 @@ describe('documentService', () => {
         it('rejects when getFileUploadUrls fails ', (done) => {
             getFileUploadUrlsStub.rejects('error');
             uploadFileStub.resolves();
-            updateRecordStatusStub.resolves();
 
             documentService.uploadDocument(userId, hcDocumentWithFileData)
                 .then(() => done(Error('uploadDocument rejection didn\'t work properly')))
@@ -215,7 +210,6 @@ describe('documentService', () => {
                     expect(err).to.equal('error');
                     expect(getFileUploadUrlsStub).to.be.calledOnce;
                     expect(uploadFileStub).to.be.not.called;
-                    expect(updateRecordStatusStub).to.be.not.called;
                     done();
                 })
                 .catch(done);
@@ -328,7 +322,6 @@ describe('documentService', () => {
                     expect(err).to.equal('error');
                     expect(getFileUploadUrlsStub).to.be.calledOnce;
                     expect(uploadFileStub).to.be.not.called;
-                    expect(updateRecordStatusStub).to.be.not.called;
                     done();
                 });
         });

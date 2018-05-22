@@ -96,21 +96,6 @@ describe('documentRoutes', () => {
         });
     });
 
-    describe('updateRecordStatus', () => {
-        it('passes', (done) => {
-            requestStub.resolves('pass');
-
-            documentRoutes.updateRecordStatus('fakeUserId', 'fakeRecordId', 'Active').then((res) => {
-                expect(res).to.equal('pass');
-                expect(requestStub).to.be.calledOnce;
-                expect(requestStub.firstCall.args[2].authorize).to.equal(true);
-                expect(requestStub).to.be.calledWith('PUT',
-                    `${config.api}/users/fakeUserId/records/fakeRecordId/status/Active`);
-                done();
-            });
-        });
-    });
-
     describe('searchRecord', () => {
         it('passes', (done) => {
             const searchParmas = { tags: [testVariables.tag] };
