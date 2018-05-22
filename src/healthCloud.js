@@ -33,6 +33,16 @@ const healthCloud = {
         HCSpecialty,
     },
 
+
+    /**
+     * sets up the GC-SDK
+     * @param {String} clientId - the clientId provided by GesundheitsCloud
+     * @param {String} base64PrivateKey - the privateKey returned from the createCAP method
+     *      (base64 encoded privateKey)
+     * @param {Function} requestAccessToken - () => Promise<String>: returns a new valid accessToken
+     *      of the logged in user
+     * @returns {Promise<String>} the id of the logged in user
+     */
     setup(clientId, base64PrivateKey, requestAccessToken) {
         taggingUtils.clientId = clientId;
         hcRequest.requestAccessToken = requestAccessToken;
@@ -40,7 +50,7 @@ const healthCloud = {
         return requestAccessToken()
             .then((accessToken) => {
                 hcRequest.setMasterAccessToken(accessToken);
-                return userService.getUser();
+                return userService.pullUser();
             })
             .then(({ id }) => {
                 hcRequest.currentUserId = id;
@@ -48,6 +58,9 @@ const healthCloud = {
             });
     },
 
+    /**
+     * resets the SDK
+     */
     reset() {
         taggingUtils.clientId = null;
         hcRequest.reset();

@@ -16,8 +16,12 @@ const userService = {
         this.privateKey = null;
     },
 
-    setPrivateKey(base64privateKey) {
-        this.privateKey = JSON.parse(atob(base64privateKey));
+    /**
+     * Sets the loggedin user's privateKey
+     * @param {String} base64PrivateKey - a privateKey of the loggedin user as a base64 string
+    */
+    setPrivateKey(base64PrivateKey) {
+        this.privateKey = JSON.parse(atob(base64PrivateKey));
     },
 
     getCurrentUserId() {
@@ -32,16 +36,22 @@ const userService = {
         return userId === this.currentUserId;
     },
 
-    getUser(userId) {
-        const uId = userId || this.currentUserId;
-        return this.users[uId] ? Promise.resolve(this.users[uId]) : this.pullUser(userId);
+    /**
+     *
+     *  @param {String} userId - userId of the user whos data is requested.
+     *      Loggedin user by default(even if this.currentUserId is not set yet).
+     *  @returns {Promise} Resolves to a userObject that contains userId,
+     *      commonKey and tagEncryptionKey
+     */
+    getUser(userId = this.currentUserId) {
+        return this.users[userId] ? Promise.resolve(this.users[userId]) : this.pullUser(userId);
     },
 
     /**
      *  @param {String} userId - userId of the user whos data is requested.
-     *                           Loggedin user by default.
+     *      Loggedin user by default.
      *  @returns {Promise} Resolves to a userObject that contains userId,
-     *                     commonKey and tagEncryptionKey
+     *      commonKey and tagEncryptionKey
      */
     pullUser(userId) {
         if (!this.privateKey) {

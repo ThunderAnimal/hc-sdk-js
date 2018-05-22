@@ -47,11 +47,11 @@ describe('HealthCloud', () => {
 
     describe('setup', () => {
         let requestAccessTokenStub;
-        let getUserStub;
+        let pullUserStub;
 
         beforeEach(() => {
             requestAccessTokenStub = sinon.stub().returnsPromise().resolves();
-            getUserStub = sinon.stub(userService, 'getUser').returnsPromise().resolves({ id: testVariables.userId });
+            pullUserStub = sinon.stub(userService, 'pullUser').returnsPromise().resolves({ id: testVariables.userId });
         });
 
         it('makes its calls', (done) => {
@@ -70,7 +70,7 @@ describe('HealthCloud', () => {
         });
 
         afterEach(() => {
-            getUserStub.restore();
+            pullUserStub.restore();
         });
     });
 });

@@ -10,6 +10,13 @@ import createCryptoService from './cryptoService';
 const documentService = {
     fhirService,
 
+    /**
+     * Downloads the document with given owner and documentId with all its files.
+     *
+     * @param {String} ownerId - the id of the owner of the document
+     * @param {String} documentId - the id of the document
+     * @returns {Promise<hcDocument>} the requested hcDocument
+     */
     downloadDocument(ownerId, documentId) {
         let hcDocument;
         let encryptedAttachmentKey;
@@ -49,6 +56,12 @@ const documentService = {
             });
     },
 
+    /**
+     * Uploads a document to a users GesundheitsCloud
+     * @param {String} ownerId - the id of the owner of the document
+     * @param {hcDocument} hcDocument - the hcDocument that should be uploaded
+     * @returns {Promise<hcDocument>} - the uploaded hcDocument with id and attachmentIds
+     */
     uploadDocument(ownerId, hcDocument) {
         if (!hcDocumentUtils.isValid(hcDocument)) {
             return Promise.reject(new ValidationError('Not a valid hcDocument'));
@@ -64,6 +77,13 @@ const documentService = {
             });
     },
 
+    /**
+     * Updates a hcDocument. Changing attachments files is not possible,
+     * but uploading new attachments and removing old ones.
+     * @param {String} ownerId - the id of the owner of the document
+     * @param {hcDocument} hcDocument - the updated hcDocument.
+     * @returns {Promise<hcDocument>} - the updated hcDocument.
+     */
     updateDocument(ownerId, hcDocument) {
         if (!hcDocumentUtils.isValid(hcDocument)) {
             return Promise.reject(new ValidationError('Not a valid hcDocument'));
@@ -125,10 +145,23 @@ const documentService = {
             .then(() => hcDocument);
     },
 
+    /**
+     * Deletes the hcDocument
+     * @param {String} ownerId - the id of the owner of the hcDocument
+     * @param {String} documentId - the id of the hcDocument that should be deleted
+     */
     deleteDocument(ownerId, documentId) {
         return this.fhirService.deleteRecord(ownerId, documentId);
     },
 
+    /**
+     * returns the metadata(everyting but the files) of the matching hcDocuments
+     * @param {String} ownerId - the id of the owner of the hcDocument
+     * @param {Object} params - search parameters check in sdk.md for more information
+     * @returns {Object} documents
+     * @returns {Number} documents.totalCount - the total number of matching documents
+     * @returns {Array<hcDocument>} documents.records - the matching records
+     */
     getDocuments(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
         return this.fhirService.searchRecords(ownerId, params)
@@ -145,6 +178,12 @@ const documentService = {
             });
     },
 
+    /**
+     * Returns the number of elements that match the params
+     * @param {String} ownerId - the id of the owner of the hcDocument
+     * @param {Object} params - search parameters check in sdk.md for more information
+     * @returns {Number} the number of hcDocuments that match the params
+     */
     getDocumentsCount(ownerId, params = {}) {
         params.tags = [taggingUtils.buildTag('resourceType', 'documentReference')];
         return this.fhirService.searchRecords(ownerId, params, true)

@@ -12,10 +12,13 @@ const isExpired = error =>
 
 const hcRequest = {
     currentUserId: null,
+    // the accessToken of the logged in user, which is used for getting other users tokens
     masterAccessToken: null,
     accessTokens: {},
-    unicornAccessToken: null,
 
+    /**
+     * @returns {Promise<String>} resolves to the accessToken of the logged in user
+    */
     requestAccessToken: null,
 
     reset() {
@@ -33,12 +36,10 @@ const hcRequest = {
     },
 
     /**
-     * getAccessToken returns the accessToken if known or
-     * fetches it for the given ownerId and stores it in a sneaky way
-     * of lazy loading. Surprise surprise.
+     * returns the accessToken if known or fetches it for the given ownerId and stores it.
      *
-     * @param {String} ownerId=null - accessToken's ownerId, user's by default
-     * @returns {Promise<String>} should contain a string which is the accessToken
+     * @param {String} ownerId=null - accessToken's ownerId, logged in user's by default
+     * @returns {Promise<String>} the accessToken of the requested owner
      */
     getAccessToken(ownerId) {
         // getAccessToken for current user's access token
@@ -97,14 +98,11 @@ const hcRequest = {
                     retries += 1;
                     let refreshPromise;
                     if (ownerId) {
-                        // invalidate user's access token and get/set it,
-                        // by using sneaky getAccessToken
+                        // invalidate user's access token and get a new one
                         this.accessTokens[ownerId] = null;
                         refreshPromise = this.getAccessToken(ownerId);
                     } else {
-                        // request accessToken for the user's own accessToken and set it to have
-                        // similar results like by using sneaky getAccessToken with its hidden
-                        // setter layer
+                        // request accessToken for the logged in user's accessToken and set it
                         refreshPromise = this.requestAccessToken()
                             .then(token => this.setMasterAccessToken(token));
                     }
