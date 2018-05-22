@@ -34,5 +34,9 @@ module.exports = (env) => {
             new webpack.BannerPlugin(`Version: ${JSON.stringify(packageJson.version)}`),
         ],
     };
+    if (env.MINIFY) {
+        config.plugins.push(new webpack.optimize.UglifyJsPlugin());
+    }
+
     return config;
 };

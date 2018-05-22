@@ -8,6 +8,7 @@
     "build": "webpack --env.NODE_ENV=develop --env.TARGET=web",
     "build:staging": "webpack --env.NODE_ENV=staging --env.TARGET=web",
     "build:sandbox": "webpack --env.NODE_ENV=sandbox --env.TARGET=web",
+    "build:demo": "webpack --env.NODE_ENV=demo --env.TARGET=web --env.MINIFY",
     "build:node": "webpack --env.NODE_ENV=develop --env.TARGET=node",
     "watch": "webpack --env.NODE_ENV=develop  --env.TARGET=web --watch",
     "watch:node": "webpack --env.NODE_ENV=develop --env.TARGET=node --watch",
