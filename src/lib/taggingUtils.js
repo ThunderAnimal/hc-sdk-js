@@ -35,7 +35,10 @@ const taggingUtils = {
     },
 
     getValue(tag) {
-        return tag.split(TAG_DELIMITER)[1];
+        const value = tag.split(TAG_DELIMITER)[1];
+        return typeof value === 'string' ?
+            stringUtils.removePercentEncoding(value) :
+            undefined;
     },
 
     getAnnotations(tagList) {

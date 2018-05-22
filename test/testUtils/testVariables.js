@@ -18,6 +18,7 @@ const testVariables = {
     dateTimeString: '2017-12-15T10:35:52.492',
     tag: 'resourceType=documentReference',
     secondTag: 'client=1',
+    encodedTag: 'client=ann%5Fotation',
     encryptedTag: 'encrypted_tag',
     tek: 'tag_encryption_key',
     encryptedTek: 'encrypted_tag_encryption_key',
