@@ -12,8 +12,8 @@ export const tagKeys = {
 const taggingUtils = {
     generateTags(fhirObject) {
         const tagObject = {};
-        if (this.clientId) tagObject.clientId = this.clientId;
-        if (fhirObject.resourceType) tagObject.resourceType = fhirObject.resourceType;
+        if (this.clientId) tagObject[tagKeys.client] = this.clientId;
+        if (fhirObject.resourceType) tagObject[tagKeys.resourceType] = fhirObject.resourceType;
 
         return Object.keys(tagObject).map(tagKey =>
             this.buildTag(tagKey, tagObject[tagKey]));
