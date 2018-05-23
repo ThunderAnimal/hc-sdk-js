@@ -6,10 +6,12 @@ import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
 import sinonStubPromise from 'sinon-stub-promise';
 import Ajv from 'ajv';
+import proxy from 'proxyquireify';
 
-import fhirRoutes from '../../src/routes/fhirRoutes';
-import fhirValidator from '../../src/lib/fhirValidator';
+import '../../src/lib/fhirValidator';
 
+sinonStubPromise(sinon);
+const proxyquire = proxy(require);
 sinonStubPromise(sinon);
 chai.use(sinonChai);
 
@@ -17,6 +19,7 @@ const expect = chai.expect;
 
 
 describe('fhir validator', () => {
+    let fhirValidator;
     const schema = {
         resources: {
             DocumentReference: {
@@ -40,11 +43,13 @@ describe('fhir validator', () => {
         },
         types: {},
     };
-    let fhirRouteStub;
 
     beforeEach(() => {
-        fhirRouteStub = sinon.stub(fhirRoutes, 'getFhirSchema')
-            .returnsPromise().resolves(JSON.stringify(schema));
+        fhirValidator = proxyquire('../../src/lib/fhirValidator', {
+            '../assets/fhir_schema.json': schema,
+            ajv: Ajv,
+
+        }).default;
     });
 
     it('getConformance succeeds', (done) => {
@@ -114,7 +119,5 @@ describe('fhir validator', () => {
             });
     });
 
-    afterEach(() => {
-        fhirRouteStub.restore();
-    });
+    afterEach(() => {});
 });

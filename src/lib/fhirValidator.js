@@ -1,31 +1,27 @@
 import Ajv from 'ajv';
 
 import ValidationError from './errors/ValidationError';
-import fhirRoutes from '../routes/fhirRoutes';
+import fhirSchema from '../assets/fhir_schema.json';
 
 const ajv = new Ajv({ extendRefs: true });
 
 class FhirValidator {
     getConformance() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (this.conformance) {
                 resolve(this.conformance);
                 return;
             }
-            fhirRoutes.getFhirSchema()
-                .then((res) => {
-                    const schema = JSON.parse(res);
-                    Object.keys(schema.resources).forEach((key) => {
-                        schema.resources[key].types = Object.assign({},
-                            schema.resources[key].types, schema.types);
-                    });
-                    this.conformance = {
-                        types: schema.types,
-                        resources: schema.resources,
-                    };
-                    resolve(this.conformance);
-                })
-                .catch(reject);
+
+            Object.keys(fhirSchema.resources).forEach((key) => {
+                fhirSchema.resources[key].types = Object.assign({},
+                    fhirSchema.resources[key].types, fhirSchema.types);
+            });
+            this.conformance = {
+                types: fhirSchema.types,
+                resources: fhirSchema.resources,
+            };
+            resolve(this.conformance);
         });
     }
 
