@@ -47,22 +47,20 @@ describe('taggingUtils', () => {
 
     taggingUtils.clientId = testVariables.clientId;
 
-    it('generateTags succeeds', (done) => {
+    it('verifies that generateTags succeeds', () => {
         const tags = taggingUtils.generateTags(fhirObject);
         expect(tags.length).to.equal(2);
         expect(tags[1]).to.equal('resourcetype=patient');
         expect(tags[0]).to.equal(taggingUtils.buildTag('client', testVariables.clientId));
-        done();
     });
 
-    it('buildTag returns correctly encoded tag', (done) => {
+    it('verifies that buildTag returns correctly encoded tag', () => {
         const tag = taggingUtils.buildTag(
             ';,/?:@&=+$#-_.!~*\'()ABC abc 123',
             ';,/?:@&=+$#-_.!~*\'()ABC abc 123');
         expect(tag).to.equal(
             '%3B%2C%2F%3F%3A%40%26%3D%2B%24%23%2d%5f%2e%21%7e%2a%27%28%29abc%20abc%20123='
             + '%3B%2C%2F%3F%3A%40%26%3D%2B%24%23%2d%5f%2e%21%7e%2a%27%28%29abc%20abc%20123');
-        done();
     });
 
     it('returns correct tag value when getTagValueFromList is called with list and tag', () => {
@@ -72,7 +70,7 @@ describe('taggingUtils', () => {
         expect(tagValue).to.equal('1');
     });
 
-    it('returns correct annotaions when tagsList is passed', () => {
+    it('returns correct annotations when tagsList is passed', () => {
         const annotations = taggingUtils.getAnnotations(
             [
                 testVariables.tag,

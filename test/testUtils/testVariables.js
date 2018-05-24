@@ -19,6 +19,7 @@ const testVariables = {
     tag: 'resourceType=documentReference',
     secondTag: 'client=1',
     encodedTag: 'client=ann%5Fotation',
+    customTag: 'custom=annotation',
     encryptedTag: 'encrypted_tag',
     tek: 'tag_encryption_key',
     encryptedTek: 'encrypted_tag_encryption_key',

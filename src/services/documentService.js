@@ -23,6 +23,8 @@ const documentService = {
         return this.fhirService.downloadFhirRecord(ownerId, documentId)
             .then((record) => {
                 hcDocument = hcDocumentUtils.fromFhirObject(record.body);
+                hcDocument.client = taggingUtils.getTagValueFromList(record.tags,
+                    tagKeys.client);
                 hcDocument.annotations = taggingUtils.getAnnotations(record.tags);
                 encryptedAttachmentKey = record.attachment_key;
                 return Promise.all(

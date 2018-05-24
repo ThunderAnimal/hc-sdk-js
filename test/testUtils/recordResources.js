@@ -10,8 +10,8 @@ const recordResources = {
         version: 2,
         status: 'Active',
         createdAt: testVariables.dateTimeString,
-        body: fhirResources.documentReferenceUploaded,
-        tags: [testVariables.tag, testVariables.secondTag],
+        body: fhirResources.documentReference,
+        tags: [testVariables.tag, testVariables.secondTag, testVariables.customTag],
     },
     documentReferenceEncrypted: {
         record_id: testVariables.recordId,

@@ -94,26 +94,10 @@ describe('documentService', () => {
         creation: file.lastModifiedDate,
     };
 
-    const emptyDocumentReference = {
-        description: 'Title',
-        indexed: '2017-10-18T13:58:12.809Z',
-        resourceType: 'DocumentReference',
-        status: 'current',
-        type: { text: 'concept' },
-    };
-
-    const documentReferenceRecord = {
-        record_id: recordId,
-        date: '2017-09-19',
-        user_id: userId,
-        body: emptyDocumentReference,
-        tags: ['tag1', 'tag2', 'custom=annotation'],
-        version: 1,
-        status: 'Active',
-        createdAt: '2017-09-19T09:29:48.278',
-    };
-
-    const documentReferenceRecordFactory = (files = [], basicRecord = documentReferenceRecord) => {
+    const documentReferenceRecordFactory = (
+        files = [],
+        basicRecord = JSON.parse(JSON.stringify(recordResources.documentReference)),
+    ) => {
         const content = files.map(() => ({ attachment: attachmentContent }));
         basicRecord.body.content = content;
         basicRecord.files = files;
@@ -182,7 +166,7 @@ describe('documentService', () => {
 
 
         createFhirRecordStub = sinon.stub()
-            .returnsPromise().resolves(documentReferenceRecord);
+            .returnsPromise().resolves(recordResources.documentReference);
         downloadFhirRecordStub = sinon.stub()
             .returnsPromise().resolves(documentReferenceRecordFactory([encryptedFile]));
         updateFhirRecordStub = sinon.stub()
@@ -242,7 +226,7 @@ describe('documentService', () => {
         it('should resolve to a correct hcDocument with files', (done) => {
             attachmentWithoutFile.id = fileId;
             attachmentWithFile.id = fileId;
-            fromFhirObjectStub.returns(hcDocumentWithoutFileData);
+            fromFhirObjectStub.returns(hcDocumentWithFileData);
             getFileDownloadUrlStub.resolves({ sas_token: sasToken });
             downloadFileStub.resolves(encryptedFile);
 
@@ -252,6 +236,7 @@ describe('documentService', () => {
                     expect(documentService.fhirService.downloadFhirRecord).to.be.calledOnce;
                     expect(downloadFileStub).to.be.calledOnce;
                     expect(hcDocument.id).to.equal(recordId);
+                    expect(hcDocument.client).to.equal('1');
                     expect(hcDocument.annotations).to.deep.equal(['annotation']);
                     done();
                 })
