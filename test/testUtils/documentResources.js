@@ -1,3 +1,5 @@
+import hcSpecialty from '../../src/lib/models/HCSpecialty';
+
 const documentResources = {
     files: [new File(['test'], 'testName'), new File(['test'], 'testName')],
     creationDate: new Date('Thu, 23 Nov 2017 22:57:55 GMT'),
@@ -7,7 +9,7 @@ const documentResources = {
         1: 'id1',
     },
     author: {
-        identifier: 'custom',
+        id: 'custom',
         firstName: 'John',
         lastName: 'Doe',
         prefix: 'Captain',
@@ -17,7 +19,7 @@ const documentResources = {
         postalCode: '10439',
         telephone: '061-221-9176',
         website: 'http://johndoe.me',
-        specialty: 419365004,
+        specialty: hcSpecialty.AdultMentalIllness,
     },
     annotations: ['annotation1', 'annotation2'],
 };

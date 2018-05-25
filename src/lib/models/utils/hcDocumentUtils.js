@@ -47,16 +47,24 @@ const hcDocumentUtils = {
                     .reduce((obj, item) => {
                         obj[item.assigner.reference] = item.value;
                         return obj;
-                    })
+                    }, {})
                 : undefined,
+            author: {},
         });
         hcDocument.attachments = fhirObject.content ? fhirObject.content.map(content =>
             hcAttachmentUtils.fromFhirObject(content.attachment)) : [];
         // fhirObject.author contains the reference id to the author in contained array.
         if (fhirObject.contained && fhirObject.contained.length > 0) {
             const author = fhirObject.contained.find((el => el.id === 'contained-author-id'));
-            hcDocument.author = author ? hcAuthorUtils.fromFhirObject(author) : '';
+            hcDocument.author = author ? hcAuthorUtils.fromFhirObject(author) : {};
         }
+
+        if (fhirObject.context && fhirObject.context.practiceSetting) {
+            hcDocument.author.specialty = hcSpecialtyUtils.fromFhirCodeableConcept(
+                fhirObject.context.practiceSetting,
+            );
+        }
+
         return hcDocument;
     },
 
@@ -69,11 +77,24 @@ const hcDocumentUtils = {
             author: [{ reference: '#contained-author-id' }],
             description: hcDocument.title,
             subject: { reference: hcDocument.title },
+            contained: [],
         };
         fhirObject.content = hcDocument.attachments ? hcDocument.attachments.map(attachment =>
             ({ attachment: hcAttachmentUtils.toFhirObject(attachment) })) : [];
 
-        fhirObject.contained = [hcAuthorUtils.toFhirObject(hcDocument.author, clientId)];
+        if (hcDocument.author) {
+            fhirObject.contained.push(hcAuthorUtils.toFhirObject(hcDocument.author, clientId));
+        }
+
+        // Information about where the document was created.
+        if (hcDocument.author && hcDocument.author.specialty) {
+            fhirObject.context = {
+                practiceSetting: hcSpecialtyUtils.toFhirCodeableConcept(
+                    hcDocument.author.specialty,
+                ),
+            };
+        }
+
         if (hcDocument.additionalIds) {
             fhirObject.identifier = Object.keys(hcDocument.additionalIds).map(key => ({
                 value: hcDocument.additionalIds[key],
@@ -82,17 +103,7 @@ const hcDocumentUtils = {
                 },
             }));
         }
-        // Information about where the document was created.
-        if (hcDocument.author.specialty) {
-            fhirObject.context = {
-                practiceSetting: {
-                    coding: [{
-                        display: hcSpecialtyUtils.display(hcDocument.author.specialty),
-                        code: hcDocument.author.specialty,
-                    }],
-                },
-            };
-        }
+
         return fhirObject;
     },
 };

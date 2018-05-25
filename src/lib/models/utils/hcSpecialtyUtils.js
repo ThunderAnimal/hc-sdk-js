@@ -122,8 +122,27 @@ const hcSpecialtyUtils = {
         return Specialty[int];
     },
     getSpecialties() {
-        return Object.keys(Specialty).map(key => parseInt(key));
+        return Object.keys(Specialty);
     },
+
+    // Specialty is not resourceType in FHIR but is often used as codeable concept
+    // We use it to define the practice setting in which document was created
+    // Speciality in our model is a single value.So the coding array always has one
+    // value.
+    fromFhirCodeableConcept(fhirCodeableConcept) {
+        return fhirCodeableConcept.coding && fhirCodeableConcept.coding[0]
+            && fhirCodeableConcept.coding[0].code;
+    },
+
+    toFhirCodeableConcept(specialty) {
+        return {
+            coding: [{
+                display: this.display(specialty),
+                code: specialty,
+            }],
+        };
+    },
+
 };
 
 export default hcSpecialtyUtils;

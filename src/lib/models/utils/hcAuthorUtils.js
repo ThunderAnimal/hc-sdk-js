@@ -4,7 +4,7 @@ import hcSpecialtyUtils from './hcSpecialtyUtils';
 export const schema = {
     type: 'object',
     properties: {
-        identifier: { type: 'string' },
+        id: { type: 'string' },
         firstName: { type: 'string' },
         lastName: { type: 'string' },
         prefix: { type: 'string' },
@@ -15,7 +15,7 @@ export const schema = {
         telephone: { type: 'string' },
         website: { type: 'string' },
         specialty: {
-            type: 'number',
+            type: 'string',
             enum: hcSpecialtyUtils.getSpecialties(),
         },
     },
@@ -59,7 +59,7 @@ const getAddress = (authorFhirObject) => {
 const getTelecom = (authorFhirObject) => {
     if (authorFhirObject.telecom) {
         const phone = authorFhirObject.telecom.find(el => el.system === 'phone');
-        const website = authorFhirObject.telecom.find(el => el.value === 'url');
+        const website = authorFhirObject.telecom.find(el => el.system === 'url');
         return {
             telephone: phone ? phone.value : undefined,
             website: website ? website.value : undefined,
@@ -71,7 +71,7 @@ const getTelecom = (authorFhirObject) => {
 const hcAuthorUtils = {
     fromFhirObject(fhirObject) {
         return new HCAuthor({
-            identifier: getIdentifier(fhirObject),
+            id: getIdentifier(fhirObject),
             ...getName(fhirObject),
             ...getAddress(fhirObject),
             ...getTelecom(fhirObject),
@@ -82,14 +82,7 @@ const hcAuthorUtils = {
         const fhirObject = {
             resourceType: 'Practitioner',
             id: 'contained-author-id',
-            identifier: [
-                {
-                    value: hcAuthor.identifier,
-                    assigner: {
-                        reference: clientId,
-                    },
-                },
-            ],
+            identifier: [],
             name: [{
                 family: hcAuthor.lastName,
                 given: hcAuthor.firstName ? [hcAuthor.firstName] : [],
@@ -103,6 +96,16 @@ const hcAuthorUtils = {
             }],
             telecom: [],
         };
+
+        if (hcAuthor.id) {
+            fhirObject.identifier.push(
+                {
+                    value: hcAuthor.id,
+                    assigner: {
+                        reference: clientId,
+                    },
+                });
+        }
 
         if (hcAuthor.telephone) {
             fhirObject.telecom.push({

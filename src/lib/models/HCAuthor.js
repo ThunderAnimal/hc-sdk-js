@@ -3,7 +3,7 @@ import ValidationError from '../errors/ValidationError';
 
 class HCAuthor {
     constructor({
-        identifier,
+        id,
         firstName,
         lastName,
         prefix,
@@ -15,7 +15,7 @@ class HCAuthor {
         website,
         specialty,
     } = {}) {
-        if (!((typeof identifier === 'string' || !identifier)
+        if (!((typeof id === 'string' || !id)
                 && (typeof firstName === 'string' || !firstName)
                 && (typeof lastName === 'string' || !lastName)
                 && (typeof prefix === 'string' || !prefix)
@@ -25,10 +25,10 @@ class HCAuthor {
                 && (typeof postalCode === 'string' || !postalCode)
                 && (typeof telephone === 'string' || !telephone)
                 && (typeof website === 'string' || !website)
-                && (typeof specialty === 'number' || !specialty))) {
+                && (typeof specialty === 'string' || !specialty))) {
             throw new ValidationError('HCAuthor: Invalid arguments');
         }
-        this.identifier = identifier;
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.prefix = prefix;

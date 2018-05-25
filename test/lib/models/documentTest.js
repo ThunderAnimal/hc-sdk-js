@@ -25,14 +25,15 @@ describe('models/document', () => {
     });
 
     it('converting a document to fhir and back doesn\'t'
-        + ' change the document(except the attachments)', () => {
+        + ' change the document(except the attachments and annotations)', () => {
         const hcDocument = new HCDocument(documentResources);
         const fhirDocument = hcDocumentUtils.toFhirObject(hcDocument);
         const fhirGeneratedDocument = hcDocumentUtils.fromFhirObject(fhirDocument);
         expect(fhirGeneratedDocument.attachments.length).to.equal(hcDocument.attachments.length);
         hcDocument.attachments = [];
+        fhirGeneratedDocument.annotations = hcDocument.annotations;
         fhirGeneratedDocument.attachments = [];
-        expect(fhirGeneratedDocument.toString()).to.deep.equal(hcDocument.toString());
+        expect(fhirGeneratedDocument).to.deep.equal(hcDocument);
     });
 
     it('fails to create hcDocument when parameters are invalid', () => {
