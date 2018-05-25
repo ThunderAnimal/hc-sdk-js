@@ -1,0 +1,10 @@
+{
+  "test": "tekEncrypt",
+  "input": "gesundheitscloud",
+  "output": "oKturRK3C3vE1S3D/tjaheGTDAFpfLPE13HE+mhBgWk=",
+  "key": {
+    "t": "tek",
+    "sym": "ENrtNtnidEGip5V+OV8Y0g==",
+    "v": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "test": "symEncrypt",
+  "input": "SGVsbG8gV29ybGQ=",
+  "output": "9n9M4/qStFjLh6XpXLjJ6FQUqELPYqKgRs91",
+  "iv": "7cd98f5d9e10419bda2f3825e74d7e58",
+  "key": {
+    "t": "ck",
+    "sym": "LL85V5L0n5024C6XLGe+/mmg9F/VkUbRQycnN28S5L4=",
+    "v": 1
+  }
+}

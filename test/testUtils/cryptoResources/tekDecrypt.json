@@ -1,0 +1,10 @@
+{
+  "test": "tekDecrypt",
+  "input": "o6F+rRG2DWrDtpgX/UQuUjspB232lBou",
+  "output": "document",
+  "key": {
+    "t": "tek",
+    "sym": "ENrtNtnidEGip5V+OV8Y0g==",
+    "v": 1
+  }
+}

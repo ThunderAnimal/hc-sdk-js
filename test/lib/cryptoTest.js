@@ -9,22 +9,26 @@ import sinonStubPromise from 'sinon-stub-promise';
 import sinonChai from 'sinon-chai';
 import hcCrypto from '../../src/lib/crypto';
 import encryptionResources from '../testUtils/encryptionResources';
+import asymEncryptJson from '../testUtils/cryptoResources/asymEncrypt.json';
+import asymDecryptJson from '../testUtils/cryptoResources/asymDecrypt.json';
+import symDecryptJson from '../testUtils/cryptoResources/symDecrypt.json';
+import tekEncryptJson from '../testUtils/cryptoResources/tekEncrypt.json';
+import tekDecryptJson from '../testUtils/cryptoResources/tekDecrypt.json';
+import exchangeKeyAppPublicKey from '../testUtils/cryptoResources/exchange_key_app_public_v1.json';
+import exchangeKeyAppPrivateKey from '../testUtils/cryptoResources/exchange_key_app_private_v1.json';
+import exchangeKeyCommonKey from '../testUtils/cryptoResources/exchange_key_common_v1.json';
 
 chai.use(sinonChai);
 const expect = chai.expect;
 
 describe('crypto', () => {
-    describe('asym Ecnryption', () => {
+    describe('asymmetric Ecnryption and decryption', () => {
         let privateKey;
-
         let publicKey;
-        const cipherText = 'aGUPobvIYCsTtZlQxQ/z8tCpBEiTKNBcZ3wtt6dlTlSwJYT9TyB9lh3LXh7nYtBn/idJ0YoHCgkgt1pO9u0xHnhBzRJVllgCrGN30y3rwO+mz7xr+z/nyqVyrsiOsUPfbS4ojrUszVAxbXLdyq2bVgQ4wV4suBTWJ/41Cx/Tvhlj6C7lph4cSj+R+SOArayRIAcwgDgAY+ThY4/+1JWqH4GNq2QmGplwfoDVvVYDMfepUN6K1E7APnELKNvz89s6/z+n3GTtrntx5Tbos6aD3hafrPbESj/fbK7gaVdUcM6VhJy4RBtDzg0Y4u4Q/hg0W9u+sjZEnHR6s83t4syM7w==';
-        const plainText = 'Hello Martians!';
-        let cipherResult;
 
         describe('getPublicKeyFromSPKI', () => {
             it('should import a SPKI key correctly', (done) => {
-                hcCrypto.importPublicKeyFromSPKI(encryptionResources.SPKIKey)
+                hcCrypto.importPublicKeyFromSPKI(exchangeKeyAppPublicKey.pub)
                     .then((pk) => {
                         publicKey = pk;
                         done();
@@ -37,7 +41,7 @@ describe('crypto', () => {
             it('should export key to SPKIKey correctly', (done) => {
                 hcCrypto.exportPublicKeyToSPKI(publicKey)
                     .then((SPKI) => {
-                        expect(SPKI).to.equal(encryptionResources.SPKIKey);
+                        expect(SPKI).to.equal(exchangeKeyAppPublicKey.pub);
                         done();
                     })
                     .catch(done);
@@ -46,7 +50,7 @@ describe('crypto', () => {
 
         describe('getPrivateKeyFromPKCS8', () => {
             it('should import PKCS8 key correctly', (done) => {
-                hcCrypto.importPrivateKeyFromPKCS8(encryptionResources.PKCS8Key)
+                hcCrypto.importPrivateKeyFromPKCS8(exchangeKeyAppPrivateKey.priv)
                     .then((pk) => {
                         privateKey = pk;
                         done();
@@ -59,39 +63,54 @@ describe('crypto', () => {
             it('should export key to PKCS8 correctly', (done) => {
                 hcCrypto.exportPrivateKeyToPKCS8(privateKey)
                     .then((PKCS8) => {
-                        expect(PKCS8).to.equal(encryptionResources.PKCS8Key);
+                        expect(PKCS8).to.equal(exchangeKeyAppPrivateKey.priv);
                         done();
                     })
                     .catch(done);
             });
         });
 
-        describe('asymEncryptString', () => {
-            it(`should encrypt ${plainText} to ${cipherText}`, (done) => {
-                hcCrypto.asymEncryptString(encryptionResources.hcPublicKey, plainText)
-                    .then((ct) => {
-                        cipherResult = ct;
-                        expect(cipherResult).to.not.equal(plainText);
+
+        // Since asymEncrypting every time with a publicKey gives different result every time,
+        // we use corresponding private key to make sure that it decrypts to the right value.
+        describe('asymmetric encryption', () => {
+            it('should be possible to encrypt byte arrays', (done) => {
+                hcCrypto.asymEncryptString(asymEncryptJson.public, atob(asymEncryptJson.input))
+                    .then(encryptedResult => hcCrypto.asymDecryptString(
+                        asymEncryptJson.private,
+                        encryptedResult,
+                    ))
+                    .then((decryptedResult) => {
+                        expect(btoa(decryptedResult)).to.equal(asymEncryptJson.input);
                         done();
                     })
                     .catch(done);
             });
         });
 
-        describe('asymDecryptString', () => {
-            it(`should decrypt ${cipherText} and ${cipherResult} to ${plainText}`, (done) => {
-                Promise.all([
-                    hcCrypto.asymDecryptString(encryptionResources.hcPrivateKey, cipherText),
-                    hcCrypto.asymDecryptString(encryptionResources.hcPrivateKey, cipherResult),
-                ])
+        describe('asymmetric decryption', () => {
+            it('should be possible to decrypt byte arrays', (done) => {
+                hcCrypto.asymDecryptString(asymDecryptJson.key, asymDecryptJson.input)
                     .then((result) => {
-                        // tests if the cipherText from above is decrypted correctly
-                        expect(result[0]).to.equal(plainText);
-                        // tests if the cipherResult from the previous test is decrypted correctly
-                        expect(result[1]).to.equal(plainText);
+                        expect(btoa(result)).to.equal(asymDecryptJson.output);
                         done();
-                    })
-                    .catch(done);
+                    });
+            });
+
+            it('should decrypt two encrypted strings into same decypted string', (done) => {
+                hcCrypto.asymEncryptString(asymEncryptJson.public, atob(asymEncryptJson.input))
+                    .then(encryptedResult => Promise.all([
+                        hcCrypto.asymDecryptString(asymEncryptJson.private, encryptedResult),
+                        hcCrypto.asymDecryptString(
+                            asymEncryptJson.private,
+                            asymEncryptJson.output),
+                    ])
+                        .then((result) => {
+                            expect(result[0]).to.equal(atob(asymEncryptJson.input));
+                            expect(result[1]).to.equal(atob(asymEncryptJson.input));
+                            done();
+                        })
+                        .catch(done));
             });
         });
 
@@ -103,9 +122,6 @@ describe('crypto', () => {
     describe('symmetric encryption', () => {
         let symKey;
         const plainText = 'Hello Martians!';
-        const cipherText = 'CLauEB1h72xTLpONZC218tmo+wWxBKdgAG+6XpzAsh/oaS03pv4R26w2NRw5toA=';
-        let cipherText1;
-        let cipherText2;
 
         describe('importSymKeyFromBase64', () => {
             it('should import a raw key correctly', (done) => {
@@ -129,50 +145,64 @@ describe('crypto', () => {
             });
         });
 
+
         describe('symEncryptString', () => {
             it(`should encrypt ${plainText} different each time`, (done) => {
                 Promise.all([
-                    hcCrypto.symEncryptString(encryptionResources.symHCKey, plainText),
-                    hcCrypto.symEncryptString(encryptionResources.symHCKey, plainText),
+                    hcCrypto.symEncryptString(exchangeKeyCommonKey, plainText),
+                    hcCrypto.symEncryptString(exchangeKeyCommonKey, plainText),
                 ])
                     .then(([ct1, ct2]) => {
-                        [cipherText1, cipherText2] = [ct1, ct2];
                         expect(ct1).to.not.equal(ct2);
                         done();
                     })
                     .catch(done);
             });
-        });
 
-        describe('asymDecryptString', () => {
-            it(`should decrypt ${cipherText} to ${plainText}`, (done) => {
-                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText)
-                    .then((result) => {
-                        expect(result).to.equal(plainText);
+            it('should verify symmetric encryption flow', (done) => {
+                hcCrypto.symEncryptString(symDecryptJson.key, symDecryptJson.input)
+                    .then(encryptedResult => hcCrypto.symDecryptString(
+                        symDecryptJson.key,
+                        encryptedResult,
+                    ))
+                    .then((decryptedResult) => {
+                        expect(decryptedResult).to.equal(symDecryptJson.input);
                         done();
                     })
                     .catch(done);
             });
 
-            it(`should decrypt previously encrypted texts to ${plainText}`, (done) => {
-                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText1);
-                hcCrypto.symDecryptString(encryptionResources.symHCKey, cipherText1)
-                    .then((result) => {
-                        expect(result).to.equal(plainText);
+            it('should verify symmetric decryption', (done) => {
+                hcCrypto.symDecryptString(
+                    symDecryptJson.key,
+                    btoa(atob(symDecryptJson.iv) + atob(symDecryptJson.input)))
+                    .then((encryptedResult) => {
+                        expect(btoa((encryptedResult))).to.equal(symDecryptJson.output);
                         done();
                     })
                     .catch(done);
             });
+
+            it(tekEncryptJson.test, (done) => {
+                hcCrypto.symEncryptString(tekEncryptJson.key, tekEncryptJson.input)
+                    .then((encryptedResult) => {
+                        expect(encryptedResult).to.equal(tekEncryptJson.output);
+                        done();
+                    });
+            });
+
+            it(tekDecryptJson.test, (done) => {
+                hcCrypto.symDecryptString(tekDecryptJson.key, tekDecryptJson.input)
+                    .then((encryptedResult) => {
+                        expect(encryptedResult).to.equal(tekDecryptJson.output);
+                        done();
+                    });
+            });
         });
-
         it('should be possible to encrypt byte arrays');
         it('should be possible to decrypt byte arrays');
     });
 
-    describe('asymmetric', () => {
-        it('should be possible to encrypt byte arrays');
-        it('should be possible to decrypt byte arrays');
-    });
 
     describe('jwk mapping', () => {
         it('should be possible to make a JWK');
